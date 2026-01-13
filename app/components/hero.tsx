@@ -4,7 +4,6 @@ import { MousePointerClick, Github, Linkedin } from "lucide-react";
 import Magnetic from "./Magnetic";
 import { useEffect, useState } from "react";
 
-// 1. إضافة التعريف للـ Props لاستلام الدالة من الأب (Home)
 interface HeroProps {
   onStartProject: () => void;
 }
@@ -34,11 +33,11 @@ export default function Hero({ onStartProject }: HeroProps) {
   return (
     <section id="home"
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen w-full  flex flex-col items-center justify-center overflow-hidden bg-[#030303]"
+      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-[#030303]"
     >
-      {/* 1. الجسيمات الثلاثية - كما هي */}
+      {/* 1. الجسيمات - قللنا العدد قليلاً لزيادة الـ Performance */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {[...Array(40)].map((_, i) => (
+        {[...Array(25)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ 
@@ -49,10 +48,10 @@ export default function Hero({ onStartProject }: HeroProps) {
             animate={{
               x: [null, Math.random() * 1200, Math.random() * -200],
               y: [null, Math.random() * 800, Math.random() * -100],
-              scale: [1, 1.5, 1],
+              scale: [1, 1.2, 1],
             }}
             transition={{
-              duration: Math.random() * 20 + 10,
+              duration: Math.random() * 20 + 15,
               repeat: Infinity,
               ease: "linear"
             }}
@@ -61,7 +60,6 @@ export default function Hero({ onStartProject }: HeroProps) {
         ))}
       </div>
 
-      {/* 2. الـ Interactive Grid - كما هي */}
       <div className="absolute inset-0 z-0 opacity-[0.1] pointer-events-none" 
            style={{
              backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)`,
@@ -69,13 +67,8 @@ export default function Hero({ onStartProject }: HeroProps) {
            }} 
       />
 
-      {/* 3. الـ Spotlight - كما هو */}
-      <motion.div 
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{ background }} 
-      />
+      <motion.div className="pointer-events-none absolute inset-0 z-0" style={{ background }} />
 
-      {/* 4. محتوى الـ Hero الرئيسي */}
       <div className="relative z-10 container mx-auto px-6 text-center" >
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
@@ -97,7 +90,6 @@ export default function Hero({ onStartProject }: HeroProps) {
             </span><br />
             Experiences.
           </motion.h1>
-          
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[130%] bg-white/[0.02] border border-white/[0.05] -z-10 rotate-[-1deg] rounded-[5rem] blur-2xl"></div>
         </div>
 
@@ -112,9 +104,9 @@ export default function Hero({ onStartProject }: HeroProps) {
 
         <div className="flex flex-wrap gap-6 mt-12 justify-center items-center">
           <Magnetic>
-            {/* 2. ربط زر "ابدأ مشروعك" بالدالة onStartProject */}
             <button 
               onClick={onStartProject}
+              aria-label="Start your project with Mojimmy"
               className="px-10 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white rounded-full font-black text-lg hover:scale-105 transition-all shadow-[0_10px_40px_rgba(147,51,234,0.3)] flex items-center gap-3 group"
             >
               ابدأ مشروعك 
@@ -123,8 +115,24 @@ export default function Hero({ onStartProject }: HeroProps) {
           </Magnetic>
           
           <div className="flex gap-4">
-             <Magnetic><button className="bg-white/5 border border-white/10 p-4 rounded-full hover:bg-white/10 transition-all text-white"><Github size={22} /></button></Magnetic>
-             <Magnetic><button className="bg-white/5 border border-white/10 p-4 rounded-full hover:bg-white/10 transition-all text-white"><Linkedin size={22} /></button></Magnetic>
+             <Magnetic>
+                <button 
+                  onClick={() => window.open('https://github.com/momhamedga', '_blank')}
+                  aria-label="Follow Mojimmy on GitHub"
+                  className="bg-white/5 border border-white/10 p-4 rounded-full hover:bg-white/10 transition-all text-white"
+                >
+                  <Github size={22} />
+                </button>
+             </Magnetic>
+             <Magnetic>
+                <button 
+                  onClick={() => window.open('https://linkedin.com', '_blank')}
+                  aria-label="Connect with Mojimmy on LinkedIn"
+                  className="bg-white/5 border border-white/10 p-4 rounded-full hover:bg-white/10 transition-all text-white"
+                >
+                  <Linkedin size={22} />
+                </button>
+             </Magnetic>
           </div>
         </div>
       </div>
