@@ -9,7 +9,7 @@ import Hero from "./components/hero";
 import Preloader from "./components/Preloader";
 
 // 2. المكونات الثقيلة (Dynamic Import) - يتم تحميلها في الخلفية
-const GravitySkills = dynamic(() => import("./components/GravitySkills"), { ssr: false });
+
 const Projects = dynamic(() => import("./components/Projects"), { ssr: false });
 const Testimonials = dynamic(() => import("./components/Testimonials"), { ssr: false });
 const StartProjectModal = dynamic(() => import("./components/StartProjectModal"), { ssr: false });
@@ -81,7 +81,7 @@ export default function Home() {
         <div className="space-y-32 pb-20">
           <Skills />
           {/* لن يظهر إلا بعد تحميله في الخلفية، مما يسرع الصفحة الرئيسية */}
-          <GravitySkills />
+         
           <About />
           <Projects />
           <Services />
