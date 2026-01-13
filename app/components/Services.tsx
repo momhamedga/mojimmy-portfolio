@@ -1,6 +1,6 @@
 "use client"
-import { motion, useMotionValue, useMotionTemplate, useScroll, useTransform, useSpring } from "framer-motion";
-import { useRef, useCallback } from "react";
+import { motion, useMotionValue, useScroll, useTransform, useSpring } from "framer-motion";
+import { useRef, useCallback, memo } from "react";
 import { Layout, Code2, Rocket, Smartphone, ArrowUpRight } from "lucide-react";
 
 const services = [
@@ -34,26 +34,27 @@ const services = [
   },
 ];
 
-function ServiceCard({ service, index, progress, range, targetScale }: any) {
+// استخدام memo لمنع إعادة الرندر غير الضرورية
+const ServiceCard = memo(({ service, index, progress, range, targetScale }: any) => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const smoothX = useSpring(mouseX, { stiffness: 200, damping: 30 });
-  const smoothY = useSpring(mouseY, { stiffness: 200, damping: 30 });
+  const smoothX = useSpring(mouseX, { stiffness: 150, damping: 20 });
+  const smoothY = useSpring(mouseY, { stiffness: 150, damping: 20 });
 
-  const rotateX = useTransform(smoothY, [-200, 200], [7, -7]);
-  const rotateY = useTransform(smoothX, [-200, 200], [-7, 7]);
+  const rotateX = useTransform(smoothY, [-200, 200], [5, -5]);
+  const rotateY = useTransform(smoothX, [-200, 200], [-5, 5]);
+  
+  // ضبط الـ Scale ليكون التراكم أوضح
   const scale = useTransform(progress, range, [1, targetScale]);
+  const opacity = useTransform(progress, range, [1, 0.8]);
 
-  // تحسين الأداء عبر requestAnimationFrame
   const handleMouseMove = useCallback(({ currentTarget, clientX, clientY }: React.MouseEvent) => {
     const { left, top, width, height } = currentTarget.getBoundingClientRect();
     const x = clientX - (left + width / 2);
     const y = clientY - (top + height / 2);
-    requestAnimationFrame(() => {
-      mouseX.set(x);
-      mouseY.set(y);
-    });
+    mouseX.set(x);
+    mouseY.set(y);
   }, [mouseX, mouseY]);
 
   const handleMouseLeave = useCallback(() => {
@@ -68,61 +69,58 @@ function ServiceCard({ service, index, progress, range, targetScale }: any) {
           scale,
           rotateX,
           rotateY,
+          opacity,
           transformStyle: "preserve-3d",
-          willChange: "transform, opacity" // تحسين أداء المتصفح
         }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="pointer-events-auto group relative w-full max-w-5xl h-[450px] md:h-[500px] rounded-[3rem] border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl p-8 md:p-16 overflow-hidden transition-all duration-500 hover:border-white/20"
+        className="pointer-events-auto group relative w-full max-w-5xl h-[500px] md:h-[550px] rounded-[2.5rem] border border-white/10 bg-[#080808]/90 backdrop-blur-2xl p-8 md:p-16 overflow-hidden shadow-2xl"
       >
-        {/* إضاءة ثابتة خفيفة للأداء العالي */}
+        {/* Glow Effect المحسن */}
         <div 
-          className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-700"
-          style={{ background: `radial-gradient(circle at center, ${service.color}, transparent 70%)` }}
+          className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-none"
+          style={{ background: `radial-gradient(circle at center, ${service.color}, transparent 80%)` }}
         />
 
-        <div className="relative z-10 flex flex-col h-full" style={{ transform: "translateZ(40px)" }}>
+        <div className="relative z-10 flex flex-col h-full" style={{ transform: "translateZ(30px)" }}>
           <div className="flex justify-between items-start">
-            <motion.div 
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors"
-            >
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
               {service.icon}
-            </motion.div>
-            
-            <div className="flex flex-col items-end gap-2 text-right">
-               <span className="text-purple-500 font-mono tracking-widest text-sm">0{index + 1}</span>
-               <div className="h-px w-12 bg-purple-500/50" />
+            </div>
+            <div className="text-right">
+               <span className="text-blue-500 font-mono text-lg block font-bold tracking-tighter">0{index + 1}</span>
+               <div className="h-[2px] w-8 bg-blue-500/30 mr-0 ml-auto mt-1" />
             </div>
           </div>
           
-          <div className="mt-10 md:mt-12">
-            <h3 className="text-4xl md:text-7xl font-black text-white mb-2 tracking-tighter uppercase italic">
+          <div className="mt-12 text-right md:text-left">
+            <h3 className="text-5xl md:text-8xl font-black text-white mb-2 tracking-tighter group-hover:text-blue-400 transition-colors">
               {service.title}
             </h3>
-            <p className="text-xl md:text-2xl font-bold text-gray-500 mb-6 rtl">
+            <p className="text-2xl md:text-3xl font-bold text-gray-400 mb-6 font-arabic" dir="rtl">
               {service.arabic}
             </p>
-            
-            <p className="text-gray-400 leading-relaxed text-base md:text-lg max-w-xl font-medium">
+            <p className="text-gray-400 leading-relaxed text-lg md:text-xl max-w-2xl font-light">
               {service.desc}
             </p>
           </div>
 
-          <motion.button 
-            aria-label={`Explore ${service.title} projects`}
+          <motion.div 
             whileHover={{ x: 10 }}
-            className="mt-auto flex items-center gap-4 text-white font-bold cursor-pointer group/btn w-fit"
+            className="mt-auto flex items-center gap-4 text-white font-bold cursor-pointer group/btn"
           >
-            <span className="text-[10px] tracking-[0.3em] uppercase opacity-50">Explore Project</span>
-            <div className="p-2 rounded-full bg-white/5 border border-white/10 group-hover/btn:bg-white group-hover/btn:text-black transition-all">
-               <ArrowUpRight size={18} />
+            <span className="text-xs tracking-[0.2em] uppercase opacity-40 group-hover/btn:opacity-100 transition-opacity">Discover More</span>
+            <div className="p-3 rounded-full bg-white/5 border border-white/10 group-hover/btn:bg-white group-hover/btn:text-black transition-all duration-300">
+               <ArrowUpRight size={20} />
             </div>
-          </motion.button>
+          </motion.div>
         </div>
       </motion.div>
     </div>
   );
-}
+});
+
+ServiceCard.displayName = "ServiceCard";
 
 export default function Services() {
   const container = useRef(null);
@@ -133,38 +131,39 @@ export default function Services() {
 
   return (
     <section ref={container} id="services" className="relative bg-[#030303]">
-      {/* سكشن العنوان الجانبي المحسن */}
-      <div className="h-[30vh] flex flex-col items-center justify-center relative overflow-hidden">
-        <h2 className="text-[18vw] font-black text-white/[0.02] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none">
-          SERVICES
+      {/* سكشن العنوان الخلفي */}
+      <div className="h-[40vh] flex flex-col items-center justify-end pb-12">
+        <h2 className="text-[16vw] leading-none font-black text-white/[0.03] absolute top-10 left-1/2 -translate-x-1/2 select-none pointer-events-none">
+          OFFERING
         </h2>
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className="relative z-10 text-blue-500 font-mono tracking-[0.6em] text-[10px] md:text-xs uppercase"
+          className="text-blue-500 font-mono tracking-[0.5em] text-xs uppercase relative z-10"
         >
-          ✦ My Creative Stack ✦
+          // Expertise & Solutions
         </motion.p>
       </div>
 
       <div className="relative">
         {services.map((service, index) => {
-          const targetScale = 1 - ((services.length - index) * 0.05); 
+          // حساب الـ target scale ليكون التراكم متناسقاً
+          const targetScale = 0.9 + (index * 0.025); 
           return (
             <ServiceCard 
               key={index} 
               index={index} 
               service={service} 
               progress={scrollYProgress} 
-              range={[index * 0.25, (index + 1) * 0.25]} // تعديل المدى ليكون أكثر دقة
+              range={[index * 0.25, 1]} 
               targetScale={targetScale}
             />
           );
         })}
       </div>
-
-      {/* مساحة فارغة في النهاية لضمان اكتمال السكرول للبطاقة الأخيرة */}
-      <div className="h-[20vh]" />
+      
+      {/* نهاية السكشن لضمان سلاسة الخروج */}
+      <div className="h-[30vh]" />
     </section>
   );
 }
