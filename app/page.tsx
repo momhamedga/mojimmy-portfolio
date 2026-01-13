@@ -1,28 +1,31 @@
 "use client"
 import { useState, useEffect } from "react";
-// استيراد المكون الجديد
-import StartProjectModal from "./components/StartProjectModal"; 
+import dynamic from 'next/dynamic'; // استيراد الأداة السحرية للسرعة
+import { motion, useMotionValue, useSpring, useMotionTemplate, AnimatePresence } from "framer-motion";
+
+// 1. مكونات خفيفة يتم تحميلها فوراً
 import Navbar from "./components/Navbar";
 import Hero from "./components/hero";
-import Skills from "./components/Skills";
-import About from "./components/About";
-import Projects from "./components/Projects";
-import Services from "./components/Services";
-import Experience from "./components/Experience";
-import Footer from "./components/Footer";
-import Testimonials from "./components/Testimonials";
-import FAQ from "./components/FAQ";
-import Contact from "./components/Contact";
-
 import Preloader from "./components/Preloader";
-import { motion, useMotionValue, useSpring, useMotionTemplate, AnimatePresence } from "framer-motion";
-import GravitySkills from "./components/GravitySkills";
+
+// 2. المكونات الثقيلة (Dynamic Import) - يتم تحميلها في الخلفية
+const GravitySkills = dynamic(() => import("./components/GravitySkills"), { ssr: false });
+const Projects = dynamic(() => import("./components/Projects"), { ssr: false });
+const Testimonials = dynamic(() => import("./components/Testimonials"), { ssr: false });
+const StartProjectModal = dynamic(() => import("./components/StartProjectModal"), { ssr: false });
+
+// مكونات متوسطة الثقل
+const Skills = dynamic(() => import("./components/Skills"));
+const About = dynamic(() => import("./components/About"));
+const Services = dynamic(() => import("./components/Services"));
+const Experience = dynamic(() => import("./components/Experience"));
+const FAQ = dynamic(() => import("./components/FAQ"));
+const Contact = dynamic(() => import("./components/Contact"));
+const Footer = dynamic(() => import("./components/Footer"));
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // 1. حالة التحكم في الـ Modal (ابدأ مشروعك)
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const mouseX = useMotionValue(0);
@@ -35,10 +38,12 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    setTimeout(() => {
+    // تقليل وقت الـ Preloader لـ 2000ms بدلاً من 2500ms لسرعة الاستجابة
+    const timer = setTimeout(() => {
       setIsLoading(false);
       window.scrollTo(0, 0);
-    }, 2500);
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
   function handleMouseMove({ clientX, clientY }: React.MouseEvent) {
@@ -57,7 +62,7 @@ export default function Home() {
         {isLoading && <Preloader key="preloader" />}
       </AnimatePresence>
 
-      {/* --- الطبقات الثابتة --- */}
+      {/* --- الطبقة الشبكية (Grid) --- */}
       <div className="fixed inset-0 z-0 opacity-[0.1] pointer-events-none" 
            style={{
              backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)`,
@@ -67,16 +72,15 @@ export default function Home() {
 
       <motion.div className="fixed inset-0 z-0 pointer-events-none" style={{ background }} />
 
-      {/* --- المحتوى --- */}
+      {/* --- المحتوى الرئيسي --- */}
       <div className="relative z-10 w-full">
-        {/* نمرر دالة الفتح للـ Navbar ليعمل زر "تواصل معي" أو أي زر هناك */}
         <Navbar />
         
-        {/* نمرر دالة الفتح للـ Hero لزر "ابدأ مشروعك" */}
         <Hero onStartProject={() => setIsModalOpen(true)} />
         
         <div className="space-y-32 pb-20">
           <Skills />
+          {/* لن يظهر إلا بعد تحميله في الخلفية، مما يسرع الصفحة الرئيسية */}
           <GravitySkills />
           <About />
           <Projects />
@@ -90,7 +94,7 @@ export default function Home() {
         <Footer />
       </div>
 
-      {/* --- استدعاء الـ Modal في نهاية الـ Main --- */}
+      {/* استدعاء الـ Modal بشكل ديناميكي */}
       <StartProjectModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
