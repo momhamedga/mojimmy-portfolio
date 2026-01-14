@@ -9,7 +9,10 @@ import Hero from "./components/hero";
 import Preloader from "./components/Preloader";
 
 // 2. المكونات الديناميكية (تحسين التحميل)
-const Projects = dynamic(() => import("./components/Projects"), { ssr: false });
+const Projects = dynamic(() => import("./components/Projects"), { 
+  ssr: false,
+  loading: () => <div className="min-h-screen bg-transparent" /> // يحجز مكان السكشن
+});
 const Testimonials = dynamic(() => import("./components/Testimonials"), { ssr: false });
 const StartProjectModal = dynamic(() => import("./components/StartProjectModal"), { ssr: false });
 const Skills = dynamic(() => import("./components/Skills"), { ssr: false });
@@ -27,8 +30,9 @@ export default function Home() {
 
 const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+// في page.tsx
+const springX = useSpring(mouseX, { stiffness: 40, damping: 30, restDelta: 0.001 });
+const springY = useSpring(mouseY, { stiffness: 40, damping: 30, restDelta: 0.001 });
 
   // توهج خلفي موحد لكل الموقع
   const background = useMotionTemplate`radial-gradient(800px circle at ${springX}px ${springY}px, rgba(147, 51, 234, 0.08), transparent 80%)`;
@@ -73,7 +77,11 @@ const mouseX = useMotionValue(0);
         {/* جميع السكاشن هنا بدون أي bg-colors داخلها */}
         <Skills />
         <About />
+        <Services />
         <Projects />
+        <Testimonials />
+        <Experience />
+        <FAQ />
         <Contact />
         <Footer />
       </div>
