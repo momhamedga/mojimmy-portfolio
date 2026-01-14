@@ -7,7 +7,7 @@ import { motion, useMotionValue, useSpring, useMotionTemplate, AnimatePresence }
 import Navbar from "./components/Navbar";
 import Hero from "./components/hero";
 import Preloader from "./components/Preloader";
-
+const loadingState = (height = "100vh") => <div className={`w-full ${height} bg-transparent`} />;
 // 2. المكونات الديناميكية (تحسين التحميل)
 const Projects = dynamic(() => import("./components/Projects"), { 
   ssr: false,
@@ -15,12 +15,18 @@ const Projects = dynamic(() => import("./components/Projects"), {
 });
 const Testimonials = dynamic(() => import("./components/Testimonials"), { ssr: false });
 const StartProjectModal = dynamic(() => import("./components/StartProjectModal"), { ssr: false });
-const Skills = dynamic(() => import("./components/Skills"), { ssr: false });
+const Skills = dynamic(() => import("./components/Skills"), { 
+  ssr: false, 
+  loading: () => loadingState("h-[500px]") 
+});
 const About = dynamic(() => import("./components/About"), { ssr: false });
 const Services = dynamic(() => import("./components/Services"), { ssr: false });
 const Experience = dynamic(() => import("./components/Experience"), { ssr: false });
 const FAQ = dynamic(() => import("./components/FAQ"), { ssr: false });
-const Contact = dynamic(() => import("./components/Contact"), { ssr: false });
+const Contact = dynamic(() => import("./components/Contact"), { 
+  ssr: false, 
+  loading: () => loadingState("h-[600px]") 
+});
 const Footer = dynamic(() => import("./components/Footer"), { ssr: false });
 
 export default function Home() {
@@ -39,14 +45,18 @@ const springY = useSpring(mouseY, { stiffness: 40, damping: 30, restDelta: 0.001
 
 
 
-  useEffect(() => {
+useEffect(() => {
     setMounted(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    const timer = setTimeout(() => setIsLoading(false), 2000);
+    return () => clearTimeout(timer);
   }, []);
   
-  function handleMouseMove({ clientX, clientY }: React.MouseEvent) {
-    mouseX.set(clientX);
-    mouseY.set(clientY);
+function handleMouseMove({ clientX, clientY }: React.MouseEvent) {
+    // استخدام requestAnimationFrame لتحسين أداء حركة الماوس
+    window.requestAnimationFrame(() => {
+      mouseX.set(clientX);
+      mouseY.set(clientY);
+    });
   }
 
   if (!mounted) return null;
