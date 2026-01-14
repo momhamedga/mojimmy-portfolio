@@ -11,7 +11,7 @@ const loadingState = (height = "100vh") => <div className={`w-full ${height} bg-
 // 2. المكونات الديناميكية (تحسين التحميل)
 const Projects = dynamic(() => import("./components/Projects"), { 
   ssr: false,
-  loading: () => <div className="min-h-screen bg-transparent" /> // يحجز مكان السكشن
+  loading: () => loadingState("h-[1000px]")
 });
 const Testimonials = dynamic(() => import("./components/Testimonials"), { 
   ssr: false, loading: () => loadingState("h-[500px]") 
@@ -19,7 +19,7 @@ const Testimonials = dynamic(() => import("./components/Testimonials"), {
 const StartProjectModal = dynamic(() => import("./components/StartProjectModal"), { ssr: false });
 const Skills = dynamic(() => import("./components/Skills"), { 
   ssr: false, 
-  loading: () => loadingState("h-[500px]") 
+  loading: () => loadingState("h-[600px]") 
 });
 const About = dynamic(() => import("./components/About"), { 
   ssr: false, loading: () => loadingState("h-[400px]") 
