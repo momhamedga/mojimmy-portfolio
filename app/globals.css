@@ -1,38 +1,56 @@
 @import "tailwindcss";
 
+/* 1. القضاء على أي بياض أو ألوان نظام */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #020202; /* الأسود العميق */
+  --foreground: #ffffff;
+  --primary: 147, 51, 234; /* البنفسجي بتاعنا */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* تأكيد الألوان للوضع الليلي */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #020202;
+    --foreground: #ffffff;
   }
+}
+
+/* 2. ضبط أساسيات الصفحة */
+html {
+  scroll-behavior: smooth !important;
+  scroll-padding-top: 100px;
+  background-color: #020202; /* مهم جداً هنا */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #020202 !important;
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: Arial, Helvetica, sans-serif; /* أو الخط اللي بتستخدمه */
 }
 
+/* 3. تنظيف السكاشن من أي خلفيات بتلطش */
+section {
+  background: transparent !important;
+}
+
+/* 4. الـ Glass Card اللي بتميز شغلك */
 @layer components {
   .glass-card {
-    @apply bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl;
+    @apply bg-white/[0.02] backdrop-blur-xl border border-white/5 shadow-2xl;
+    transition: all 0.5s ease;
+  }
+  
+  .glass-card:hover {
+    @apply border-purple-500/20 bg-white/[0.04];
   }
 }
+
+/* 5. الـ Noise اللي بيخلي الموقع "فخم" */
 @layer utilities {
   .bg-noise {
-    /* ده كود بيعمل Noise حقيقي برمجياً */
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   }
 
@@ -44,9 +62,6 @@ body {
     40% { transform: translate(2%,-1%) }
     50% { transform: translate(-1%,2%) }
     60% { transform: translate(1%,-2%) }
-    70% { transform: translate(0,1%) }
-    80% { transform: translate(-1%,0) }
-    90% { transform: translate(1%,1%) }
     100% { transform: translate(0,0) }
   }
 
@@ -54,30 +69,14 @@ body {
     animation: noise-animation 0.5s steps(5) infinite;
   }
 }
-html {
-  scroll-behavior: smooth !important;
-  /* هذا السطر يضمن أن السكشن يبدأ بعد النافبار بمسافة كافية */
-  scroll-padding-top: 100px; 
-}
-/* globals.css */
-:root {
-  /* الوضع الافتراضي (Minimal) */
-  --primary: 147, 51, 234; /* Purple */
-  --bg: 5, 5, 5;
-  --text: 255, 255, 255;
-  --font-family: 'Inter', sans-serif;
-}
 
+/* 6. استايل الـ Themes (لو حبيت تشغلهم مستقبلاً) */
 [data-theme='cyberpunk'] {
-  --primary: 0, 255, 65; /* Matrix Green */
-  --bg: 13, 2, 8;
-  --text: 0, 255, 65;
-  --font-family: 'JetBrains Mono', monospace;
+  --primary: 0, 255, 65;
+  --background: #0d0208;
 }
 
 [data-theme='sunset'] {
-  --primary: 255, 81, 47; /* Orange/Pink */
-  --bg: 26, 5, 5;
-  --text: 255, 200, 200;
-  --font-family: 'Playfair Display', serif;
+  --primary: 255, 81, 47;
+  --background: #1a0505;
 }

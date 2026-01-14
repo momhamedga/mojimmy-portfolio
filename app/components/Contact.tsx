@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, CheckCircle2, Sparkles, ArrowLeft, AlertCircle } from "lucide-react"; 
+import { Send, CheckCircle2, Sparkles, AlertCircle, Mail, User, MessageSquare } from "lucide-react"; 
 import Magnetic from "./Magnetic";
 
 export default function Contact() {
@@ -46,115 +46,174 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" dir="rtl" className="py-24 bg-transparent relative min-h-[90vh] flex items-center overflow-hidden">
+    <section id="contact" dir="rtl" className="py-32 bg-transparent relative min-h-screen flex items-center overflow-hidden">
+      
+      {/* 1. التوهج الخلفي - تم ضبطه ليكون خفيفاً حتى لا يحجب الـ Grid */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none z-0">
+        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-purple-600/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 left-0 w-[400px] h-[400px] bg-blue-600/10 blur-[120px] rounded-full animate-pulse delay-1000" />
+      </div>
+
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
           <AnimatePresence mode="wait">
             {!isSuccess ? (
               <motion.div 
                 key="form"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} // تحسين الأداء: الحركة تحدث مرة واحدة فقط
-                exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-                className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center"
+                viewport={{ once: true }}
+                exit={{ opacity: 0, scale: 0.9, filter: "blur(20px)" }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center"
               >
-                {/* Left Side: Content */}
-                <div className="space-y-6 text-right lg:text-right">
+                {/* الجزء الأيمن: النصوص */}
+                <div className="space-y-8">
                   <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: 30 }}
                     whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-400 font-mono text-[10px] uppercase tracking-widest"
+                    className="flex items-center gap-3 text-purple-400 font-mono text-[10px] tracking-widest uppercase"
                   >
-                    <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-                    هل لديك فكرة؟
+                    <Sparkles size={16} className="animate-spin-slow" />
+                    <span>متاح للمشاريع الجديدة</span>
                   </motion.div>
                   
-                  <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-none tracking-tighter">
-                    لنصنع <br /> 
+                  <h2 className="text-6xl md:text-8xl font-black text-white leading-[0.9] tracking-tighter italic">
+                    هل أنت <br /> 
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-                       شيئاً مذهلاً
+                        جاهز للبدء؟
                     </span>
                   </h2>
-                  <p className="text-gray-400 text-lg md:text-xl max-w-md font-medium leading-relaxed border-r-2 border-white/10 pr-6">
-                    أنا لا أبني مجرد مواقع، أنا أبني تجارب رقمية تترك أثراً. كيف يمكنني مساعدتك اليوم؟
-                  </p>
+                  
+                  <div className="space-y-6">
+                    <p className="text-gray-400 text-xl max-w-md font-medium leading-relaxed">
+                      حوّل فكرتك إلى واقع رقمي يتنفس. سأقوم بالرد عليك خلال أقل من 24 ساعة.
+                    </p>
+                    
+                    <div className="pt-8 flex flex-col gap-4">
+                        <div className="flex items-center gap-4 group cursor-pointer w-fit">
+                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+                                <Mail className="text-gray-400 group-hover:text-purple-400" size={20} />
+                            </div>
+                            <span className="text-gray-300 font-mono group-hover:text-white transition-colors">hello@mojimmy.com</span>
+                        </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Right Side: Form */}
-                <form onSubmit={handleSubmit} noValidate className="space-y-8 bg-white/[0.03] p-8 md:p-12 rounded-[2.5rem] border border-white/10 backdrop-blur-xl relative shadow-2xl">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[60px] -z-10" />
+                {/* الجزء الأيسر: الفورم */}
+                <div className="relative group">
+                  {/* توهج ديناميكي يتغير لونه حسب الحقل المختار */}
+                  <div className={`absolute -inset-1 bg-gradient-to-r ${focusedField === 'email' ? 'from-blue-500' : focusedField === 'message' ? 'from-pink-500' : 'from-purple-500'} to-transparent rounded-[3rem] blur opacity-10 transition duration-1000`} />
                   
-                  {[
-                    { name: "name", label: "اسمك الكريم", type: "text" },
-                    { name: "email", label: "البريد الإلكتروني", type: "email" }
-                  ].map((field) => (
-                    <div key={field.name} className="relative group">
-                      <input
-                        name={field.name}
-                        type={field.type}
-                        onFocus={() => {setFocusedField(field.name); setErrors({...errors, [field.name]: ""})}}
-                        onBlur={(e) => !e.target.value && setFocusedField(null)}
-                        className={`w-full bg-transparent border-b-2 py-4 text-white text-lg outline-none transition-all duration-500 ${errors[field.name] ? 'border-red-500/50' : 'border-white/10 focus:border-purple-500'}`}
-                        placeholder=" "
-                      />
-                      <label className={`absolute right-0 transition-all duration-300 pointer-events-none ${focusedField === field.name ? "-top-4 text-xs text-purple-400 font-bold" : "top-4 text-lg text-gray-500"}`}>
-                        {field.label}
-                      </label>
+                  <form 
+                    onSubmit={handleSubmit} 
+                    noValidate 
+                    className="relative space-y-8 bg-white/[0.02] p-10 md:p-14 rounded-[3rem] border border-white/10 backdrop-blur-md"
+                  >
+                    {/* حقل الاسم */}
+                    <div className="relative">
+                      <div className={`flex items-center gap-4 border-b transition-all duration-500 ${focusedField === 'name' ? 'border-purple-500' : 'border-white/10'}`}>
+                        <User size={18} className={focusedField === 'name' ? 'text-purple-500' : 'text-gray-500'} />
+                        <input
+                          name="name"
+                          type="text"
+                          autoComplete="off"
+                          onFocus={() => {setFocusedField("name"); setErrors({...errors, name: ""})}}
+                          onBlur={(e) => !e.target.value && setFocusedField(null)}
+                          className="w-full bg-transparent py-5 text-white text-lg outline-none placeholder:text-gray-700 font-medium"
+                          placeholder="ما هو اسمك؟"
+                        />
+                      </div>
                       <AnimatePresence>
-                        {errors[field.name] && (
-                          <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-[10px] mt-2 flex items-center gap-1 font-mono uppercase tracking-tighter">
-                            <AlertCircle size={12} /> {errors[field.name]}
+                        {errors.name && (
+                          <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="absolute -bottom-6 right-0 text-red-400 text-[10px] flex items-center gap-1 font-bold">
+                            <AlertCircle size={12} /> {errors.name}
                           </motion.span>
                         )}
                       </AnimatePresence>
                     </div>
-                  ))}
 
-                  <div className="relative group">
-                    <textarea
-                      name="message"
-                      rows={2}
-                      onFocus={() => {setFocusedField("message"); setErrors({...errors, message: ""})}}
-                      onBlur={(e) => !e.target.value && setFocusedField(null)}
-                      className={`w-full bg-transparent border-b-2 py-4 text-white text-lg outline-none transition-all duration-500 resize-none ${errors.message ? 'border-red-500/50' : 'border-white/10 focus:border-purple-500'}`}
-                      placeholder=" "
-                    />
-                    <label className={`absolute right-0 transition-all duration-300 pointer-events-none ${focusedField === "message" ? "-top-4 text-xs text-purple-400 font-bold" : "top-4 text-lg text-gray-500"}`}>
-                      أخبرني عن مشروعك...
-                    </label>
-                  </div>
+                    {/* حقل الايميل */}
+                    <div className="relative">
+                      <div className={`flex items-center gap-4 border-b transition-all duration-500 ${focusedField === 'email' ? 'border-blue-500' : 'border-white/10'}`}>
+                        <Mail size={18} className={focusedField === 'email' ? 'text-blue-500' : 'text-gray-500'} />
+                        <input
+                          name="email"
+                          type="email"
+                          autoComplete="off"
+                          onFocus={() => {setFocusedField("email"); setErrors({...errors, email: ""})}}
+                          onBlur={(e) => !e.target.value && setFocusedField(null)}
+                          className="w-full bg-transparent py-5 text-white text-lg outline-none placeholder:text-gray-700 font-medium"
+                          placeholder="بريدك الإلكتروني"
+                        />
+                      </div>
+                      <AnimatePresence>
+                        {errors.email && (
+                          <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="absolute -bottom-6 right-0 text-red-400 text-[10px] flex items-center gap-1 font-bold">
+                            <AlertCircle size={12} /> {errors.email}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </div>
 
-                  <Magnetic>
-                    <button 
-                      disabled={isSubmitting}
-                      className="group relative w-full py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white rounded-2xl font-black text-xl overflow-hidden shadow-xl hover:shadow-purple-500/20 transition-all active:scale-95 disabled:opacity-50"
-                    >
-                      <span className="relative z-10 flex items-center justify-center gap-3">
-                        {isSubmitting ? "يتم الآن الإرسال..." : "أرسل الرسالة"} 
-                        <Send size={20} className="group-hover:-translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                      </span>
-                    </button>
-                  </Magnetic>
-                </form>
+                    {/* حقل الرسالة */}
+                    <div className="relative">
+                      <div className={`flex items-start gap-4 border-b transition-all duration-500 ${focusedField === 'message' ? 'border-pink-500' : 'border-white/10'}`}>
+                        <MessageSquare size={18} className={`mt-6 ${focusedField === 'message' ? 'text-pink-500' : 'text-gray-500'}`} />
+                        <textarea
+                          name="message"
+                          rows={3}
+                          onFocus={() => {setFocusedField("message"); setErrors({...errors, message: ""})}}
+                          onBlur={(e) => !e.target.value && setFocusedField(null)}
+                          className="w-full bg-transparent py-5 text-white text-lg outline-none resize-none placeholder:text-gray-700 font-medium"
+                          placeholder="احكِ لي عن مشروعك المذهل..."
+                        />
+                      </div>
+                    </div>
+
+                    <Magnetic>
+                      <button 
+                        disabled={isSubmitting}
+                        className="group relative w-full py-6 bg-white text-black rounded-2xl font-black text-xl overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <span className="relative z-10 flex items-center justify-center gap-3 group-hover:text-white transition-colors duration-500">
+                          {isSubmitting ? "جاري الإرسال..." : "إرسال الطلب الآن"} 
+                          <Send size={22} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform duration-500" />
+                        </span>
+                      </button>
+                    </Magnetic>
+                  </form>
+                </div>
               </motion.div>
             ) : (
               <motion.div 
                 key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center text-center space-y-8 py-20"
+                className="flex flex-col items-center text-center space-y-10 py-20"
               >
-                <div className="w-32 h-32 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
-                  <CheckCircle2 size={60} className="text-white" />
+                <div className="relative">
+                    <motion.div 
+                        initial={{ scale: 0 }} 
+                        animate={{ scale: 1 }} 
+                        transition={{ type: "spring", damping: 12 }}
+                        className="w-40 h-40 bg-gradient-to-tr from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(34,197,94,0.3)]"
+                    >
+                      <CheckCircle2 size={80} className="text-white" />
+                    </motion.div>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-5xl font-black text-white italic">تم الإرسال!</h3>
-                  <p className="text-gray-400 text-xl">سأرد عليك في أقرب وقت ممكن.</p>
+                
+                <div className="space-y-4">
+                  <h3 className="text-6xl font-black text-white italic tracking-tighter">وصلت الرسالة!</h3>
+                  <p className="text-gray-400 text-2xl max-w-md mx-auto">أشكرك على ثقتك. سأقوم بمراجعة طلبك والرد عليك قريباً.</p>
                 </div>
-                <button onClick={() => setIsSuccess(false)} className="text-purple-400 hover:text-white transition-colors underline underline-offset-8">
-                  إرسال رسالة أخرى
+
+                <button 
+                    onClick={() => setIsSuccess(false)} 
+                    className="px-8 py-3 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all font-bold text-xs uppercase tracking-widest"
+                >
+                  العودة للخلف
                 </button>
               </motion.div>
             )}

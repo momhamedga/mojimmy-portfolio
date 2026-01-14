@@ -6,31 +6,27 @@ import { Quote, Star } from "lucide-react";
 const reviews = [
   {
     name: "أحمد محمد",
-    role: "CEO, TechFlow",
-    text: "التعامل كان احترافياً للغاية، النتيجة تجاوزت توقعاتي من حيث السرعة والجماليات الفائقة.",
+    role: "رئيس تنفيذي، TechFlow",
+    text: "التعامل كان احترافياً للغاية، النتيجة تجاوزت توقعاتي من حيث السرعة والجماليات الفائقة والدقة في التنفيذ.",
     img: "https://i.pravatar.cc/150?u=1",
-    color: "from-blue-500/20"
   },
   {
     name: "سارة خالد",
-    role: "UI/UX Lead",
-    text: "لديه عين فنية مبدعة وكود نظيف جداً. استطاع تحويل رؤيتنا إلى واقع رقمي مذهل.",
+    role: "مديرة تصميم واجهات",
+    text: "لديه عين فنية مبدعة وكود نظيف جداً. استطاع تحويل رؤيتنا إلى واقع رقمي مذهل يتفاعل مع المستخدم بسلاسة.",
     img: "https://i.pravatar.cc/150?u=2",
-    color: "from-purple-500/20"
-  },
-  {
-    name: "John Doe",
-    role: "Founder, StartupX",
-    text: "The best developer I've worked with. Pure talent and amazing communication skills.",
-    img: "https://i.pravatar.cc/150?u=3",
-    color: "from-pink-500/20"
   },
   {
     name: "ياسين علي",
-    role: "مدير مشاريع",
-    text: "السرعة في التنفيذ والدقة في أصغر التفاصيل هي أكثر ما يميزه. تجربة استثنائية!",
+    role: "مدير مشاريع تقنية",
+    text: "السرعة في التنفيذ والدقة في أصغر التفاصيل هي أكثر ما يميزه. تجربة استثنائية وأنصح بالتعامل معه دائماً.",
     img: "https://i.pravatar.cc/150?u=4",
-    color: "from-emerald-500/20"
+  },
+  {
+    name: "ليلى محمود",
+    role: "مؤسسة Startup X",
+    text: "أفضل مطور واجهات تعاملت معه، يفهم احتياجات العمل ويحولها لتصميم ينبض بالحياة.",
+    img: "https://i.pravatar.cc/150?u=9",
   }
 ];
 
@@ -41,107 +37,107 @@ export default function Testimonials() {
     offset: ["start end", "end start"]
   });
 
-  // تأثير البارالاكس للنصوص الخلفية
+  // تحسين تأثير الـ Parallax ليكون أنعم
   const translateX = useTransform(scrollYProgress, [0, 1], [200, -200]);
 
   return (
-    <section ref={containerRef} id="testimonials" className="py-40 bg-transparent relative overflow-hidden">
+    <section ref={containerRef} id="testimonials" className="py-40 bg-transparent relative overflow-hidden" dir="rtl">
       
-      {/* 1. نص خلفي عملاق متحرك */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full pointer-events-none overflow-hidden opacity-[0.02] select-none">
-        <motion.h2 style={{ x: translateX }} className="text-[30vw] font-black text-white whitespace-nowrap">
-          TRUSTED BY LEADERS TRUSTED BY LEADERS
+      {/* 1. النص الخلفي - تم تقليل الـ Stroke لضمان عدم حجب الـ Grid */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full pointer-events-none overflow-hidden select-none z-0">
+        <motion.h2 
+          style={{ x: translateX, WebkitTextStroke: '1px rgba(255,255,255,0.02)' }} 
+          className="text-[22vw] font-black text-transparent whitespace-nowrap uppercase italic leading-none"
+        >
+          قالوا عني قالوا عني قالوا عني قالوا عني
         </motion.h2>
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="flex flex-col items-center mb-24 text-center">
+        <div className="flex flex-col items-center mb-32 text-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            className="mb-6 px-4 py-1 rounded-full border border-purple-500/30 bg-purple-500/5 text-purple-400 text-xs font-mono tracking-widest uppercase"
+            className="mb-4 px-4 py-1 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-400 text-[10px] font-mono tracking-[0.3em] uppercase"
           >
             Testimonials
           </motion.div>
-          <h2 className="text-6xl md:text-9xl font-black text-white tracking-tighter italic uppercase">
-            Voices of <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">Success</span>
+          <h2 className="text-6xl md:text-8xl font-black text-white tracking-tighter italic">
+            آراء <span className="text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-purple-600">الشركاء</span>
           </h2>
         </div>
 
-        {/* 2. حاوية الكروت المتحركة بنظام الـ 3D Perspective */}
-        <div className="relative group">
-          {/* تأثير الـ Fade على الأطراف */}
-          <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-[#030303] to-transparent z-20 pointer-events-none" />
-          <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-[#030303] to-transparent z-20 pointer-events-none" />
-
+        {/* 2. الـ Infinite Slider - تم استخدام masking لضمان تلاشي الأطراف مع الـ Grid */}
+        <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
           <motion.div 
-            className="flex gap-8 py-20 cursor-grab active:cursor-grabbing"
-            animate={{ x: [0, -2000] }}
+            className="flex gap-8 w-max px-4 py-10"
+            animate={{ x: ["0%", "-50%"] }}
             transition={{ 
-              duration: 50, 
+              duration: 35, 
               repeat: Infinity, 
               ease: "linear" 
             }}
             whileHover={{ animationPlayState: "paused" }}
           >
-            {[...reviews, ...reviews, ...reviews].map((item, index) => (
+            {[...reviews, ...reviews].map((item, index) => (
               <motion.div 
                 key={index} 
-                whileHover={{ y: -20, scale: 1.05 }}
-                className={`w-[350px] md:w-[500px] flex-shrink-0 p-10 rounded-[4rem] bg-white/[0.01] border border-white/5 backdrop-blur-xl relative group/card transition-all duration-700`}
+                whileHover={{ y: -10 }}
+                className="w-[380px] md:w-[500px] flex-shrink-0 p-10 rounded-[3rem] bg-white/[0.02] border border-white/5 backdrop-blur-md relative group/card transition-all duration-700"
               >
-                {/* إضاءة علوية متغيرة */}
-                <div className={`absolute -top-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent group-hover/card:w-full transition-all duration-1000`} />
+                {/* خط إضاءة علوي */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent group-hover/card:w-2/3 transition-all duration-700" />
                 
                 <div className="flex justify-between items-start mb-10">
-                  <div className="flex gap-1">
-                    {[1,2,3,4,5].map(star => <Star key={star} size={12} className="fill-purple-500 text-purple-500" />)}
+                  <div className="p-3 bg-white/5 rounded-xl">
+                    <Quote size={24} className="text-purple-500 rotate-180" />
                   </div>
-                  <Quote size={40} className="text-white/10 group-hover/card:text-purple-500/20 transition-colors" />
+                  <div className="flex gap-1 pt-2">
+                    {[1,2,3,4,5].map(star => <Star key={star} size={10} className="fill-yellow-500 text-yellow-500" />)}
+                  </div>
                 </div>
 
-                <p className="text-gray-300 text-xl md:text-2xl leading-[1.6] mb-12 font-arabic rtl tracking-tight">
+                <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-10 font-medium text-right">
                   "{item.text}"
                 </p>
 
-                <div className="flex items-center gap-4 mt-auto border-t border-white/5 pt-8">
-                  <div className="relative w-14 h-14">
-                    <img 
-                      src={item.img} 
-                      alt={item.name} 
-                      className="w-full h-full rounded-2xl object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500" 
-                    />
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-purple-600 rounded-full border-4 border-[#0a0a0a] flex items-center justify-center">
-                       <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                <div className="flex items-center gap-4 pt-6 border-t border-white/5">
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10">
+                      <img src={item.img} alt={item.name} className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500" />
                     </div>
                   </div>
                   <div className="text-right">
                     <h4 className="text-white font-bold text-lg">{item.name}</h4>
-                    <p className="text-gray-500 text-xs uppercase tracking-tighter">{item.role}</p>
+                    <p className="text-purple-400/60 text-xs font-mono uppercase">{item.role}</p>
                   </div>
-                </div>
-
-                {/* تأثير الـ Glow الخفي */}
-                <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-1000 pointer-events-none">
-                  <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-500/10 blur-[100px] rounded-full" />
                 </div>
               </motion.div>
             ))}
           </motion.div>
         </div>
 
-        {/* 3. إحصائيات سريعة أسفل الشهادات */}
-        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
+        {/* 3. الإحصائيات - تم تعديلها لتكون متناغمة مع الخلفية الموحدة */}
+        <div className="mt-40 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16 border-t border-white/5 pt-20">
           {[
-            { label: "Clients", val: "50+" },
-            { label: "Projects", val: "120+" },
-            { label: "Rating", val: "5.0" },
-            { label: "Countries", val: "12" }
+            { label: "عميل سعيد", val: "50+" },
+            { label: "مشروع مكتمل", val: "120+" },
+            { label: "تقييم عام", val: "5.0" },
+            { label: "دولة حول العالم", val: "12" }
           ].map((stat, i) => (
-            <div key={i} className="text-center border-l border-white/5 last:border-l-0">
-               <h5 className="text-4xl md:text-5xl font-black text-white mb-2">{stat.val}</h5>
-               <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">{stat.label}</p>
-            </div>
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="text-center md:text-right"
+            >
+               <h5 className="text-5xl md:text-6xl font-black text-white hover:text-purple-500 transition-colors duration-500">
+                 {stat.val}
+               </h5>
+               <p className="text-gray-500 font-bold text-xs mt-2 uppercase tracking-widest">{stat.label}</p>
+            </motion.div>
           ))}
         </div>
       </div>
