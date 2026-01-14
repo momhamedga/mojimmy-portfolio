@@ -64,23 +64,26 @@ const ServiceCard = memo(({ service, index, progress, range, targetScale }: any)
 
   return (
     <div className="h-screen flex items-center justify-center sticky top-0 px-4 pointer-events-none">
-      <motion.div
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => { mouseX.set(-1000); mouseY.set(-1000); }}
-        style={{ 
-          scale,
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
-        className="pointer-events-auto group relative w-full max-w-5xl h-[500px] md:h-[550px] rounded-[3rem] border border-white/5 bg-transparent backdrop-blur-md p-8 md:p-16 overflow-hidden shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
-      >
+  <motion.div
+  ref={containerRef}
+  onMouseMove={handleMouseMove}
+  onMouseLeave={() => { mouseX.set(-1000); mouseY.set(-1000); }}
+  style={{ 
+    scale,
+    rotateX,
+    rotateY,
+    transformStyle: "preserve-3d",
+    willChange: "transform, background", // تحسين أداء الـ GPU
+  }}
+  role="article"
+  aria-label={`Service: ${service.title}`}
+  className="pointer-events-auto group relative w-full max-w-5xl h-[500px] md:h-[550px] rounded-[3rem] border border-white/5 bg-black/20 backdrop-blur-xl p-8 md:p-16 overflow-hidden shadow-2xl"
+>
         {/* خلفية التوهج المتحركة */}
-        <motion.div 
-          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          style={{ background }}
-        />
+     <motion.div 
+    className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+    style={{ background, filter: "blur(40px)" }} // إضافة blur بسيط للـ gradient
+  />
 
         {/* خطوط تقنية تظهر في الخلفية عند الـ Hover */}
         <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none" 
