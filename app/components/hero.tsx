@@ -2,7 +2,7 @@
 import { motion, useMotionValue, useSpring, useMotionTemplate } from "framer-motion";
 import { MousePointerClick, Github, Linkedin } from "lucide-react";
 import Magnetic from "./Magnetic";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface HeroProps {
   onStartProject: () => void;
@@ -10,104 +10,93 @@ interface HeroProps {
 
 export default function Hero({ onStartProject }: HeroProps) {
   const [mounted, setMounted] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
   const springX = useSpring(mouseX, { stiffness: 100, damping: 30 });
   const springY = useSpring(mouseY, { stiffness: 100, damping: 30 });
 
-  const background = useMotionTemplate`radial-gradient(650px circle at ${springX}px ${springY}px, rgba(147, 51, 234, 0.15), transparent 80%)`;
+  const background = useMotionTemplate`radial-gradient(600px circle at ${springX}px ${springY}px, rgba(147, 51, 234, 0.15), transparent 80%)`;
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  function handleMouseMove({ clientX, clientY, currentTarget }: React.MouseEvent) {
-    const { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!sectionRef.current) return;
+    const { left, top } = sectionRef.current.getBoundingClientRect();
+    mouseX.set(e.clientX - left);
+    mouseY.set(e.clientY - top);
   }
 
   if (!mounted) return null;
 
   return (
-    <section id="home"
+    <section 
+      ref={sectionRef}
+      id="home"
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-transparent"
+      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-[#050505]"
     >
-      {/* 1. الجسيمات - قللنا العدد قليلاً لزيادة الـ Performance */}
+      {/* 1. طبقة الخلفية المحسنة */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {[...Array(25)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ 
-              x: Math.random() * 1200, 
-              y: Math.random() * 800,
-              opacity: Math.random() * 0.5 
-            }}
-            animate={{
-              x: [null, Math.random() * 1200, Math.random() * -200],
-              y: [null, Math.random() * 800, Math.random() * -100],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: Math.random() * 20 + 15,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="absolute w-1 h-1 bg-blue-500 rounded-full blur-[1px]"
-          />
-        ))}
+        <div className="absolute inset-0 opacity-[0.03]" 
+             style={{
+               backgroundImage: `linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)`,
+               backgroundSize: '50px 50px'
+             }} 
+        />
+        <motion.div className="absolute inset-0 z-0" style={{ background }} />
       </div>
 
-      <div className="absolute inset-0 z-0 opacity-[0.1] pointer-events-none" 
-           style={{
-             backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)`,
-             backgroundSize: '50px 50px'
-           }} 
-      />
-
-      <motion.div className="pointer-events-none absolute inset-0 z-0" style={{ background }} />
-
-      <div className="relative z-10 container mx-auto px-6 text-center" >
+      {/* 2. الحاوية الرئيسية بـ Max-Width لضمان عدم تشتت الأبعاد */}
+      <div className="relative z-10 container mx-auto px-6 max-w-7xl flex flex-col items-center text-center">
+        
+        {/* Badge علوي بحجم متزن */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black mb-8 text-blue-400 border border-blue-400/20 uppercase tracking-[0.3em] bg-blue-400/5 shadow-[0_0_20px_rgba(59,130,246,0.1)]"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/20 bg-blue-500/5 mb-8"
         >
-          Frontend Master 🚀
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+          <span className="text-blue-400 font-mono text-[10px] uppercase tracking-[0.2em] font-bold">
+            Frontend Master 🚀
+          </span>
         </motion.div>
 
-        <div className="relative">
+        {/* العنوان الرئيسي: استخدمنا أحجام نص ثابتة (Rem) بدلاً من vw لتجنب الـ Overflow */}
+        <div className="flex flex-col gap-0 mb-6">
           <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-6xl md:text-[8vw] font-black tracking-tighter leading-[0.9] text-white"
+            className="text-5xl sm:text-7xl md:text-8xl lg:text-[7rem] font-black text-white tracking-[ -0.05em] leading-[1.1] md:leading-[1]"
           >
-            Crafting<br />
-            <span className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 bg-clip-text text-transparent italic">
+            Crafting <br className="md:hidden" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 italic px-2">
               Digital
-            </span><br />
+            </span> <br />
             Experiences.
           </motion.h1>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[130%] bg-white/[0.02] border border-white/[0.05] -z-10 rotate-[-1deg] rounded-[5rem] blur-2xl"></div>
         </div>
 
+        {/* الوصف: عرض محدد لضمان عدم التشتت */}
         <motion.p 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-gray-400 max-w-2xl text-lg md:text-xl mt-10 mx-auto leading-relaxed font-medium"
+          className="text-gray-400 max-w-xl text-base md:text-lg lg:text-xl font-medium font-arabic leading-relaxed opacity-90 px-4"
         >
           بناء واجهات برمجية تفاعلية تتجاوز التوقعات بلمسة فنية وكود نظيف.
         </motion.p>
 
-        <div className="flex flex-wrap gap-6 mt-12 justify-center items-center">
+        {/* الأزرار: محاذاة مرنة (Flex-Row في الشاشات الكبيرة) */}
+        <div className="flex flex-col sm:flex-row gap-5 mt-12 items-center justify-center w-full">
           <Magnetic>
             <button 
               onClick={onStartProject}
-              aria-label="Start your project with Mojimmy"
-              className="px-10 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white rounded-full font-black text-lg hover:scale-105 transition-all shadow-[0_10px_40px_rgba(147,51,234,0.3)] flex items-center gap-3 group"
+              className="w-full sm:w-auto px-10 py-4 bg-white text-black rounded-full font-black text-lg hover:bg-transparent hover:text-white border border-white transition-all duration-300 flex items-center justify-center gap-3 group"
             >
               ابدأ مشروعك 
               <MousePointerClick size={20} className="group-hover:rotate-12 transition-transform" />
@@ -115,34 +104,31 @@ export default function Hero({ onStartProject }: HeroProps) {
           </Magnetic>
           
           <div className="flex gap-4">
-             <Magnetic>
+            {[
+              { icon: <Github size={22} />, url: 'https://github.com/momhamedga' },
+              { icon: <Linkedin size={22} />, url: 'https://linkedin.com' }
+            ].map((social, i) => (
+              <Magnetic key={i}>
                 <button 
-                  onClick={() => window.open('https://github.com/momhamedga', '_blank')}
-                  aria-label="Follow Mojimmy on GitHub"
-                  className="bg-white/5 border border-white/10 p-4 rounded-full hover:bg-white/10 transition-all text-white"
+                  onClick={() => window.open(social.url, '_blank')}
+                  className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-full hover:bg-white/10 hover:border-white/30 transition-all text-white"
                 >
-                  <Github size={22} />
+                  {social.icon}
                 </button>
-             </Magnetic>
-             <Magnetic>
-                <button 
-                  onClick={() => window.open('https://linkedin.com', '_blank')}
-                  aria-label="Connect with Mojimmy on LinkedIn"
-                  className="bg-white/5 border border-white/10 p-4 rounded-full hover:bg-white/10 transition-all text-white"
-                >
-                  <Linkedin size={22} />
-                </button>
-             </Magnetic>
+              </Magnetic>
+            ))}
           </div>
         </div>
       </div>
 
+      {/* مؤشر النزول الأسفل */}
       <motion.div 
-        animate={{ y: [0, 10, 0] }}
+        animate={{ y: [0, 5, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/20 uppercase font-mono text-[10px] tracking-[0.5em]"
+        className="absolute bottom-6 flex flex-col items-center gap-2 opacity-20"
       >
-        Scroll Down
+        <span className="font-mono text-[8px] tracking-[0.4em] text-white uppercase">Scroll Down</span>
+        <div className="w-[1px] h-10 bg-gradient-to-b from-white to-transparent" />
       </motion.div>
     </section>
   );

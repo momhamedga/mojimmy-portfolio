@@ -58,8 +58,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#020202] text-white selection:bg-purple-500/30`}
+    <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning // أضف هذه الخاصية هنا أيضاً
       >
         {/* --- طبقة الـ Grain/Noise السينمائية الثابتة --- */}
         {/* أضفت لكِ الكلاسات اللازمة في globals.css لاحقاً لتشغيل الـ Animation */}

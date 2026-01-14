@@ -2,7 +2,7 @@
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import { useRef, useCallback } from "react";
 import { ArrowUpRight } from "lucide-react";
-import Image from "next/image";
+
 
 function ProjectCard({ project, index }: { project: any, index: number }) {
   const cardRef = useRef(null);
@@ -58,14 +58,7 @@ function ProjectCard({ project, index }: { project: any, index: number }) {
       {/* 3. خلفية الصورة المحسنة (LCP Optimization) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div style={{ y: translateY }} className="relative w-full h-[120%] -top-[10%]">
-          <Image
-            src={project.image || `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop`} // رابط تجريبي
-            alt={project.title}
-            fill
-            priority={index < 2} // تحميل فوري لأول مشروعين
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover opacity-30 group-hover:opacity-60 transition-all duration-1000 grayscale group-hover:grayscale-0 scale-110 group-hover:scale-100"
-          />
+
           <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} mix-blend-overlay opacity-40 group-hover:opacity-20 transition-opacity duration-1000`} />
           
           {/* نص تيبوغرافي خلفي */}

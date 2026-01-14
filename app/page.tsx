@@ -13,6 +13,10 @@ const Projects = dynamic(() => import("./components/Projects"), {
   ssr: false,
   loading: () => loadingState("h-[1000px]")
 });
+const TechStack = dynamic(() => import("./components/SkillsBento"), { 
+  ssr: false,
+  loading: () => loadingState("h-[1000px]")
+});
 const Testimonials = dynamic(() => import("./components/Testimonials"), { 
   ssr: false, loading: () => loadingState("h-[500px]") 
 });
@@ -93,7 +97,8 @@ function handleMouseMove({ clientX, clientY }: React.MouseEvent) {
         <Navbar />
         <Hero onStartProject={() => setIsModalOpen(true)} />
         {/* جميع السكاشن هنا بدون أي bg-colors داخلها */}
-        <Skills />
+       
+        <TechStack/>
         <About />
         <Services />
         <Projects />
