@@ -33,7 +33,7 @@ export default function Hero({ onStartProject }: HeroProps) {
   return (
     <section id="home"
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-[#030303]"
+      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-transparent"
     >
       {/* 1. الجسيمات - قللنا العدد قليلاً لزيادة الـ Performance */}
       <div className="absolute inset-0 z-0 pointer-events-none">

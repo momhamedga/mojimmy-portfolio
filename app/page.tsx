@@ -25,18 +25,21 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const mouseX = useMotionValue(0);
+const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
   const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
 
-  const background = useMotionTemplate`radial-gradient(800px circle at ${springX}px ${springY}px, rgba(147, 51, 234, 0.1), transparent 80%)`;
+  // توهج خلفي موحد لكل الموقع
+  const background = useMotionTemplate`radial-gradient(800px circle at ${springX}px ${springY}px, rgba(147, 51, 234, 0.08), transparent 80%)`;
+
+
 
   useEffect(() => {
     setMounted(true);
     setTimeout(() => setIsLoading(false), 2000);
   }, []);
-
+  
   function handleMouseMove({ clientX, clientY }: React.MouseEvent) {
     mouseX.set(clientX);
     mouseY.set(clientY);
@@ -53,42 +56,27 @@ export default function Home() {
         {isLoading && <Preloader key="preloader" />}
       </AnimatePresence>
 
-      {/* 1. الطبقة الخلفية المطلقة (The Unified Canvas) */}
+    {/* 1. الطبقة الخلفية الموحدة (ثابتة خلف كل شيء) */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* الـ Grid الثابت اللي مش بيتحرك مع السكرول */}
-        <div 
-          className="absolute inset-0 opacity-[0.05]" 
-          style={{
-            backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
-          }} 
+        {/* الـ Grid الثابت */}
+        <div className="absolute inset-0 opacity-[0.1]" 
+             style={{ backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)`, backgroundSize: '50px 50px' }} 
         />
-        {/* توهج الماوس اللي بيتحرك في الخلفية كلها */}
+        {/* توهج الماوس الموحد */}
         <motion.div className="absolute inset-0" style={{ background }} />
       </div>
 
-      {/* 2. طبقة المحتوى (The Interactive Layer) */}
-      <div className="relative z-10 w-full">
+  {/* 2. طبقة المحتوى */}
+      <div className="relative z-10">
         <Navbar />
-        
-        {/* ملاحظة: شيلنا أي bg-colors من السكاشن */}
         <Hero onStartProject={() => setIsModalOpen(true)} />
-        
-        {/* السكاشن الآن تسبح فوق الخلفية الثابتة */}
-        <div className="relative">
-          <Skills />
-          <About />
-          <Projects />
-          <Services />
-          <Experience />
-          <Testimonials />
-          <FAQ />
-          <Contact />
-        </div>
-        
+        {/* جميع السكاشن هنا بدون أي bg-colors داخلها */}
+        <Skills />
+        <About />
+        <Projects />
+        <Contact />
         <Footer />
       </div>
-
       {/* الـ Modals دايمًا في أعلى Z-index */}
       <AnimatePresence>
         {isModalOpen && (
