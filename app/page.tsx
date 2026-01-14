@@ -13,16 +13,26 @@ const Projects = dynamic(() => import("./components/Projects"), {
   ssr: false,
   loading: () => <div className="min-h-screen bg-transparent" /> // يحجز مكان السكشن
 });
-const Testimonials = dynamic(() => import("./components/Testimonials"), { ssr: false });
+const Testimonials = dynamic(() => import("./components/Testimonials"), { 
+  ssr: false, loading: () => loadingState("h-[500px]") 
+});
 const StartProjectModal = dynamic(() => import("./components/StartProjectModal"), { ssr: false });
 const Skills = dynamic(() => import("./components/Skills"), { 
   ssr: false, 
   loading: () => loadingState("h-[500px]") 
 });
-const About = dynamic(() => import("./components/About"), { ssr: false });
-const Services = dynamic(() => import("./components/Services"), { ssr: false });
-const Experience = dynamic(() => import("./components/Experience"), { ssr: false });
-const FAQ = dynamic(() => import("./components/FAQ"), { ssr: false });
+const About = dynamic(() => import("./components/About"), { 
+  ssr: false, loading: () => loadingState("h-[400px]") 
+});
+const Services = dynamic(() => import("./components/Services"), { 
+  ssr: false, loading: () => loadingState("h-[600px]") 
+});
+const Experience = dynamic(() => import("./components/Experience"), { 
+  ssr: false, loading: () => loadingState("h-[700px]") 
+});
+const FAQ = dynamic(() => import("./components/FAQ"), { 
+  ssr: false, loading: () => loadingState("h-[500px]") 
+});
 const Contact = dynamic(() => import("./components/Contact"), { 
   ssr: false, 
   loading: () => loadingState("h-[600px]") 
@@ -71,13 +81,11 @@ function handleMouseMove({ clientX, clientY }: React.MouseEvent) {
       </AnimatePresence>
 
     {/* 1. الطبقة الخلفية الموحدة (ثابتة خلف كل شيء) */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* الـ Grid الثابت */}
-        <div className="absolute inset-0 opacity-[0.1]" 
-             style={{ backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)`, backgroundSize: '50px 50px' }} 
-        />
-        {/* توهج الماوس الموحد */}
-        <motion.div className="absolute inset-0" style={{ background }} />
+<div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.05]" 
+             style={{ backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)`, backgroundSize: '60px 60px' }} />
+        {/* إضافة transform-gpu لتحسين استهلاك المعالج */}
+        <motion.div className="absolute inset-0 transform-gpu" style={{ background }} />
       </div>
 
   {/* 2. طبقة المحتوى */}
