@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Zap } from "lucide-react";
 import MagneticButton from "./MagneticButton";
 import Magnetic from "./Magnetic";
 
@@ -175,72 +175,108 @@ useEffect(() => {
         </div>
       </motion.nav>
       {/* ... (بقية الـ Mobile Menu Overlay) */}
-     <AnimatePresence>
+   <AnimatePresence>
   {isOpen && (
     <>
-      {/* 1. الخلفية الضبابية (The Magic Veil) */}
+      {/* 1. خلفية زجاجية مع تشويه (The Frosted Lens) */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={() => setIsOpen(false)}
-        className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-md md:hidden"
+        className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-2xl md:hidden"
       />
 
-      {/* 2. القائمة الرئيسية (The Fluid Panel) */}
+      {/* 2. القائمة الرئيسية بتصميم الـ SVG الالتوائي */}
       <motion.div
-        initial={{ x: "100%", borderTopLeftRadius: "100px", borderBottomLeftRadius: "100px" }}
-        animate={{ x: 0, borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px" }}
-        exit={{ x: "100%", borderTopLeftRadius: "100px", borderBottomLeftRadius: "100px" }}
-        transition={{ type: "spring", damping: 25, stiffness: 150 }}
-        className="fixed top-0 right-0 bottom-0 w-[85%] z-[100] bg-[#080808]/90 border-l border-white/10 p-8 flex flex-col justify-between md:hidden shadow-[-20px_0_50px_rgba(0,0,0,0.5)]"
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+        className="fixed top-0 right-0 bottom-0 w-full sm:w-[450px] z-[100] bg-[#0a0a0a] p-10 flex flex-col md:hidden"
       >
-        {/* النقوش الخلفية البسيطة */}
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none overflow-hidden">
-             <div className="absolute -top-24 -left-24 w-64 h-64 bg-purple-600 rounded-full blur-[100px]" />
+        {/* عنصر جمالي: دوائر طاقة خلفية تتبع حركة يدك (افتراضياً) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full overflow-hidden opacity-20 pointer-events-none">
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1], rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="w-[500px] h-[500px] border border-purple-500/20 rounded-full"
+          />
         </div>
 
-        <div className="relative mt-20">
-          <div className="flex flex-col gap-6">
-            {navLinks.map((link, i) => (
-              <motion.a
-                key={link.name}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * i, ease: [0.215, 0.61, 0.355, 1] }}
+        {/* Header القائمة */}
+        <div className="relative z-10 flex justify-between items-center mb-16">
+          <span className="text-white/20 font-mono text-xs tracking-widest uppercase">Mojimmy</span>
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsOpen(false)}
+            className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white"
+          >
+            <X size={24} />
+          </motion.button>
+        </div>
+
+        {/* روابط القائمة بتأثير "الحروف الراقصة" */}
+        <nav className="relative z-10 flex flex-col gap-4">
+          {navLinks.map((link, i) => (
+            <motion.div
+              key={link.name}
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.1 * i + 0.2, ease: [0.76, 0, 0.24, 1] }}
+            >
+              <a
                 href={`#${link.href}`}
                 onClick={(e) => handleScroll(e, link.href)}
-                className="group relative inline-block py-2"
+                className="relative group flex items-baseline gap-4 py-2"
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-mono text-purple-500/50">0{i + 1}</span>
-                  <span className={`text-5xl font-black tracking-tighter uppercase transition-all duration-300 
-                    ${activeSection === link.href 
-                      ? "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-pink-500 scale-110 origin-right" 
-                      : "text-white hover:text-purple-400"}`}>
-                    {link.name}
-                  </span>
-                </div>
-              </motion.a>
-            ))}
+                {/* رقم القسم الذي يتحرك عند الـ Hover */}
+                <motion.span 
+                  className="text-sm font-mono text-purple-600 font-black opacity-0 group-hover:opacity-100 transition-all"
+                  initial={{ y: 10 }}
+                  whileHover={{ y: 0 }}
+                >
+                  0{i + 1}
+                </motion.span>
+
+                <span className={`text-6xl font-black tracking-tighter transition-all duration-500 
+                  ${activeSection === link.href 
+                    ? "text-white scale-105" 
+                    : "text-white/30 hover:text-white hover:pl-4"}`}>
+                  {link.name}
+                </span>
+
+                {/* الخط السفلي السائل */}
+                {activeSection === link.href && (
+                  <motion.div 
+                    layoutId="activeCircle"
+                    className="absolute -left-6 top-1/2 -translate-y-1/2 w-2 h-2 bg-purple-500 rounded-full"
+                  />
+                )}
+              </a>
+            </motion.div>
+          ))}
+        </nav>
+
+        {/* الجزء السفلي (The Experience Footer) */}
+        <div className="mt-auto relative z-10 border-t border-white/5 pt-10">
+          <div className="flex justify-between items-end">
+            <div className="flex flex-col gap-2">
+              <p className="text-white/20 text-[10px] uppercase tracking-widest font-bold font-arabic">اتبعني على</p>
+              <div className="flex gap-4 text-white/60 text-sm">
+                <a href="#" className="hover:text-purple-500 transition-colors">Behance</a>
+                <a href="#" className="hover:text-purple-500 transition-colors">LinkedIn</a>
+              </div>
+            </div>
+            
+            <motion.div
+              whileHover={{ rotate: 15 }}
+              className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.4)]"
+            >
+              <Zap className="text-white fill-white" size={30} />
+            </motion.div>
           </div>
         </div>
-
-        {/* Footer القائمة (Socials & Button) */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="relative border-t border-white/10 pt-8"
-        >
-          <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] mb-6">Let's Create Magic</p>
-          <button
-            onClick={(e) => handleScroll(e, "contact")}
-            className="w-full py-5 bg-white text-black rounded-2xl font-black text-xl hover:bg-purple-600 hover:text-white transition-all active:scale-95"
-          >
-            تواصل الآن
-          </button>
-        </motion.div>
       </motion.div>
     </>
   )}

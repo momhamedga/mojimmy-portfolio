@@ -20,8 +20,15 @@ const TechStack = dynamic(() => import("./components/SkillsBento"), {
 const Testimonials = dynamic(() => import("./components/Testimonials"), { 
   ssr: false, loading: () => loadingState("h-[500px]") 
 });
+const CodeLaboratory = dynamic(() => import("./components/Laboratory"), { 
+  ssr: false, loading: () => loadingState("h-[500px]") 
+});
 const StartProjectModal = dynamic(() => import("./components/StartProjectModal"), { ssr: false });
-const Skills = dynamic(() => import("./components/Skills"), { 
+const ProcessSection = dynamic(() => import("./components/Process"), { 
+  ssr: false, 
+  loading: () => loadingState("h-[600px]") 
+});
+const CommandPalette = dynamic(() => import("./components/CommandPalette"), { 
   ssr: false, 
   loading: () => loadingState("h-[600px]") 
 });
@@ -31,9 +38,7 @@ const About = dynamic(() => import("./components/About"), {
 const Services = dynamic(() => import("./components/Services"), { 
   ssr: false, loading: () => loadingState("h-[600px]") 
 });
-const Experience = dynamic(() => import("./components/Experience"), { 
-  ssr: false, loading: () => loadingState("h-[700px]") 
-});
+
 const FAQ = dynamic(() => import("./components/FAQ"), { 
   ssr: false, loading: () => loadingState("h-[500px]") 
 });
@@ -99,11 +104,14 @@ function handleMouseMove({ clientX, clientY }: React.MouseEvent) {
         {/* جميع السكاشن هنا بدون أي bg-colors داخلها */}
        
         <TechStack/>
+        <CommandPalette/>
         <About />
         <Services />
         <Projects />
+        <CodeLaboratory />
         <Testimonials />
-        <Experience />
+   
+        <ProcessSection />
         <FAQ />
         <Contact />
         <Footer />

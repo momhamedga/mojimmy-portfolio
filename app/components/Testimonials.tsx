@@ -1,33 +1,14 @@
 "use client"
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import { useRef } from "react";
-import { Quote, Star } from "lucide-react";
+import { Quote, Star, Sparkles } from "lucide-react";
 
 const reviews = [
-  {
-    name: "أحمد محمد",
-    role: "رئيس تنفيذي، TechFlow",
-    text: "التعامل كان احترافياً للغاية، النتيجة تجاوزت توقعاتي من حيث السرعة والجماليات الفائقة والدقة في التنفيذ.",
-    img: "https://i.pravatar.cc/150?u=1",
-  },
-  {
-    name: "سارة خالد",
-    role: "مديرة تصميم واجهات",
-    text: "لديه عين فنية مبدعة وكود نظيف جداً. استطاع تحويل رؤيتنا إلى واقع رقمي مذهل يتفاعل مع المستخدم بسلاسة.",
-    img: "https://i.pravatar.cc/150?u=2",
-  },
-  {
-    name: "ياسين علي",
-    role: "مدير مشاريع تقنية",
-    text: "السرعة في التنفيذ والدقة في أصغر التفاصيل هي أكثر ما يميزه. تجربة استثنائية وأنصح بالتعامل معه دائماً.",
-    img: "https://i.pravatar.cc/150?u=4",
-  },
-  {
-    name: "ليلى محمود",
-    role: "مؤسسة Startup X",
-    text: "أفضل مطور واجهات تعاملت معه، يفهم احتياجات العمل ويحولها لتصميم ينبض بالحياة.",
-    img: "https://i.pravatar.cc/150?u=9",
-  }
+  { name: "أحمد محمد", role: "CEO", text: "احترافية تتجاوز التوقعات في التنفيذ والسرعة.", color: "#a855f7" },
+  { name: "سارة خالد", role: "Designer", text: "كود نظيف ورؤية فنية مذهلة في كل تفصيلة.", color: "#3b82f6" },
+  { name: "ياسين علي", role: "Manager", text: "سرعة ودقة استثنائية في تحويل الأفكار لواقع.", color: "#ec4899" },
+  { name: "ليلى محمود", role: "Founder", text: "أفضل مطور واجهات تعاملت معه على الإطلاق.", color: "#10b981" },
+  { name: "عمر خالد", role: "Expert", text: "تجربة مستخدم تفوق الوصف بصراحة، اهتمام بالتفاصيل.", color: "#f59e0b" },
 ];
 
 export default function Testimonials() {
@@ -37,110 +18,125 @@ export default function Testimonials() {
     offset: ["start end", "end start"]
   });
 
-  // تحسين تأثير الـ Parallax ليكون أنعم
-  const translateX = useTransform(scrollYProgress, [0, 1], [200, -200]);
+  const xLeft = useTransform(scrollYProgress, [0, 1], [-200, 200]);
+  const xRight = useTransform(scrollYProgress, [0, 1], [200, -200]);
 
   return (
-    <section ref={containerRef} id="testimonials" className="py-40 bg-transparent relative overflow-hidden" dir="rtl">
+    <section ref={containerRef} className="relative py-32 bg-black overflow-hidden select-none">
       
-      {/* 1. النص الخلفي - تم تقليل الـ Stroke لضمان عدم حجب الـ Grid */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full pointer-events-none overflow-hidden select-none z-0">
-        <motion.h2 
-          style={{ x: translateX, WebkitTextStroke: '1px rgba(255,255,255,0.02)' }} 
-          className="text-[22vw] font-black text-transparent whitespace-nowrap uppercase italic leading-none"
-        >
-          قالوا عني قالوا عني قالوا عني قالوا عني
+      {/* 1. الخلفية المتحركة (البهارات البصرية) */}
+      <div className="absolute inset-0 flex flex-col justify-center gap-12 pointer-events-none opacity-[0.02]">
+        <motion.h2 style={{ x: xLeft }} className="text-[18vw] font-black whitespace-nowrap text-white outline-text">
+           EXPERIENCE • QUALITY • VISION •
+        </motion.h2>
+        <motion.h2 style={{ x: xRight }} className="text-[18vw] font-black whitespace-nowrap text-white font-arabic" dir="rtl">
+           إبداع • إتقان • تميز •
         </motion.h2>
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="flex flex-col items-center mb-32 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            className="mb-4 px-4 py-1 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-400 text-[10px] font-mono tracking-[0.3em] uppercase"
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
+        {/* 2. العنوان مع لمسة Sparkles */}
+        <div className="text-center mb-24 relative">
+          <motion.div 
+            animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-20"
           >
-            Testimonials
+            <Sparkles className="text-purple-500" size={60} />
           </motion.div>
-          <h2 className="text-6xl md:text-8xl font-black text-white tracking-tighter italic">
-            آراء <span className="text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-purple-600">الشركاء</span>
+          <motion.span className="text-purple-500 font-mono tracking-[0.4em] text-[10px] uppercase block mb-4">Client Voices</motion.span>
+          <h2 className="text-5xl md:text-7xl font-bold text-white font-arabic leading-tight">
+             ثقة <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">تُبنى</span> بالتجربة
           </h2>
         </div>
 
-        {/* 2. الـ Infinite Slider - تم استخدام masking لضمان تلاشي الأطراف مع الـ Grid */}
-        <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-          <motion.div 
-            className="flex gap-8 w-max px-4 py-10"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ 
-              duration: 35, 
-              repeat: Infinity, 
-              ease: "linear" 
-            }}
-            whileHover={{ animationPlayState: "paused" }}
-          >
-            {[...reviews, ...reviews].map((item, index) => (
-              <motion.div 
-                key={index} 
-                whileHover={{ y: -10 }}
-                className="w-[380px] md:w-[500px] flex-shrink-0 p-10 rounded-[3rem] bg-white/[0.02] border border-white/5 backdrop-blur-md relative group/card transition-all duration-700"
-              >
-                {/* خط إضاءة علوي */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent group-hover/card:w-2/3 transition-all duration-700" />
-                
-                <div className="flex justify-between items-start mb-10">
-                  <div className="p-3 bg-white/5 rounded-xl">
-                    <Quote size={24} className="text-purple-500 rotate-180" />
-                  </div>
-                  <div className="flex gap-1 pt-2">
-                    {[1,2,3,4,5].map(star => <Star key={star} size={10} className="fill-yellow-500 text-yellow-500" />)}
-                  </div>
-                </div>
-
-                <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-10 font-medium text-right">
-                  "{item.text}"
-                </p>
-
-                <div className="flex items-center gap-4 pt-6 border-t border-white/5">
-                  <div className="relative">
-                    <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10">
-                      <img src={item.img} alt={item.name} className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500" />
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <h4 className="text-white font-bold text-lg">{item.name}</h4>
-                    <p className="text-purple-400/60 text-xs font-mono uppercase">{item.role}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* 3. الإحصائيات - تم تعديلها لتكون متناغمة مع الخلفية الموحدة */}
-        <div className="mt-40 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16 border-t border-white/5 pt-20">
-          {[
-            { label: "عميل سعيد", val: "50+" },
-            { label: "مشروع مكتمل", val: "120+" },
-            { label: "تقييم عام", val: "5.0" },
-            { label: "دولة حول العالم", val: "12" }
-          ].map((stat, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="text-center md:text-right"
-            >
-               <h5 className="text-5xl md:text-6xl font-black text-white hover:text-purple-500 transition-colors duration-500">
-                 {stat.val}
-               </h5>
-               <p className="text-gray-500 font-bold text-xs mt-2 uppercase tracking-widest">{stat.label}</p>
-            </motion.div>
+        {/* 3. شبكة الكروت المطورة */}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+          {reviews.map((rev, i) => (
+            <EnhancedCard key={i} review={rev} index={i} />
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+function EnhancedCard({ review, index }: any) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // تأثير الـ Tilt (الإمالة)
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { stiffness: 150, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 150, damping: 20 });
+
+  function onMouseMove(e: React.MouseEvent) {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  }
+
+  function onMouseLeave() {
+    mouseX.set(0);
+    mouseY.set(0);
+  }
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      initial={{ opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1 }}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className="break-inside-avoid relative p-1px rounded-[2.5rem] group overflow-hidden bg-gradient-to-br from-white/10 to-transparent"
+    >
+      {/* تأثير الـ Spotlight الداخلي */}
+      <motion.div 
+        className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(600px circle at ${mouseX.get() * 100 + 50}% ${mouseY.get() * 100 + 50}%, ${review.color}20, transparent 40%)`
+        }}
+      />
+
+      <div className="relative z-10 p-8 bg-[#0a0a0a]/90 backdrop-blur-3xl rounded-[2.5rem] h-full flex flex-col">
+        <div className="mb-6 flex justify-between items-center">
+          <motion.div 
+             animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity }}
+             className="p-3 rounded-2xl bg-white/[0.03] border border-white/5"
+          >
+            <Quote size={24} style={{ color: review.color }} />
+          </motion.div>
+          <div className="flex gap-1">
+            {[...Array(5)].map((_, i) => (
+              <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3] }} transition={{ delay: i * 0.2, repeat: Infinity, duration: 2 }}>
+                <Star size={10} className="fill-yellow-500 text-yellow-500" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-gray-300 text-[17px] leading-[1.8] text-right font-arabic mb-8 flex-1" dir="rtl">
+          {review.text}
+        </p>
+
+        <div className="flex flex-row-reverse items-center gap-4 pt-6 border-t border-white/5">
+          <div className="relative">
+             <div className="w-12 h-12 rounded-full border border-white/10 bg-gradient-to-br from-white/5 to-transparent flex items-center justify-center font-bold text-white">
+                {review.name[0]}
+             </div>
+             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-[#0a0a0a]" />
+          </div>
+          <div className="text-right">
+            <h4 className="text-white font-bold text-sm">{review.name}</h4>
+            <p className="text-white/30 text-[10px] uppercase tracking-widest mt-0.5">{review.role}</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
