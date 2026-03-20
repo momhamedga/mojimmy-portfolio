@@ -59,13 +59,14 @@ export const LivePreview = ({ type, settings }: { type: string, settings: any })
       {type === "01" && (
         <div className="relative">
           {/* ظل ضوئي يتبع العنصر */}
-          <motion.div 
-            style={{ x: smoothX, y: smoothY }}
-            className="absolute inset-0 blur-[50px] opacity-30"
-            className="w-20 h-20 rounded-full blur-[40px] opacity-40"
-            style={{ backgroundColor: '#a855f7', x: smoothX, y: smoothY }}
-          />
-          
+<motion.div
+  className="absolute inset-0 w-20 h-20 rounded-full blur-[50px] opacity-30"
+  style={{ 
+    backgroundColor: '#a855f7', 
+    x: smoothX, 
+    y: smoothY 
+  }}
+/>
           <motion.div 
             style={{ 
               x: smoothX, 
