@@ -145,7 +145,7 @@ export default function CodeLaboratory() {
                 
                 <div className="p-8 overflow-x-auto custom-scrollbar" dir="ltr">
                   <pre className="font-mono text-sm md:text-base leading-relaxed">
-                    <code className="text-gray-500 italic block mb-4">// تحديث القيم في الوقت الفعلي:</code>
+                    <code className="text-gray-500 italic block mb-4"> تحديث القيم في الوقت الفعلي:</code>
                     <code className="text-emerald-400/90">
                       {activeExp.code.split('\n').map((line, i) => {
                         const [key] = line.split('=');

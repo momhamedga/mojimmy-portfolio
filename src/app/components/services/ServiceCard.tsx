@@ -77,11 +77,13 @@ export const ServiceCard = memo(({ service, index }: { service: Service; index: 
         {/* الجهة اليسرى: العنصر البصري التفاعلي */}
         <div className="order-1 lg:order-2 relative flex justify-center items-center h-[250px] md:h-[500px] lg:h-[600px]">
           {/* خلفية ضوئية متوهجة */}
-          <motion.div 
-            style={{ rotate: rotateShape }}
-            className="absolute w-[200px] h-[200px] md:w-[400px] md:h-[400px] rounded-full opacity-30 blur-[80px] md:blur-[120px]"
-            style={{ backgroundColor: service.color }}
-          />
+      <motion.div
+  style={{ 
+    rotate: rotateShape, 
+    backgroundColor: service.color 
+  }}
+  className="absolute w-[200px] h-[200px] md:w-[400px] md:h-[400px] rounded-full opacity-30 blur-[80px] md:blur-[120px]"
+/>
 
           {/* العنصر الرئيسي */}
           <motion.div 
