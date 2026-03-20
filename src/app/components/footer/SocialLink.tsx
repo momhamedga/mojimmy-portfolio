@@ -4,7 +4,7 @@ import Magnetic from "../Magnetic";
 
 
 interface SocialLinkProps {
-  link: { icon: JSX.Element; href: string; label: string };
+link: { icon: React.ReactNode; href: string; label: string };
 }
 
 export const SocialLink = ({ link }: SocialLinkProps) => {
