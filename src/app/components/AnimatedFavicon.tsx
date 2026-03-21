@@ -1,57 +1,86 @@
 "use client"
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function AnimatedFavicon() {
-  useEffect(() => {
-    const favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-    
-    // لو معندكش لينك فافيكون في الهيد، الكود ده هيكريهه
-    if (!favicon) {
-      const link = document.createElement('link');
-      link.rel = 'icon';
-      document.getElementsByTagName('head')[0].appendChild(link);
-    }
+  const requestRef = useRef<number | null>(null);
+  const stepRef = useRef<number>(0);
 
-    let step = 0;
+  useEffect(() => {
+    // 1. إعداد الـ Canvas مرة واحدة فقط
     const canvas = document.createElement("canvas");
     canvas.width = 32;
     canvas.height = 32;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true });
+    
+    // البحث عن أو إنشاء رابط الأيقونة
+    let faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (!faviconLink) {
+      faviconLink = document.createElement('link');
+      faviconLink.rel = 'icon';
+      document.head.appendChild(faviconLink);
+    }
 
-    const animate = () => {
+    const draw = () => {
       if (!ctx) return;
+      
       ctx.clearRect(0, 0, 32, 32);
 
-      // 1. رسم حرف الـ M (الأساس الأبيض)
+      // تنعيم الرسم (Anti-aliasing)
+      ctx.imageSmoothingEnabled = true;
+
+      // 2. رسم حرف الـ M (الأساس النيون)
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = "rgba(168, 85, 247, 0.5)";
       ctx.fillStyle = "white";
-      ctx.font = "900 24px Inter, system-ui, sans-serif";
+      ctx.font = "900 22px system-ui, -apple-system, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("M", 16, 16);
 
-      // 2. تأثير النبض البنفسجي (The Glow)
-      const opacity = (Math.sin(step) + 1) / 2; // قيمة بين 0 و 1
-      ctx.shadowBlur = 8 * opacity;
-      ctx.shadowColor = "#a855f7"; // اللون البنفسجي من اللوجو
+      // 3. تأثير النبض الذكي (The Pulse)
+      const opacity = (Math.sin(stepRef.current) + 1) / 2;
       
-      // رسم دائرة نيون صغيرة تحت الحرف بتنبض
+      // رسم نقطة النيون الجانبية (مثل حالة الـ Online)
+      ctx.shadowBlur = 10 * opacity;
+      ctx.shadowColor = "#a855f7";
       ctx.beginPath();
-      ctx.arc(28, 28, 3 * opacity, 0, Math.PI * 2);
+      ctx.arc(26, 26, 4 * opacity, 0, Math.PI * 2);
       ctx.fillStyle = "#a855f7";
       ctx.fill();
 
-      // تحديث الأيقونة
-      const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-      if (faviconLink) {
-        faviconLink.href = canvas.toDataURL();
-      }
-
-      step += 0.05;
-      requestAnimationFrame(animate);
+      // تحديث الرابط (Data URL)
+      faviconLink.href = canvas.toDataURL('image/png', 0.5); // جودة متوسطة لتوفير الذاكرة
     };
 
-    animate();
+    let lastTime = 0;
+    const animate = (time: number) => {
+      // تحديد السرعة (Throttle) لـ 15 فريم في الثانية فقط
+      if (time - lastTime >= 70) { 
+        lastTime = time;
+        stepRef.current += 0.1;
+        draw();
+      }
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    // 4. ذكاء التوقف (Visibility Check)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      } else {
+        requestRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    requestRef.current = requestAnimationFrame(animate);
+
+    // تنظيف (Cleanup) عند الخروج
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
-  return null; // المكون ده مش بيرندر حاجة في الصفحة، هو شغال في الـ Head بس
+  return null;
 }

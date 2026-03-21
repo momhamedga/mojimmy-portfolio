@@ -1,0 +1,155 @@
+[33mcommit a2ed4ebc68570f29455a7c8d6c2b44e8c4614b7e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Sat Mar 21 20:02:11 2026 +0400
+
+    feat: confirm projects update with ICFB
+
+[33mcommit 293259d811e056e38e1c6036613aef6d1b5b9d37[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Fri Mar 20 07:26:43 2026 +0400
+
+    fix: merge duplicate style attributes in ServiceCard
+
+[33mcommit 7cd82275f1bf9030e4dbae4437523ea768675267[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Fri Mar 20 07:23:58 2026 +0400
+
+    fix: merge duplicate className and style attributes in LivePreview
+
+[33mcommit a83afb7012d02a28a0fd83d0dff0defba827eba4[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Fri Mar 20 07:20:19 2026 +0400
+
+    fix: change JSX.Element to React.ReactNode in SocialLink
+
+[33mcommit 0d4c7422d74aede661b121a311b5ba0ec9dac449[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Fri Mar 20 07:15:06 2026 +0400
+
+    fix: move useTransform hooks to top level to comply with React Rules of Hooks
+
+[33mcommit 44a9ecc15a7b37dbed035605b06b3523c08aef11[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Fri Mar 20 07:09:32 2026 +0400
+
+    fix: resolve react hooks conditional rendering & feat: add magnetic neon cursor and animated favicon
+
+[33mcommit bf779ab15635a08d804653bbb82d5a5eed753397[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Fri Jan 16 03:11:50 2026 +0400
+
+    feat: optimize Code Laboratory performance and add magnetic interaction
+
+[33mcommit 82fa13597a0e81ee55b513556fb615387474f174[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 03:00:28 2026 +0400
+
+    style: pivot to typography-focused minimalist projects section
+
+[33mcommit 3967e9c95e0f395096666893bbc524dbc035b9a3[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 02:17:04 2026 +0400
+
+    perf: optimize Projects section with GPU acceleration and zero-CLS skeletons
+
+[33mcommit 1657574c0ec02e4af78ffb634587dda70cc6a9b6[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 02:00:03 2026 +0400
+
+    perf: optimize Projects section with GPU acceleration and zero-CLS skeletons
+
+[33mcommit b5bf5694b0eded99127e4417fec471dcf9a75394[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 01:28:58 2026 +0400
+
+    feat: complete Mobile Menu
+
+[33mcommit 8bbd828d5c78155da6a836bfe8fb4ff6aadcb83b[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 01:20:59 2026 +0400
+
+    feat: complete Mobile Menu
+
+[33mcommit e3e91c580f68ba9a7970b2d3f27b537c67685b26[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 01:09:06 2026 +0400
+
+    feat: complete contact, footer sections and fix hero hooks order
+
+[33mcommit 1d075ccc3efbe426262c432692049af1d93f030d[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 01:01:20 2026 +0400
+
+    style: implement unified background canvas and clean up component-level backgrounds
+
+[33mcommit c0b587fcee1ecbf03999032cf547fe3e2d3075ba[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Thu Jan 15 00:46:55 2026 +0400
+
+    feat: complete contact, footer sections and fix hero hooks order
+
+[33mcommit 95583ee66e8ee0de36b0b0d4429605ff0b0f640f[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Wed Jan 14 00:15:10 2026 +0400
+
+    Perf: Edit Contact
+
+[33mcommit bc821ec6b56e730e36abe3b6533dea222a8b6ef0[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:49:29 2026 +0400
+
+    Perf: Edit contact and servies
+
+[33mcommit 735008f4f90c03d6a16683dd97bdfa8341a97a04[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:47:35 2026 +0400
+
+    Perf: Edit contact and servies
+
+[33mcommit 812d2870757f2973a2c7c89df1e139cd782cd39d[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:43:13 2026 +0400
+
+    Perf: Edit contact and servies
+
+[33mcommit 2eb9be903ee1d5609c2170462b833eaa70eac9f3[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:41:09 2026 +0400
+
+    Perf: Edit contact and servies
+
+[33mcommit 4289fc45c11e7e304c6eec007befc514dadf1783[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:36:56 2026 +0400
+
+    Perf: Remove physics engine to boost performance scores
+
+[33mcommit d6a230ac70ddf5845aec986e3cb04d9ac0f85f14[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:34:28 2026 +0400
+
+    Optimize: Advanced Stacking Cards for Services with GPU support
+
+[33mcommit 36eed0f6f6fe2d54e5c61a98e4af280d21a3cc3f[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:30:02 2026 +0400
+
+    Performance: Optimize GPU Acceleration and reach 100 SEO/Best Practices
+
+[33mcommit 63f018eb24edffc9f8b4e05f66fa01daffd637c8[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:13:00 2026 +0400
+
+    Fix: 100% Accessibility and optimize hero particles
+
+[33mcommit dbb2585b6a2d47eea0685bf00cf34620176f7eef[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 23:08:36 2026 +0400
+
+    Optimize: Add Dynamic Imports for better performance
+
+[33mcommit 8621377f839d4ab5151ea414e7d483a893cd08e6[m
+Author: Mojimmy <midoga400@gmail.com>
+Date:   Tue Jan 13 22:55:43 2026 +0400
+
+    Official Launch: Mojimmy Portfolio 2026

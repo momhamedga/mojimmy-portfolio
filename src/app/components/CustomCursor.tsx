@@ -1,45 +1,64 @@
 "use client"
-import { useEffect, useState, useRef } from "react";
-import { motion, useSpring, useMotionValue, useTransform } from "framer-motion";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { motion, useSpring, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+
+// تعريف الواجهة لضمان توافق الأنواع في TypeScript
+interface TailPoint {
+  x: any;
+  y: any;
+}
 
 export default function CustomCursor() {
-  const [isHovered, setIsHovered] = useState(false);
-  const [cursorText, setCursorText] = useState("");
-  
-  // الموقع الأساسي للماوس
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [cursorText, setCursorText] = useState<string>("");
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+
+  // 1. القيم الأساسية للمدخلات
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // إعدادات حركة "الذيل" (Trail) - نقاط متعددة تتبع بعضها
-  const points = 5; // عدد النقاط التي تشكل الذيل
-  const tails = Array.from({ length: points }).map(() => ({
-    x: useSpring(mouseX, { stiffness: 100, damping: 20, mass: 0.1 }),
-    y: useSpring(mouseY, { stiffness: 100, damping: 20, mass: 0.1 })
-  }));
+  // 2. حساب الدوران (خارج الـ JSX لمنع الخطوط الحمراء والقواعد المكسورة)
+  const rotation = useTransform(mouseX, (v) => (v * 0.1) % 360);
 
-  // كرسر القائد (الرأس) - حركة سريعة جداً
+  // 3. كرسر القائد (الرأس)
   const mainX = useSpring(mouseX, { stiffness: 1000, damping: 50 });
   const mainY = useSpring(mouseY, { stiffness: 1000, damping: 50 });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+  // 4. بناء الذيل الفيزيائي المتسلسل (Chain Physics)
+  const s1 = { x: useSpring(mouseX, { stiffness: 80, damping: 20 }), y: useSpring(mouseY, { stiffness: 80, damping: 20 }) };
+  const s2 = { x: useSpring(s1.x, { stiffness: 60, damping: 25 }), y: useSpring(s1.y, { stiffness: 60, damping: 25 }) };
+  const s3 = { x: useSpring(s2.x, { stiffness: 40, damping: 30 }), y: useSpring(s2.y, { stiffness: 40, damping: 30 }) };
+  const s4 = { x: useSpring(s3.x, { stiffness: 20, damping: 35 }), y: useSpring(s3.y, { stiffness: 20, damping: 35 }) };
 
-      // تحديث نقاط الذيل بتأخير بسيط لخلق تأثير السائل
-      tails.forEach((point, i) => {
-        setTimeout(() => {
-          point.x.set(e.clientX);
-          point.y.set(e.clientY);
-        }, i * 20); // تأخير متزايد لكل نقطة
-      });
+  const tails: TailPoint[] = [s1, s2, s3, s4];
+// 1. استخدمنا useRef للـ isVisible عشان نحدثها من غير ما نغير الـ Function مرجعياً
+  const isVisibleRef = useRef(false);
+
+  const updatePosition = useCallback((x: number, y: number) => {
+    mouseX.set(x);
+    mouseY.set(y);
+    
+    // تحديث الـ State مرة واحدة فقط عند أول حركة
+    if (!isVisibleRef.current) {
+      setIsVisible(true);
+      isVisibleRef.current = true;
+    }
+  }, [mouseX, mouseY]); // الـ MotionValues ثابتة المرجع، وده أمن لـ TS
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => updatePosition(e.clientX, e.clientY);
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+      }
     };
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest('.project-card')) {
         setIsHovered(true);
-        setCursorText("EXPLORE");
+        setCursorText("استكشف");
       } else if (target.closest('a, button')) {
         setIsHovered(true);
         setCursorText("");
@@ -50,85 +69,85 @@ export default function CustomCursor() {
     };
 
     window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("mouseover", handleMouseOver);
+    
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("mouseover", handleMouseOver);
     };
-  }, [mouseX, mouseY]);
+  }, [updatePosition]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[99999] hidden md:block">
-      
-      {/* تأثير الذيل السائل (Liquid Trail) */}
-      {tails.map((point, i) => (
-        <motion.div
-          key={i}
-          className="fixed top-0 left-0 rounded-full bg-purple-500/20 blur-[2px]"
-          style={{
-            x: point.x,
-            y: point.y,
-            translateX: "-50%",
-            translateY: "-50%",
-            width: 20 - i * 3, // يصغر الحجم تدريجياً
-            height: 20 - i * 3,
-            opacity: 1 - i * 0.2, // يختفي تدريجياً
-          }}
-        />
-      ))}
+    <div className="fixed inset-0 pointer-events-none z-[99999]">
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            
+            {/* ذيل السوائل */}
+            {tails.map((point, i) => (
+              <motion.div
+                key={i}
+                className="fixed top-0 left-0 rounded-full bg-purple-500/20 blur-[3px]"
+                style={{
+                  x: point.x,
+                  y: point.y,
+                  translateX: "-50%",
+                  translateY: "-50%",
+                  width: 20 - i * 4,
+                  height: 20 - i * 4,
+                  opacity: 0.8 - i * 0.2,
+                }}
+              />
+            ))}
 
-      {/* الكرسر الرئيسي (العدسة) */}
-      <motion.div
-        className="fixed top-0 left-0 flex items-center justify-center mix-blend-difference"
-        style={{
-          x: mainX,
-          y: mainY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
-      >
-        {/* حلقة متفاعلة تنكمش وتتمدد */}
-        <motion.div
-          animate={{
-            width: isHovered ? 100 : 15,
-            height: isHovered ? 100 : 15,
-            borderRadius: isHovered ? "30%" : "50%", // يتحول لشكل مربع مدور عند الهوفر
-            rotate: isHovered ? 90 : 0
-          }}
-          className="border border-purple-400/50 flex items-center justify-center overflow-hidden"
-          style={{
-            backgroundColor: isHovered ? "rgba(168, 85, 247, 0.1)" : "transparent"
-          }}
-        >
-          {isHovered && cursorText && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-[8px] font-black text-purple-300 tracking-[0.3em] rotate-[-90deg]"
+            {/* الكرسر الرئيسي */}
+            <motion.div
+              className="fixed top-0 left-0 flex items-center justify-center mix-blend-difference"
+              style={{ x: mainX, y: mainY, translateX: "-50%", translateY: "-50%" }}
             >
-              {cursorText}
-            </motion.span>
-          )}
-        </motion.div>
+              <motion.div
+                animate={{
+                  width: isHovered ? 80 : 12,
+                  height: isHovered ? 80 : 12,
+                  borderRadius: isHovered ? "20%" : "50%",
+                  rotate: isHovered ? 135 : 0
+                }}
+                className="border border-purple-400/50 flex items-center justify-center overflow-hidden bg-white/5 backdrop-blur-[2px]"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              >
+                {isHovered && cursorText && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-[10px] font-bold text-purple-200 tracking-tighter rotate-[-135deg] whitespace-nowrap"
+                  >
+                    {cursorText}
+                  </motion.span>
+                )}
+              </motion.div>
 
-        {/* النقطة المركزية (اللب) */}
-        <motion.div 
-          animate={{ scale: isHovered ? 0 : 1 }}
-          className="absolute w-1 h-1 bg-white rounded-full shadow-[0_0_15px_white]" 
-        />
-      </motion.div>
+              <motion.div 
+                animate={{ scale: isHovered ? 0 : 1 }}
+                className="absolute w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" 
+              />
+            </motion.div>
 
-      {/* تأثير "التشويش" الرقمي خلف الماوس */}
-      <motion.div
-        className="fixed top-0 left-0 w-[1px] h-20 bg-gradient-to-b from-transparent via-purple-500 to-transparent opacity-20"
-        style={{
-          x: mainX,
-          y: mainY,
-          translateX: "-50%",
-          translateY: "-50%",
-          rotate: useTransform(mouseX, (v) => v % 360) // دوران خفيف مع الحركة
-        }}
-      />
+            {/* خط التشويش - نظيف وبدون أخطاء */}
+            <motion.div
+              className="fixed top-0 left-0 w-[1px] h-16 bg-gradient-to-b from-transparent via-purple-500/40 to-transparent hidden md:block"
+              style={{
+                x: mainX,
+                y: mainY,
+                translateX: "-50%",
+                translateY: "-50%",
+                rotate: rotation // تم الاستدعاء هنا كقيمة مستقرة
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
