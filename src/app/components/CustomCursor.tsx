@@ -7,12 +7,13 @@ interface TailPoint {
   x: MotionValue<number>;
   y: MotionValue<number>;
 }
+
 export default function CustomCursor() {
-  // حل مشكلة Hydration: التأكد من أن الكود يعمل على المتصفح فقط
   const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [cursorText, setCursorText] = useState<string>("");
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
 
   // 1. القيم الأساسية للمدخلات
   const mouseX = useMotionValue(0);
@@ -34,14 +35,29 @@ export default function CustomCursor() {
   const tails: TailPoint[] = [s1, s2, s3, s4];
   const isVisibleRef = useRef(false);
 
-useEffect(() => {
+ useEffect(() => {
+    // 1. تعريف الميديا كويري
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    
+    // 2. تحديث الحالة داخل requestAnimationFrame لتجنب الـ Cascading Render
     const frame = requestAnimationFrame(() => {
+      setIsDesktop(mediaQuery.matches);
       setMounted(true);
     });
-    return () => cancelAnimationFrame(frame);
+
+    // 3. مستمع لتغيير حجم الشاشة (عشان لو اليوزر صغر المتصفح)
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mediaQuery.addEventListener("change", handler);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      mediaQuery.removeEventListener("change", handler);
+    };
   }, []);
 
   const updatePosition = useCallback((x: number, y: number) => {
+    if (!isDesktop) return; // تعطيل التحديثات تماماً في الموبايل
+    
     mouseX.set(x);
     mouseY.set(y);
     
@@ -49,20 +65,15 @@ useEffect(() => {
       setIsVisible(true);
       isVisibleRef.current = true;
     }
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, isDesktop]);
 
   useEffect(() => {
+    if (!isDesktop) return; // لا تقم بإضافة Listeners إذا كان موبايل
+
     const handleMouseMove = (e: MouseEvent) => updatePosition(e.clientX, e.clientY);
     
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) {
-        updatePosition(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    };
-
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // استخدمنا closest('.group') ليتناسب مع ProjectCard الخاص بك
       if (target.closest('.project-card') || target.closest('.group')) {
         setIsHovered(true);
         setCursorText("استكشف");
@@ -76,21 +87,19 @@ useEffect(() => {
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("mouseover", handleMouseOver);
     
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("mouseover", handleMouseOver);
     };
-  }, [updatePosition]);
+  }, [updatePosition, isDesktop]);
 
-  // منع الريندر على السيرفر
-  if (!mounted) return null;
+  // منع الريندر إذا لم يتم التحميل أو إذا كان الجهاز موبايل
+  if (!mounted || !isDesktop) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-99999">
+    <div className="fixed inset-0 pointer-events-none z-99999 hidden md:block">
       <AnimatePresence>
         {isVisible && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -146,7 +155,7 @@ useEffect(() => {
 
             {/* خط التشويش */}
             <motion.div
-              className="fixed top-0 left-0 w-px h-16 bg-linear-to-b from-transparent via-purple-500/40 to-transparent hidden md:block"
+              className="fixed top-0 left-0 w-px h-16 bg-gradient-to-b from-transparent via-purple-500/40 to-transparent"
               style={{
                 x: mainX,
                 y: mainY,
