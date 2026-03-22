@@ -1,14 +1,15 @@
 "use client"
 import { useEffect, useState, useCallback, useRef } from "react";
-import { motion, useSpring, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useSpring, useMotionValue, useTransform, AnimatePresence, MotionValue } from "framer-motion";
 
 // تعريف الواجهة لضمان توافق الأنواع في TypeScript
 interface TailPoint {
-  x: any;
-  y: any;
+  x: MotionValue<number>;
+  y: MotionValue<number>;
 }
-
 export default function CustomCursor() {
+  // حل مشكلة Hydration: التأكد من أن الكود يعمل على المتصفح فقط
+  const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [cursorText, setCursorText] = useState<string>("");
   const [isVisible, setIsVisible] = useState<boolean>(false);
@@ -17,33 +18,38 @@ export default function CustomCursor() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // 2. حساب الدوران (خارج الـ JSX لمنع الخطوط الحمراء والقواعد المكسورة)
+  // 2. حساب الدوران
   const rotation = useTransform(mouseX, (v) => (v * 0.1) % 360);
 
   // 3. كرسر القائد (الرأس)
   const mainX = useSpring(mouseX, { stiffness: 1000, damping: 50 });
   const mainY = useSpring(mouseY, { stiffness: 1000, damping: 50 });
 
-  // 4. بناء الذيل الفيزيائي المتسلسل (Chain Physics)
+  // 4. بناء الذيل الفيزيائي المتسلسل
   const s1 = { x: useSpring(mouseX, { stiffness: 80, damping: 20 }), y: useSpring(mouseY, { stiffness: 80, damping: 20 }) };
   const s2 = { x: useSpring(s1.x, { stiffness: 60, damping: 25 }), y: useSpring(s1.y, { stiffness: 60, damping: 25 }) };
   const s3 = { x: useSpring(s2.x, { stiffness: 40, damping: 30 }), y: useSpring(s2.y, { stiffness: 40, damping: 30 }) };
   const s4 = { x: useSpring(s3.x, { stiffness: 20, damping: 35 }), y: useSpring(s3.y, { stiffness: 20, damping: 35 }) };
 
   const tails: TailPoint[] = [s1, s2, s3, s4];
-// 1. استخدمنا useRef للـ isVisible عشان نحدثها من غير ما نغير الـ Function مرجعياً
   const isVisibleRef = useRef(false);
+
+useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const updatePosition = useCallback((x: number, y: number) => {
     mouseX.set(x);
     mouseY.set(y);
     
-    // تحديث الـ State مرة واحدة فقط عند أول حركة
     if (!isVisibleRef.current) {
       setIsVisible(true);
       isVisibleRef.current = true;
     }
-  }, [mouseX, mouseY]); // الـ MotionValues ثابتة المرجع، وده أمن لـ TS
+  }, [mouseX, mouseY]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => updatePosition(e.clientX, e.clientY);
@@ -56,7 +62,8 @@ export default function CustomCursor() {
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('.project-card')) {
+      // استخدمنا closest('.group') ليتناسب مع ProjectCard الخاص بك
+      if (target.closest('.project-card') || target.closest('.group')) {
         setIsHovered(true);
         setCursorText("استكشف");
       } else if (target.closest('a, button')) {
@@ -79,8 +86,11 @@ export default function CustomCursor() {
     };
   }, [updatePosition]);
 
+  // منع الريندر على السيرفر
+  if (!mounted) return null;
+
   return (
-    <div className="fixed inset-0 pointer-events-none z-[99999]">
+    <div className="fixed inset-0 pointer-events-none z-99999">
       <AnimatePresence>
         {isVisible && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -134,15 +144,15 @@ export default function CustomCursor() {
               />
             </motion.div>
 
-            {/* خط التشويش - نظيف وبدون أخطاء */}
+            {/* خط التشويش */}
             <motion.div
-              className="fixed top-0 left-0 w-[1px] h-16 bg-gradient-to-b from-transparent via-purple-500/40 to-transparent hidden md:block"
+              className="fixed top-0 left-0 w-px h-16 bg-linear-to-b from-transparent via-purple-500/40 to-transparent hidden md:block"
               style={{
                 x: mainX,
                 y: mainY,
                 translateX: "-50%",
                 translateY: "-50%",
-                rotate: rotation // تم الاستدعاء هنا كقيمة مستقرة
+                rotate: rotation 
               }}
             />
           </motion.div>

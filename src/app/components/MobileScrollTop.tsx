@@ -43,14 +43,14 @@ export default function MobileScrollTop() {
           onClick={scrollToTop}
           
           // تحسين الشكل ليتناسب مع الهوية البصرية (Purple & Dark)
-          className="fixed bottom-28 left-6 w-12 h-12 rounded-2xl bg-[#0a0a0a]/60 backdrop-blur-2xl border border-white/10 text-white flex items-center justify-center z-[90] lg:hidden shadow-[0_20px_40px_rgba(168,85,247,0.15)] overflow-hidden"
+          className="fixed bottom-28 left-6 w-12 h-12 rounded-2xl bg-[#0a0a0a]/60 backdrop-blur-2xl border border-white/10 text-white flex items-center justify-center z-90 lg:hidden shadow-[0_20px_40px_rgba(168,85,247,0.15)] overflow-hidden"
           style={{ 
             touchAction: 'none',
             willChange: 'transform, opacity' // تنبيه المتصفح لتحسين الأداء
           }}
         >
           {/* خلفية نيون خفيفة جداً داخل الزر */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-tr from-purple-500/10 to-transparent pointer-events-none" />
           
           <ArrowUp size={20} className="text-purple-400 relative z-10" />
           
@@ -59,7 +59,7 @@ export default function MobileScrollTop() {
             initial={{ left: "-100%" }}
             animate={{ left: "200%" }}
             transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-            className="absolute top-0 w-1/2 h-full bg-white/5 skew-x-[30deg]"
+            className="absolute top-0 w-1/2 h-full bg-white/5 skew-x-30"
           />
         </motion.button>
       )}

@@ -114,16 +114,46 @@ export default function Contact() {
 
                   <div className="pt-4">
                     <Magnetic>
-                      <button 
-                        disabled={isPending}
-                        className="group relative w-full py-6 bg-white text-black rounded-2xl font-black text-xl overflow-hidden active:scale-[0.98] transition-all disabled:opacity-50"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <span className="relative z-10 flex items-center justify-center gap-3 group-hover:text-white transition-colors duration-500 font-arabic">
-                          {isPending ? "جاري الإطلاق..." : "أرسل الآن"} 
-                          <Send size={22} className="group-hover:rotate-12 transition-transform" />
-                        </span>
-                      </button>
+  <button 
+  disabled={isPending}
+  className="
+    group relative 
+    /* تكبير المساحة: زيادة العرض والارتفاع ليكون مريحاً للعين */
+    w-full max-w-md mx-auto py-5 md:py-6 px-10
+    bg-white text-black rounded-2xl md:rounded-[2rem] 
+    font-black text-xl md:text-2xl 
+    overflow-hidden 
+    /* تحسين الظل: إضافة ظل أبيض خفيف ليعطي عمقاً */
+    shadow-[0_0_20px_rgba(255,255,255,0.1)]
+    hover:shadow-[0_0_30px_rgba(147,51,234,0.3)]
+    
+    select-none touch-manipulation
+    active:scale-[0.96] 
+    transition-all duration-500 
+    disabled:opacity-50 disabled:cursor-not-allowed
+    flex items-center justify-center
+  "
+>
+  {/* الخلفية المتحركة بقوة أكبر */}
+  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[length:200%_auto] group-hover:animate-gradient-x" />
+  
+  <span className="relative z-10 flex items-center justify-center gap-4 group-hover:text-white transition-colors duration-500 font-arabic tracking-tighter">
+    {isPending ? (
+      <span className="flex items-center gap-3">
+         <span className="w-5 h-5 border-3 border-current border-t-transparent rounded-full animate-spin" />
+         جاري الإرسال
+      </span>
+    ) : (
+      <>
+        <span className="mb-1">أرسل الآن</span>
+        <Send 
+          size={24} 
+          className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform duration-500 ease-out" 
+        />
+      </>
+    )}
+  </span>
+</button>
                     </Magnetic>
                   </div>
                 </form>
