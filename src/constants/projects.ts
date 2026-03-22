@@ -19,5 +19,14 @@ export const PROJECTS: Project[] = [
     tags: ["Next.js 15", "React 19", "neon", "resend", "Typescript","Tailwind"],
     link: "https://icfb.site"
   },
+  { 
+    id: "03",
+    title: " hhlawyer", 
+    description: `مكتب المحامي وكاتب العدل خاص حسين الحارثي، وجهتكم الموثوقة للعدالة والاستشارات القانونية المتكاملة، حيث الخبرة تلتقي بالنزاهة`, 
+    size: "col-span-1 row-span-1", 
+    gradient: "from-oklch(0.70 0.10 85) to-oklch(0.25 0.08 250)",
+    tags: ["Next.js 15", "React 19", "neon", "resend", "Typescript","Tailwind"],
+    link: "https://hhlawyer.vercel.app"
+  },
  
 ];
