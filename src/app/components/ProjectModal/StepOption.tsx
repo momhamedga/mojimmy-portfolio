@@ -40,7 +40,7 @@ export const StepOption = ({ label, selected, onClick }: OptionProps) => {
          )}
       </div>
 
-      <span className="font-arabic font-bold text-base md:text-[18px] tracking-wide leading-none transition-colors duration-500">
+      <span className="font-cairo font-bold text-base md:text-[16px] tracking-wide leading-none transition-colors duration-500">
         {label}
       </span>
 

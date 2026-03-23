@@ -46,7 +46,7 @@ export default function InteractiveFAQ() {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-purple-400 text-[10px] md:text-xs font-mono uppercase tracking-[0.2em]"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-purple-400 text-[10px] md:text-xs font-cairo  uppercase tracking-[0.2em]"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
@@ -54,7 +54,7 @@ export default function InteractiveFAQ() {
             </span>
             Support Bot v2.0
           </motion.div>
-          <h2 className="text-4xl md:text-7xl font-black text-white font-arabic leading-tight tracking-tighter">
+          <h2 className="text-4xl md:text-7xl font-black text-white font-cairo  leading-tight tracking-tighter">
             دردشة <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-400 via-pink-500 to-purple-600">ذكية</span>
           </h2>
         </div>
@@ -85,15 +85,15 @@ export default function InteractiveFAQ() {
           <div className="p-5 md:p-7 border-b border-white/5 bg-white/[0.01] backdrop-blur-md flex items-center justify-between flex-row-reverse relative z-20">
             <div className="flex items-center gap-4 flex-row-reverse">
               <div className="relative group cursor-help">
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-black text-white italic text-xl shadow-[0_0_20px_rgba(147,51,234,0.3)]">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-cairo  text-white italic text-xl shadow-[0_0_20px_rgba(147,51,234,0.3)]">
                   M
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-[3px] border-[#050505]" />
               </div>
               <div className="text-right">
-                <h4 className="text-white font-bold text-base md:text-lg tracking-wide">MoJimmy Bot</h4>
+                <h4 className="text-white font-cairo  text-base md:text-lg tracking-wide">MoJimmy Bot</h4>
                 <div className="flex items-center justify-end gap-1.5 text-green-500/80 text-[10px] md:text-xs">
-                  <span className="font-arabic">متاح للإجابة</span>
+                  <span className="font-cairo ">متاح للإجابة</span>
                   <Wifi size={12} className="animate-pulse" />
                 </div>
               </div>
@@ -124,9 +124,9 @@ export default function InteractiveFAQ() {
                         <p className="text-sm md:text-base font-arabic font-bold leading-relaxed">{item.question}</p>
                       </div>
                       <div className="flex items-center gap-2 px-2">
-                         <span className="text-[9px] text-gray-600 font-mono tracking-tighter uppercase">{item.timestamp}</span>
+                         <span className="text-[9px] text-gray-600 font-cairo  tracking-tighter uppercase">{item.timestamp}</span>
                          <div className="w-1 h-1 rounded-full bg-gray-800" />
-                         <span className="text-[9px] text-gray-500 font-arabic">أنت</span>
+                         <span className="text-[9px] text-gray-500 font-cairo ">أنت</span>
                       </div>
                     </div>
                     <div className="w-9 h-9 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-gray-500 shrink-0 group-hover:bg-purple-500/10 group-hover:text-purple-400 transition-all">
@@ -144,24 +144,24 @@ export default function InteractiveFAQ() {
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="flex items-start gap-4 self-start max-w-[95%] md:max-w-[85%]"
                       >
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center text-white text-xs font-black italic shrink-0 shadow-xl shadow-purple-950/20 border border-white/10">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center text-white text-xs font-cairo italic shrink-0 shadow-xl shadow-purple-950/20 border border-white/10">
                           M
                         </div>
                         <div className="flex flex-col items-start gap-2">
                           <div className="p-6 rounded-[2.2rem] rounded-tl-none bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-purple-500/20 text-gray-100 shadow-2xl relative overflow-hidden group">
                             {/* تأثير خلفية خافت داخل الفقاعة */}
                             <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 blur-2xl rounded-full" />
-                            <p className="text-sm md:text-base font-arabic leading-loose font-medium relative z-10">
+                            <p className="text-sm md:text-base font-arabic leading-loose font-cairo  relative z-10">
                               {item.answer}
                             </p>
                           </div>
                           <div className="flex items-center gap-2 px-3">
                             <div className="flex items-center gap-1">
                                <CheckCheck size={14} className="text-blue-500" />
-                               <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">Seen</span>
+                               <span className="text-[9px] text-gray-500 font-cairo  uppercase tracking-widest">Seen</span>
                             </div>
                             <div className="w-1 h-1 rounded-full bg-gray-800" />
-                            <button className="text-[9px] text-purple-400 hover:underline font-arabic">نسخ الإجابة</button>
+                            <button className="text-[9px] text-purple-400 hover:underline font-cairo ">نسخ الإجابة</button>
                           </div>
                         </div>
                       </motion.div>
@@ -185,7 +185,7 @@ export default function InteractiveFAQ() {
                     <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
                     <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
                   </div>
-                  <span className="text-[10px] text-purple-300 font-arabic font-medium">جاري معالجة طلبك...</span>
+                  <span className="text-[10px] text-purple-300 font-arabic font-cairo ">جاري معالجة طلبك...</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -196,7 +196,7 @@ export default function InteractiveFAQ() {
             <div className="flex items-center gap-4 flex-row-reverse">
               <div className="flex-1 group relative">
                 <div className="absolute inset-0 bg-purple-500/5 blur-xl rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                <div className="relative h-14 bg-white/[0.02] border border-white/10 rounded-2xl px-6 flex items-center justify-end text-gray-500 text-xs md:text-sm font-arabic transition-all group-focus-within:border-purple-500/40">
+                <div className="relative h-14 bg-white/[0.02] border border-white/10 rounded-2xl px-6 flex items-center justify-end text-gray-500 text-xs md:text-sm font-cairo  transition-all group-focus-within:border-purple-500/40">
                   <span className="opacity-60 italic">اضغط على أي سؤال بالأعلى للبدء...</span>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function InteractiveFAQ() {
             <div className="mt-4 flex justify-center gap-6">
                 <div className="flex items-center gap-1.5 text-[9px] text-gray-600">
                     <Info size={10} />
-                    <span className="font-arabic">ردود فورية مدعومة ببياناتي</span>
+                    <span className="font-cairo ">ردود فورية مدعومة ببياناتي</span>
                 </div>
             </div>
           </div>

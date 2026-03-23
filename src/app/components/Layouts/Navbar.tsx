@@ -89,7 +89,7 @@ export default function Navbar() {
                     ? "bg-white text-black border-white shadow-xl scale-90" 
                     : "bg-white/5 text-white border-white/10 backdrop-blur-xl"}`}
               >
-                <span className="text-[10px] font-bold uppercase tracking-widest">القائمة</span>
+                <span className="text-[10px] font-cairo uppercase tracking-widest">القائمة</span>
                 <Menu size={16} />
               </motion.button>
             )}
@@ -114,7 +114,7 @@ export default function Navbar() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="text-4xl font-black text-white leading-tight"
+                  className="text-3xl font-cairo text-white leading-tight"
                 >
                   نصمم <span className="text-primary italic">التجربة.</span>
                 </motion.h2>
@@ -122,7 +122,7 @@ export default function Navbar() {
                   حلول رقمية تجمع بين الفن والكفاءة البرمجية المطلقة من قلب أبوظبي.
                 </p>
               </div>
-              <footer className="text-[9px] text-white/20 font-black tracking-[0.5em] uppercase">
+              <footer className="text-[7px] text-white/20 font-cairo tracking-[0.5em] uppercase">
                 Abu Dhabi • UAE
               </footer>
             </aside>
@@ -137,7 +137,7 @@ export default function Navbar() {
                   onClick={() => toggleMenu(false)}
                   className="flex items-center gap-2 text-white/40 hover:text-white transition-all group"
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-widest">رجوع</span>
+                  <span className="text-[8px] font-cairo uppercase tracking-widest">رجوع</span>
                   <div className="p-3 rounded-full border border-white/5 bg-white/5 group-hover:bg-primary transition-colors">
                     <X size={18} />
                   </div>
@@ -159,8 +159,8 @@ export default function Navbar() {
                       transition={{ delay: 0.3 + (i * 0.05) }}
                       className="flex items-baseline gap-4 will-change-transform"
                     >
-                      <span className="text-[10px] font-mono text-primary/50">0{i + 1}</span>
-                      <h1 className="text-4xl md:text-7xl font-black text-white/20 group-hover:text-white transition-all duration-500 tracking-tighter">
+                      <span className="text-[8px] font-cairo text-primary/50">0{i + 1}</span>
+                      <h1 className="text-3xl md:text-4xl font-cairo text-white/20 group-hover:text-white transition-all duration-500 tracking-tighter">
                         {link.name}
                       </h1>
                       <ArrowLeft className="text-primary opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" size={24} />
@@ -170,7 +170,7 @@ export default function Navbar() {
               </nav>
 
               <div className="mt-auto pt-8 border-t border-white/[0.03] flex justify-between items-center">
-                <div className="flex gap-5 text-[9px] font-bold text-white/30 uppercase tracking-widest">
+                <div className="flex gap-5 text-[9px] font-cairo text-white/30 uppercase tracking-widest">
                   <a href="#" className="hover:text-primary transition-colors">LinkedIn</a>
                   <a href="#" className="hover:text-primary transition-colors">Behance</a>
                 </div>

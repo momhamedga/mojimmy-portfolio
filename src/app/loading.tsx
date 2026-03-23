@@ -100,7 +100,7 @@ export default function Preloader() {
                                 </svg>
 
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xl md:text-3xl font-black text-white tabular-nums">
+                                    <span className="text-xl md:text-3xl font-cairo  text-white tabular-nums">
                                         {progress}%
                                     </span>
                                 </div>
@@ -108,7 +108,7 @@ export default function Preloader() {
 
                             {/* اسم البراند بتأثير الإضاءة التتابعية */}
                             <div className="mt-12 text-center" dir="ltr">
-                                <motion.h1 className="text-3xl md:text-6xl font-black tracking-[0.2em] text-white flex justify-center gap-1 md:gap-2">
+                                <motion.h1 className="text-3xl md:text-6xl font-cairo  tracking-[0.2em] text-white flex justify-center gap-1 md:gap-2">
                                     {"MOJIMMY".split("").map((char, index) => (
                                         <motion.span
                                             key={index}

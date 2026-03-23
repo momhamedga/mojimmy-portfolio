@@ -43,7 +43,7 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
             rows={4}
             onFocus={() => { setFocusedField(name); triggerHaptic(); }}
             onBlur={(e) => !e.target.value && setFocusedField(null)}
-            className="w-full bg-transparent text-white text-base md:text-lg outline-none resize-none placeholder:text-gray-600 font-arabic"
+            className="w-full bg-transparent text-white text-base md:text-lg outline-none resize-none placeholder:text-gray-600 font-cairo "
             placeholder={placeholder}
             spellCheck="false"
           />
@@ -54,7 +54,7 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
             autoComplete="off"
             onFocus={() => { setFocusedField(name); triggerHaptic(); }}
             onBlur={(e) => !e.target.value && setFocusedField(null)}
-            className="w-full bg-transparent text-white text-base md:text-lg outline-none placeholder:text-gray-600 font-arabic"
+            className="w-full bg-transparent text-white text-base md:text-lg outline-none placeholder:text-gray-600 font-cairo "
             placeholder={placeholder}
           />
         )}
@@ -66,7 +66,7 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
             initial={{ opacity: 0, y: -10, x: 10 }} 
             animate={{ opacity: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute -bottom-6 right-2 text-red-400 text-[11px] flex items-center gap-1 font-bold font-arabic z-20"
+            className="absolute -bottom-6 right-2 text-red-400 text-[11px] flex items-center gap-1 font-bold font-cairo  z-20"
           >
             <AlertCircle size={12} /> 
             <span>{error}</span>

@@ -28,12 +28,12 @@ export default function Testimonials() {
       <div className="absolute inset-0 flex flex-col justify-around pointer-events-none opacity-[0.04] select-none">
         <motion.div style={{ x: xLeft, rotate: rotateBack }} className="flex gap-20">
            {[...Array(3)].map((_,i) => (
-             <h2 key={i} className="text-[20vw] font-black whitespace-nowrap text-white italic">LIMITLESS • CREATIVITY •</h2>
+             <h2 key={i} className="text-[20vw] font-cairo  whitespace-nowrap text-white italic ">LIMITLESS • CREATIVITY •</h2>
            ))}
         </motion.div>
         <motion.div style={{ x: xRight, rotate: -rotateBack }} className="flex gap-20">
            {[...Array(3)].map((_,i) => (
-             <h2 key={i} className="text-[20vw] font-black whitespace-nowrap text-white font-arabic" dir="rtl">إتقان • شغف • ريادة •</h2>
+             <h2 key={i} className="text-[20vw] font-black whitespace-nowrap text-white font-cairo " dir="rtl">إتقان • شغف • ريادة •</h2>
            ))}
         </motion.div>
       </div>
@@ -47,13 +47,13 @@ export default function Testimonials() {
             whileInView={{ width: "100px" }}
             className="h-1 bg-gradient-to-l from-purple-600 to-transparent mb-8 inline-block"
           />
-          <h2 className="text-7xl md:text-[10rem] font-black text-white font-arabic leading-[0.8] tracking-tighter mb-4">
+          <h2 className="text-7xl md:text-[10rem] font-black text-white font-cairo  leading-[0.8] tracking-tighter mb-4">
              شركاء <br /> 
              <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-400 via-blue-500 to-emerald-400 animate-gradient-x">
                النجاح
              </span>
           </h2>
-          <p className="text-gray-500 text-lg md:text-2xl font-light max-w-xl mr-auto">
+          <p className="text-gray-500 text-lg md:text-2xl font-cairo  max-w-xl mr-auto">
             قصص واقعية كُتبت بأكوادنا، نعتز بكل حرف قيل في حقنا من قادة السوق العربي.
           </p>
         </div>
@@ -80,13 +80,13 @@ export default function Testimonials() {
                  <Sparkles className="text-yellow-500 mb-8" size={60} />
                </motion.div>
                
-               <h3 className="text-4xl md:text-7xl font-black text-white font-arabic text-center leading-tight mb-10">
+               <h3 className="text-4xl md:text-7xl font-cairo  text-white  text-center leading-tight mb-10">
                  هل أنت مستعد لتكون <br/> قصة النجاح القادمة؟
                </h3>
 
                <motion.button 
                 whileTap={{ scale: 0.9 }}
-                className="group relative flex items-center gap-4 px-12 py-6 bg-white text-black rounded-full font-black text-xl overflow-hidden transition-all hover:pr-16"
+                className="group relative flex items-center gap-4 px-12 py-6 font-cairo  bg-white text-black rounded-full font-black text-xl overflow-hidden transition-all hover:pr-16"
                >
                  <span>ابدأ رحلتك معنا الآن</span>
                  <ArrowLeft className="absolute left-[-20px] group-hover:left-4 transition-all opacity-0 group-hover:opacity-100" />

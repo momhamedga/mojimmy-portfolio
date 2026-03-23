@@ -33,7 +33,7 @@ export const SocialLink = ({ link }: SocialLinkProps) => {
         </div>
         
         {/* اسم المنصة يظهر تحتها في الشاشات الكبيرة */}
-        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity font-mono uppercase tracking-widest hidden md:block">
+        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity font-cairo uppercase tracking-widest hidden md:block">
           {link.label}
         </span>
       </motion.a>

@@ -19,7 +19,7 @@ export default function TechStack() {
   }), [isMobile]);
 
   return (
-    <section className="relative h-[600px] md:h-[900px] w-full flex items-center justify-center overflow-hidden bg-transparent">
+    <section className="relative h-[600px] md:h-[900px] w-full flex items-center justify-center overflow-hidden ">
       
       {/* المدارات البصرية (خلفية فقط) */}
       {[orbits.inner, orbits.outer].map((r, i) => (
@@ -32,10 +32,10 @@ export default function TechStack() {
 
       {/* المركز CORE */}
       <div className="relative z-20 group">
-        <div className="w-28 h-28 md:w-44 md:h-44 rounded-full bg-black/40 border border-white/10 flex items-center justify-center backdrop-blur-3xl shadow-2xl transition-all duration-500 group-hover:border-purple-500/20">
+        <div className="w-28 h-28 md:w-44 md:h-44 rounded-full border border-white/10 flex items-center justify-center backdrop-blur-3xl shadow-2xl transition-all duration-500 group-hover:border-purple-500/20">
           <div className="text-center">
-            <h3 className="text-white font-black text-xl md:text-3xl tracking-tighter leading-none uppercase">Core</h3>
-            <p className="text-[8px] md:text-[10px] text-gray-500 font-mono mt-1 tracking-widest uppercase">Stack 2026</p>
+            <h3 className="text-white font-cairo  text-xl md:text-3xl tracking-tighter leading-none uppercase">Core</h3>
+            <p className="text-[8px] md:text-[10px] text-gray-500 font-cairo  mt-1 tracking-widest uppercase">Stack 2026</p>
           </div>
         </div>
       </div>

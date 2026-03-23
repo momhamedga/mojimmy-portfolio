@@ -14,10 +14,10 @@ export default function Services() {
           viewport={{ once: true }}
           className="space-y-4"
         >
-          <span className="text-purple-500 font-mono tracking-[0.4em] text-xs md:text-sm uppercase">
+          <span className="text-purple-500 font-cairo  tracking-[0.4em] text-xs md:text-sm uppercase">
              ما نبرع فيه
           </span>
-          <h2 className="text-6xl md:text-9xl font-black text-white tracking-tighter leading-none">
+          <h2 className="text-6xl md:text-9xl font-cairo  text-white tracking-tighter leading-none">
             خدماتنا <br /> <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20">الإبداعية</span>
           </h2>
         </motion.div>

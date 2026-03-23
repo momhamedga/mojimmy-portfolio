@@ -112,7 +112,7 @@ export default function FloatingLaunch() {
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               className="z-10 flex items-center justify-center"
             >
-              <span className="font-black text-2xl italic text-white tracking-tighter" style={{ textShadow: "0 0 10px rgba(168,85,247,0.8)" }}>
+              <span className="font-cairo text-2xl italic text-white tracking-tighter" style={{ textShadow: "0 0 10px rgba(168,85,247,0.8)" }}>
                 M
               </span>
             </motion.div>
@@ -131,7 +131,7 @@ export default function FloatingLaunch() {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
-              className="absolute -right-1 -top-1 bg-gradient-to-r from-pink-600 to-purple-600 text-[9px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg z-20"
+              className="absolute -right-1 -top-1 bg-gradient-to-r from-pink-600 to-purple-600 text-[9px] font-cairo text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg z-20"
             >
               Hot
             </motion.div>

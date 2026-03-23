@@ -83,7 +83,7 @@ export const ReviewCard = ({ review, index }: { review: Review; index: number })
                 <Star key={i} size={14} className="fill-yellow-500 text-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.4)]" />
               ))}
             </div>
-            <span className="text-[10px] text-gray-500 font-mono font-bold tracking-[0.2em]">PLATINUM CLIENT</span>
+            <span className="text-[10px] text-gray-500 font-cairo  font-bold tracking-[0.2em]">PLATINUM CLIENT</span>
           </div>
         </div>
 
@@ -91,7 +91,7 @@ export const ReviewCard = ({ review, index }: { review: Review; index: number })
         <div className="flex-1 flex items-center mb-10 relative z-20">
             <motion.p 
               animate={{ color: isPressed ? "#fff" : "#d1d5db" }}
-              className="text-gray-200 text-xl md:text-2xl leading-[1.8] text-right font-arabic font-medium" 
+              className="text-gray-200 text-xl md:text-2xl leading-[1.8] text-right font-cairo  " 
               dir="rtl"
             >
               "{review.text}"
@@ -104,7 +104,7 @@ export const ReviewCard = ({ review, index }: { review: Review; index: number })
         >
           <div className="relative group/avatar">
             <div 
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white relative z-10 transition-transform group-hover/avatar:scale-105 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-cairo  text-white relative z-10 transition-transform group-hover/avatar:scale-105 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
               style={{ background: `linear-gradient(135deg, ${review.color}, ${review.color}70)` }}
             >
               {review.initial}
@@ -129,7 +129,7 @@ export const ReviewCard = ({ review, index }: { review: Review; index: number })
                     />
                 </div>
             </div>
-            <p className="text-gray-500 text-[10px] font-mono font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity">
+            <p className="text-gray-500 text-[10px] font-cairo  font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity">
               {review.role}
             </p>
           </div>

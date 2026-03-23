@@ -89,18 +89,18 @@ export default function Contact() {
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold uppercase tracking-widest"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-cairo  uppercase tracking-widest"
                 >
                   <Zap size={14} className="fill-current" />
                   <span>متصل الآن ومستعد للبدء</span>
                 </motion.div>
                 
-                <h2 className="text-6xl md:text-8xl font-black text-white leading-tight font-arabic tracking-tight">
+                <h2 className="text-6xl md:text-8xl font-black text-white leading-tight font-cairo  tracking-tight">
                   دعنا نبني <br /> 
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">مستقبلك الرقمي</span>
                 </h2>
                 
-                <p className="text-gray-400 text-lg md:text-xl max-w-md mx-auto lg:mx-0 font-arabic leading-relaxed">
+                <p className="text-gray-400 text-lg md:text-xl max-w-md mx-auto lg:mx-0 font-cairo  leading-relaxed">
                   حول فكرتك إلى واقع ملموس. أنا لا أصمم مواقع فقط، أنا أصنع تجارب لا تُنسى.
                 </p>
               </div>
@@ -121,7 +121,7 @@ export default function Contact() {
     /* تكبير المساحة: زيادة العرض والارتفاع ليكون مريحاً للعين */
     w-full max-w-md mx-auto py-5 md:py-6 px-10
     bg-white text-black rounded-2xl md:rounded-[2rem] 
-    font-black text-xl md:text-2xl 
+    font-cairo  text-xl md:text-2xl 
     overflow-hidden 
     /* تحسين الظل: إضافة ظل أبيض خفيف ليعطي عمقاً */
     shadow-[0_0_20px_rgba(255,255,255,0.1)]
@@ -137,7 +137,7 @@ export default function Contact() {
   {/* الخلفية المتحركة بقوة أكبر */}
   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[length:200%_auto] group-hover:animate-gradient-x" />
   
-  <span className="relative z-10 flex items-center justify-center gap-4 group-hover:text-white transition-colors duration-500 font-arabic tracking-tighter">
+  <span className="relative z-10 flex items-center justify-center gap-4 group-hover:text-white transition-colors duration-500 font-cairo  tracking-tighter">
     {isPending ? (
       <span className="flex items-center gap-3">
          <span className="w-5 h-5 border-3 border-current border-t-transparent rounded-full animate-spin" />
@@ -176,13 +176,13 @@ export default function Contact() {
               </div>
               
               <div className="space-y-4">
-                <h3 className="text-4xl font-black text-white font-arabic">وصلت رسالتك بنجاح!</h3>
-                <p className="text-gray-400 text-lg font-arabic">سأقوم بمراجعة طلبك والرد عليك شخصياً في أقل من 24 ساعة.</p>
+                <h3 className="text-4xl font-black text-white font-cairo ">وصلت رسالتك بنجاح!</h3>
+                <p className="text-gray-400 text-lg font-cairo ">سأقوم بمراجعة طلبك والرد عليك شخصياً في أقل من 24 ساعة.</p>
               </div>
 
               <button 
                 onClick={() => { setIsSuccess(false); if(window.navigator.vibrate) window.navigator.vibrate(10); }}
-                className="w-full py-4 rounded-xl border border-white/10 text-gray-300 font-bold hover:bg-white hover:text-black transition-all font-arabic flex items-center justify-center gap-2 group"
+                className="w-full py-4 rounded-xl border border-white/10 text-gray-300   hover:bg-white hover:text-black transition-all font-cairo  flex items-center justify-center gap-2 group"
               >
                 <ArrowLeft size={18} className="group-hover:translate-x-2 transition-transform" />
                 العودة للنموذج

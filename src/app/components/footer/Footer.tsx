@@ -65,7 +65,7 @@ export default function Footer() {
             >
               <h2 
                 style={{ WebkitTextStroke: '1px rgba(255,255,255,0.08)' }}
-                className="text-[16vw] md:text-[12vw] font-black text-transparent leading-none tracking-tighter text-center uppercase select-none transition-colors duration-700 italic"
+                className="text-[14vw] md:text-[10vw] font-cairo text-transparent leading-none tracking-tighter text-center uppercase select-none transition-colors duration-700 italic"
               >
                 لنتحدث <span className="text-white/5 group-hover:text-purple-500/20 transition-colors duration-700">بشغف</span>
               </h2>
@@ -103,7 +103,7 @@ export default function Footer() {
             {/* الحقوق */}
             <div className="order-2 md:order-1 flex flex-col items-center md:items-start gap-2">
               <p className="text-gray-500 text-xs md:text-sm text-center md:text-right">
-                © {currentYear} <span className="text-white font-bold tracking-widest">MOJIMMY</span>
+                © {currentYear} <span className="text-white font-cairo tracking-widest">MOJIMMY</span>
               </p>
               <p className="text-[10px] text-gray-600 uppercase tracking-[3px]">
                 صُنع يدويًا بأحدث التقنيات الرقمية
@@ -120,13 +120,13 @@ export default function Footer() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 shadow-[0_0_10px_#22c55e]"></span>
                     </div>
-                    <span className="text-gray-300 text-[11px] font-bold tracking-wide">متاح لمشاريع جديدة 2026</span>
+                    <span className="text-gray-300 text-[11px] font-cairo tracking-wide">متاح لمشاريع جديدة 2026</span>
                 </motion.div>
             </div>
 
             {/* الروابط الفرعية وزر الصعود */}
             <div className="order-3 flex items-center gap-8">
-              <div className="hidden sm:flex gap-6 text-[10px] font-mono text-gray-600 uppercase tracking-[0.2em]">
+              <div className="hidden sm:flex gap-6 text-[10px] font-cairo text-gray-600 uppercase tracking-[0.2em]">
                 <Link href="/privacy" className="hover:text-purple-400 transition-colors">Privacy</Link>
                 <Link href="/terms" className="hover:text-purple-400 transition-colors">Terms</Link>
               </div>

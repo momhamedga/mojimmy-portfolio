@@ -30,10 +30,10 @@ export default function CodeLaboratory() {
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs mb-6"
           >
             <Zap size={14} className="fill-current" />
-            <span className="font-mono tracking-tighter uppercase">النسخة التجريبية v0.3</span>
+            <span className="font-cairo tracking-tighter uppercase">النسخة التجريبية v0.3</span>
           </motion.div>
           
-          <h2 className="text-6xl md:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
+          <h2 className="text-6xl md:text-9xl font-cairo  text-white mb-6 tracking-tighter leading-none">
             مختبر <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-600 to-blue-500">الكود</span>
           </h2>
           <p className="text-gray-400 text-lg md:text-2xl max-w-3xl leading-relaxed font-light">
@@ -54,7 +54,7 @@ export default function CodeLaboratory() {
                   <div className="p-2 rounded-lg bg-white/5">
                     <Settings2 size={20} className="text-purple-500" />
                   </div>
-                  <span className="font-bold text-xl">لوحة التحكم</span>
+                  <span className="font-cairo  text-xl">لوحة التحكم</span>
                 </div>
               </div>
 
@@ -62,8 +62,8 @@ export default function CodeLaboratory() {
                 {Object.keys(userSettings).map((key) => (
                   <div key={key} className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium text-sm capitalize">{key === 'strength' ? 'قوة الجذب' : key}</span>
-                      <span className="px-2 py-1 rounded bg-purple-500/10 text-purple-400 font-mono text-xs border border-purple-500/20">
+                      <span className="text-gray-400 font-cairo text-sm capitalize">{key === 'strength' ? 'قوة الجذب' : key}</span>
+                      <span className="px-2 py-1 rounded bg-purple-500/10 text-purple-400 font-cairo  text-xs border border-purple-500/20">
                         {userSettings[key]}
                       </span>
                     </div>
@@ -95,10 +95,10 @@ export default function CodeLaboratory() {
                   }`}
                  >
                    <div className="flex flex-col text-right">
-                     <span className={`text-[10px] uppercase font-bold mb-1 ${activeExp.id === exp.id ? "text-black/50" : "text-purple-500"}`}>
+                     <span className={`text-[10px] uppercase font-cairo mb-1 ${activeExp.id === exp.id ? "text-black/50" : "text-purple-500"}`}>
                        {exp.category}
                      </span>
-                     <span className="text-base font-black tracking-tight">{exp.title}</span>
+                     <span className="text-base font-cairo  tracking-tight">{exp.title}</span>
                    </div>
                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeExp.id === exp.id ? "bg-black/5" : "bg-white/5"}`}>
                      {activeExp.id === exp.id ? <Zap size={18} fill="black" /> : <Eye size={18} />}
@@ -116,10 +116,10 @@ export default function CodeLaboratory() {
                 
                 {/* علامات مائية جمالية */}
                 <div className="absolute top-6 right-8 pointer-events-none flex items-center gap-4 opacity-20">
-                   <div className="flex items-center gap-2 text-white font-mono text-[10px]">
+                   <div className="flex items-center gap-2 text-white font-cairo  text-[10px]">
                       <Laptop size={12} /> DESKTOP READY
                    </div>
-                   <div className="flex items-center gap-2 text-white font-mono text-[10px]">
+                   <div className="flex items-center gap-2 text-white font-cairo  text-[10px]">
                       <Smartphone size={12} /> TOUCH OPTIMIZED
                    </div>
                 </div>
@@ -135,7 +135,7 @@ export default function CodeLaboratory() {
                     <div className="p-1.5 rounded-md bg-emerald-500/10">
                       <Code size={16} className="text-emerald-500" />
                     </div>
-                    <span className="text-xs font-mono text-gray-400 tracking-tighter">logic_processor.ts</span>
+                    <span className="text-xs font-cairo  text-gray-400 tracking-tighter">logic_processor.ts</span>
                   </div>
                   <div className="flex gap-2">
                      <div className="w-3 h-3 rounded-full bg-white/5" />
@@ -157,8 +157,8 @@ export default function CodeLaboratory() {
                               animate={{ backgroundColor: ["transparent", "rgba(16,185,129,0.1)", "transparent"] }}
                               className="block"
                             >
-                              <span className="text-purple-500 font-bold px-1">const</span> 
-                              {cleanKey} = <span className="text-orange-400 font-bold">{userSettings[cleanKey]}</span>;
+                              <span className="text-purple-500 font-cairo  px-1">const</span> 
+                              {cleanKey} = <span className="text-orange-400 font-cairo ">{userSettings[cleanKey]}</span>;
                             </motion.span>
                           );
                         }

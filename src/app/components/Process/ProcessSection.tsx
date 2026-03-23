@@ -25,10 +25,10 @@ export default function ProcessSection() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="text-purple-500 font-mono tracking-[0.3em] text-xs md:text-sm uppercase block mb-4">
+            <span className="text-purple-500 font-cairo  tracking-[0.3em] text-xs md:text-sm uppercase block mb-4">
               Step-by-Step Excellence
             </span>
-            <h2 className="text-4xl md:text-7xl font-black text-white font-arabic leading-tight">
+            <h2 className="text-4xl md:text-7xl font-black text-white font-cairo  leading-tight">
               رحلة تحويل <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-500 via-blue-500 to-emerald-500">الفكرة</span> لواقع
             </h2>
           </motion.div>
@@ -88,10 +88,10 @@ function StepItem({ step, index }: { step: any, index: number }) {
               <Icon size={32} style={{ color: step.color }} className="group-hover:scale-110 transition-transform duration-500" />
             </div>
             
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 font-arabic">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 font-cairo ">
               {step.title}
             </h3>
-            <p className="text-gray-400 text-base md:text-lg leading-relaxed font-arabic opacity-80 group-hover:opacity-100 transition-opacity">
+            <p className="text-gray-400 text-base md:text-lg leading-relaxed font-cairo  opacity-80 group-hover:opacity-100 transition-opacity">
               {step.desc}
             </p>
           </div>

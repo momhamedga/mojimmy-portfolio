@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Almarai, Cairo, Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import SmoothScroll from "./components/SmoothScroll";
@@ -10,21 +10,23 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import MobileScrollTop from "./components/MobileScrollTop";
 import FloatingLaunch from "./components/Layouts/FloatingLaunch";
 import AnimatedFavicon from "./components/AnimatedFavicon";
-import { Suspense } from "react";
-import Loading from "./loading"; // 1. استيراد مكون اللودينج اللي لسه عاملينه
+import { BackgroundCanvas } from "./components/Visuals/DynamicBackground";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: 'swap',
+const cairo = Cairo({
+  subsets: ['arabic'],
+  weight: ['200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-cairo', // عشان تستخدمه في Tailwind
+});
+const almarai = Almarai({
+  subsets: ['arabic'],
+  weight: ['300', '400', '700', '800'],
+  variable: '--font-almarai', // Variable خاص بالخط التاني
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: 'swap',
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter', // ممتاز للأرقام والإنجليزي وسط الكلام
 });
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://mojimmy.com"),
   title: {
@@ -66,10 +68,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning className="scroll-smooth">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased text-foreground`}>
+      <body className={`${cairo.variable} ${almarai.variable} ${inter.variable} antialiased text-foreground `}>
         <ThemeProvider attribute="class" defaultTheme="dark">
           
-          {/* شلنا الـ Suspense اليدوي من هنا عشان Next.js يشغل loading.tsx لوحده */}
+          {/* 🌌 المحرك البصري: الشبكة العصبية + الكشاف النيون */}
+          {/* حطيناه برا الـ SmoothScroll عشان يفضل ثابت (Fixed) في الخلفية */}
+          <BackgroundCanvas />
+
           <ScrollProgress />
           <CustomCursor />
           <AnimatedFavicon />
@@ -77,7 +82,8 @@ export default function RootLayout({
           <Toaster position="bottom-left" theme="dark" richColors />
           
           <SmoothScroll>
-            <main className="relative min-h-screen flex flex-col">
+            {/* جعلنا الـ main شفاف عشان الخلفية تبان من تحته */}
+            <main className="relative min-h-screen flex flex-col z-10">
               {children}
             </main>
             <FloatingLaunch />

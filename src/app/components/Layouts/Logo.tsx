@@ -87,7 +87,7 @@ export const Logo = () => {
                 textShadow: "0 0 12px rgba(255,255,255,0.8), 0 0 20px rgba(168,85,247,0.5)" 
               }
             }}
-            className="font-black text-2xl italic tracking-tighter text-white"
+            className="font-cairo text-2xl italic tracking-tighter text-white"
             style={{ textShadow: "0 0 8px rgba(255,255,255,0.3)" }}
           >
             M

@@ -47,12 +47,12 @@ export default function About() {
             <div className="space-y-3 md:space-y-4 text-right">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/20 bg-purple-500/5">
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
-                <span className="text-purple-400 font-mono text-[9px] md:text-[10px] uppercase tracking-[0.2em]">
+                <span className="text-purple-400 font-cairo  text-[9px] md:text-[10px] uppercase tracking-[0.2em]">
                   من أنـا
                 </span>
               </div>
               
-              <h3 className="text-4xl md:text-7xl font-black text-white leading-[1.1] md:leading-[0.9] tracking-tighter">
+              <h3 className="text-4xl md:text-7xl font-cairo  text-white leading-[1.1] md:leading-[0.9] tracking-tighter">
                 نمزج الفن <br className="hidden md:block" /> 
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
                   بالكود.
@@ -65,7 +65,7 @@ export default function About() {
 
           {/* الجانب الأيسر: النص المتفاعل - حجم خط مرن للموبايل */}
           <div className="lg:col-span-8">
-            <p className="flex flex-wrap content-start text-[1.75rem] sm:text-4xl md:text-7xl font-bold leading-[1.3] md:leading-[1.1] tracking-tighter text-right">
+            <p className="flex flex-wrap content-start text-[1.75rem] sm:text-4xl md:text-7xl font-cairo  leading-[1.3] md:leading-[1.1] tracking-tighter text-right">
               {words.map((word, i) => {
                 const start = i / words.length;
                 const end = start + (1 / words.length);
