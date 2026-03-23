@@ -38,7 +38,7 @@ export function ProjectCard({ project, index }: { project: Project, index: numbe
       onTouchEnd={handleTouchEnd}
       onMouseEnter={() => setIsActive(true)}
       onMouseLeave={() => setIsActive(false)}
-      className="relative w-full border-b border-white/5 group cursor-pointer select-none touch-manipulation overflow-hidden"
+      className="relative project-card w-full border-b border-white/5 group cursor-pointer select-none touch-manipulation overflow-hidden"
       dir="rtl"
     >
       {/* تأثير "اللمعان" للموبايل عند التفعيل */}

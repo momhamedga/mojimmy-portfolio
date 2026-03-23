@@ -21,11 +21,6 @@ export default function About() {
     restDelta: 0.001
   });
 
-  const backgroundColor = useTransform(
-    smoothProgress,
-    [0, 0.2, 0.8, 1],
-    ["#030303", "#0c0416", "#0c0416", "#030303"]
-  );
 
   const words = ABOUT_TEXT.split(" ");
   const spotlightY = useTransform(smoothProgress, [0, 1], ["-10%", "110%"]);
@@ -34,7 +29,7 @@ export default function About() {
     <motion.section 
       ref={containerRef} 
       dir="rtl" 
-      style={{ backgroundColor }} 
+ 
       className="relative py-20 md:py-64 overflow-hidden transition-colors duration-700"
       id="about"
     >

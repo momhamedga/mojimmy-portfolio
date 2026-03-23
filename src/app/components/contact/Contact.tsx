@@ -60,7 +60,7 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" dir="rtl" className="py-20 bg-black relative min-h-screen flex items-center overflow-hidden selection:bg-purple-500/30">
+    <section id="contact" dir="rtl" className="py-20  relative min-h-screen flex items-center overflow-hidden selection:bg-purple-500/30">
       
       {/* Background Dynamics */}
       <div className="absolute inset-0 pointer-events-none">

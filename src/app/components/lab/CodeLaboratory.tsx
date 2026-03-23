@@ -19,7 +19,7 @@ export default function CodeLaboratory() {
   };
 
   return (
-    <section className="py-20 md:py-32 bg-[#050505] min-h-screen text-right selection:bg-purple-500/30" dir="rtl">
+    <section className="py-20 md:py-32  min-h-screen text-right selection:bg-purple-500/30" dir="rtl">
       <div className="container mx-auto px-4 md:px-6">
         
         {/* الهيدر الإبداعي */}

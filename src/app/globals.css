@@ -1,92 +1,17 @@
 @import "tailwindcss";
 
 /* -------------------------------------------------------------------------- */
-/* 1. Root Variables & Dark Mode Mastery                                      */
+/* 1. Tailwind v4 Theme & Design System                                       */
 /* -------------------------------------------------------------------------- */
-:root {
-  --background: #020202; /* أسود سينمائي عميق */
-  --foreground: #ffffff;
-  --primary: #9333ea;    /* البنفسجي البراند */
-  --accent: #d946ef;     /* وردي للتفاعلات */
-}
-
-/* تأكيد الثبات اللوني */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020202;
-    --foreground: #ffffff;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/* 2. Base Reset & Smoothness                                                 */
-/* -------------------------------------------------------------------------- */
-html {
-  scroll-behavior: smooth !important;
-  scroll-padding-top: 100px;
-  background-color: var(--background);
-  color: var(--foreground);
-  /* منع اهتزاز الصفحة أثناء الـ Scroll */
-  overflow-y: scroll; 
-}
-
-body {
-  background: var(--background) !important;
-  color: var(--foreground);
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  /* تحسين جودة الخطوط */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* تنظيف السكاشن */
-section {
-  background: transparent !important;
-}
-
-/* -------------------------------------------------------------------------- */
-/* 3. Modern Components (Tailwind v4 Layers)                                  */
-/* -------------------------------------------------------------------------- */
-@layer components {
-  /* الـ Glass Card بلمسة v4 */
-  .glass-card {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  }
+@theme {
+  /* استخدام OKLCH لألوان أكثر حيوية وعمقاً (معيار 2026) */
+  --color-background: oklch(0.1 0.01 250); /* أسود كربوني عميق */
+  --color-foreground: oklch(0.98 0.01 250);
+  --color-primary: oklch(0.6 0.25 285);    /* بنفسجي كهربائي */
+  --color-accent: oklch(0.7 0.3 330);      /* وردي نيون */
   
-  .glass-card:hover {
-    border-color: rgba(147, 51, 234, 0.3);
-    background: rgba(255, 255, 255, 0.04);
-    transform: translateY(-5px);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/* 4. Utilities & High-End Effects                                            */
-/* -------------------------------------------------------------------------- */
-@layer utilities {
-  /* تأثير الـ Noise السينمائي */
-  .bg-noise {
-    position: relative;
-  }
-  
-  .bg-noise::before {
-    content: "";
-    position: fixed;
-    inset: -200%;
-    z-index: 9999;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.025; /* شفافية هادئة جداً */
-    pointer-events: none;
-    animation: noise-animation 0.2s steps(4) infinite;
-  }
+  /* تعريف الأنميشن الخاص بالـ Noise */
+  --animate-noise: noise-animation 0.2s steps(4) infinite;
 
   @keyframes noise-animation {
     0% { transform: translate(0,0) }
@@ -98,56 +23,103 @@ section {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 5. Ultra-Modern Custom Scrollbar                                           */
+/* 2. Base Modernization                                                      */
 /* -------------------------------------------------------------------------- */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
 
-/* عرض الـ Scrollbar */
+  html {
+    scroll-behavior: smooth !important;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    overflow-y: scroll; /* منع اهتزاز الصفحة */
+  }
+
+  body {
+    @apply antialiased selection:bg-primary/30;
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  /* منع الـ Blue Highlight في الموبايل */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    @apply touch-pan-y;
+  }
+
+  /* تحسين التعامل مع الصور */
+  img {
+    @apply select-none;
+    -webkit-user-drag: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3. Cinematic Components & Utilities                                        */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  .glass-card {
+    @apply rounded-xl border border-white/5 bg-white/[0.02] backdrop-blur-xl;
+    @apply transition-all duration-500 ease-out;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .glass-card:hover {
+    @apply -translate-y-1 border-primary/30 bg-white/[0.04];
+  }
+
+  /* تأثير الـ Noise المحسن (Hardware Accelerated) */
+  .bg-noise-overlay {
+    position: fixed;
+    inset: -200%;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+    pointer-events: none;
+    animation: var(--animate-noise);
+    will-change: transform;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4. Stealth Scrollbar (Custom UI)                                           */
+/* -------------------------------------------------------------------------- */
 ::-webkit-scrollbar {
-  width: 8px; /* أنحف وأشيك */
-  height: 8px;
+  width: 8px;
 }
 
-/* المسار */
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  @apply bg-transparent;
 }
 
-/* المقبض (Thumb) مع تدرج لوني */
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--primary) 0%, #6366f1 100%);
+  background: linear-gradient(180deg, var(--color-primary) 0%, #6366f1 100%);
   border-radius: 100px;
-  border: 2px solid var(--background); /* يعطي مسافة جمالية حول السكرول */
+  border: 2px solid var(--color-background);
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+  background: var(--color-accent);
 }
 
-/* -------------------------------------------------------------------------- */
-/* 6. Mobile & Touch Optimizations                                            */
-/* -------------------------------------------------------------------------- */
-@supports (-webkit-touch-callout: none) {
-  /* تحسينات الـ iOS والموبايل */
-  html {
-    -webkit-overflow-scrolling: touch;
-  }
-
+/* تحسين الموبايل للسكرول */
+@media (max-width: 768px) {
   ::-webkit-scrollbar {
-    width: 3px; /* أنحف ما يمكن للموبايل */
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(147, 51, 234, 0.5);
-    border: none;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+    width: 3px;
   }
 }
+@layer utilities {
+  /* شادو الكرسر الأساسي */
+  .cursor-glow {
+    /* نستخدم oklch مباشرة لتجنب مشاكل الـ var داخل الـ shadow */
+    box-shadow: 0 0 20px oklch(0.6 0.25 285 / 0.3);
+  }
 
-/* منع الـ Blue Highlight عند اللمس في الموبايل */
-* {
-  -webkit-tap-highlight-color: transparent;
+  /* الشادو البنفسجي القوي */
+  .shadow-neon-purple {
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+  }
 }

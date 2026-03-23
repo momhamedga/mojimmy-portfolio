@@ -19,7 +19,7 @@ export default function Testimonials() {
   const rotateBack = useTransform(scrollYProgress, [0, 1], [-5, 5]);
 
   return (
-    <section ref={sectionRef} id="testimonials" className="relative py-32 bg-[#020202] overflow-hidden select-none">
+    <section ref={sectionRef} id="testimonials" className="relative py-32  overflow-hidden select-none">
       
       {/* تأثير الـ Aura (الإضاءة المحيطية) المتغيرة */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none" />

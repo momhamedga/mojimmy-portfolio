@@ -35,7 +35,7 @@ export default function InteractiveFAQ() {
   };
 
   return (
-    <section id="faq" className="py-24 md:py-32 bg-black relative overflow-hidden selection:bg-purple-500/30">
+    <section id="faq" className="py-24 md:py-32 relative overflow-hidden selection:bg-purple-500/30">
       {/* تأثيرات إضاءة خلفية خلف الشات */}
       <div className="absolute top-[40%] left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[400px] bg-purple-600/5 blur-[150px] rounded-full pointer-events-none" />
 

@@ -10,12 +10,13 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import MobileScrollTop from "./components/MobileScrollTop";
 import FloatingLaunch from "./components/Layouts/FloatingLaunch";
 import AnimatedFavicon from "./components/AnimatedFavicon";
+import { Suspense } from "react";
+import Loading from "./loading"; // 1. استيراد مكون اللودينج اللي لسه عاملينه
 
-// 1. تحسين تحميل الخطوط (Geist)
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: 'swap', // لضمان ظهور النص فوراً
+  display: 'swap',
 });
 
 const geistMono = Geist_Mono({
@@ -24,9 +25,8 @@ const geistMono = Geist_Mono({
   display: 'swap',
 });
 
-// 2. SEO & Metadata الفولاذي
 export const metadata: Metadata = {
-  metadataBase: new URL("https://mojimmy.com"), // ضروري للروابط النسبية
+  metadataBase: new URL("https://mojimmy.com"),
   title: {
     default: "Mojimmy | Creative Developer & UI Designer",
     template: "%s | Mojimmy"
@@ -35,12 +35,6 @@ export const metadata: Metadata = {
   keywords: ["مطور ويب", "تصميم واجهات", "Next.js 15", "Framer Motion Expert", "Creative Portfolio 2026", "برمجة المواقع"],
   authors: [{ name: "Mojimmy" }],
   creator: "Mojimmy",
-  alternates: {
-    canonical: "/",
-    languages: {
-      'ar-EG': '/ar',
-    },
-  },
   openGraph: {
     title: "Mojimmy | Portfolio",
     description: "استكشف مستقبل الويب من خلال تجارب رقمية تفاعلية.",
@@ -48,14 +42,7 @@ export const metadata: Metadata = {
     siteName: "Mojimmy Studio",
     locale: "ar_EG",
     type: "website",
-    images: [
-      {
-        url: "/og-image.png", // تأكد من وجود صورة في public folder
-        width: 1200,
-        height: 630,
-        alt: "Mojimmy Portfolio Preview",
-      },
-    ],
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
@@ -63,24 +50,13 @@ export const metadata: Metadata = {
     description: "بناء مستقبل الويب بتصاميم سينمائية.",
     images: ["/og-image.png"],
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
 };
 
 export const viewport: Viewport = {
   themeColor: "#020202",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5, // للسماح بالـ Zoom لتحسين الـ Accessibility
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -90,51 +66,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning className="scroll-smooth">
-      <body 
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#020202] text-white selection:bg-purple-500/30`} 
-        suppressHydrationWarning={true}
-      >
-        {/* --- طبقة الـ Grain (Hardware Accelerated) --- */}
-        <div 
-          className="fixed inset-0 z-[9999] pointer-events-none opacity-[0.02] mix-blend-overlay"
-          style={{ 
-            backgroundImage: `url('https://grainy-gradients.vercel.app/noise.svg')`,
-            willChange: "transform" 
-          }} 
-        />
-
-        {/* --- الأدوات التفاعلية (خارج الـ SmoothScroll لضمان الثبات) --- */}
-        <ScrollProgress />
-        <CustomCursor />
-        <AnimatedFavicon />
-        
-        <Toaster 
-          position="bottom-left" // الأفضل للـ RTL يكون في اليسار عشان ميتداخلش مع الأزرار
-          theme="dark" 
-          richColors 
-          closeButton
-        />
-        
-        <ThemeProvider 
-          attribute="class" 
-          defaultTheme="dark" 
-          enableSystem={false} 
-          disableTransitionOnChange // يمنع الـ Flash أثناء تبديل الثيم
-        >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased text-foreground`}>
+        <ThemeProvider attribute="class" defaultTheme="dark">
+          
+          {/* شلنا الـ Suspense اليدوي من هنا عشان Next.js يشغل loading.tsx لوحده */}
+          <ScrollProgress />
+          <CustomCursor />
+          <AnimatedFavicon />
+          
+          <Toaster position="bottom-left" theme="dark" richColors />
+          
           <SmoothScroll>
             <main className="relative min-h-screen flex flex-col">
               {children}
             </main>
-            
-            {/* أزرار التفاعل (UI Layers) */}
             <FloatingLaunch />
             <WhatsAppButton />
             <MobileScrollTop /> 
           </SmoothScroll>
-        </ThemeProvider>
 
-        {/* تأثير الـ Global Glow الخلفي */}
-        <div className="fixed -z-10 bottom-0 left-0 right-0 h-[50vh] bg-gradient-to-t from-purple-900/5 to-transparent pointer-events-none" />
+        </ThemeProvider>
       </body>
     </html>
   );
