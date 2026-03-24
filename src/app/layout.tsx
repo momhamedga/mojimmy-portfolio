@@ -12,7 +12,6 @@ import MobileScrollTop from "./components/MobileScrollTop";
 import FloatingLaunch from "./components/Layouts/FloatingLaunch";
 import AnimatedFavicon from "./components/AnimatedFavicon";
 import { BackgroundCanvas } from "./components/Visuals/DynamicBackground";
-import Preloader from "./components/Preloader"; // البريلودر اللي عملناه
 
 // تحسين الـ Fonts لتقليل الـ FOIT
 const cairo = Cairo({
