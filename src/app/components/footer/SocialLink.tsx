@@ -18,7 +18,7 @@ export const SocialLink = memo(({ link }: SocialLinkProps) => {
   };
 
   return (
-    <Magnetic intensity={0.2}> {/* إضافة شدة للمغناطيس لو المكون بيدعمها */}
+    <Magnetic > {/* إضافة شدة للمغناطيس لو المكون بيدعمها */}
       <motion.a
         href={link.href}
         target="_blank"

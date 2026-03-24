@@ -1,27 +1,33 @@
 "use client"
-import React, { useRef, useState } from 'react'
-import { motion, useSpring, useMotionValue } from 'framer-motion';
+import React, { useRef } from 'react'
+import { motion, useSpring } from 'framer-motion';
 
-export default function Magnetic({ children }: { children: React.ReactNode }) {
+// 1. تعريف الـ Types بدقة عشان الـ Build يعدي بسلام
+interface MagneticProps {
+    children: React.ReactNode;
+    intensity?: number; // قوة الجذب (الافتراضي 0.6)
+}
+
+export default function Magnetic({ children, intensity = 0.6 }: MagneticProps) {
     const ref = useRef<HTMLDivElement>(null);
 
-    // استخدام الـ Springs بدلاً من useState العادي لجعل الحركة أسلس بـ 10 مرات
-    const x = useSpring(0, { stiffness: 150, damping: 15, mass: 0.1 });
-    const y = useSpring(0, { stiffness: 150, damping: 15, mass: 0.1 });
+    // 2. استخدام Springs بإعدادات Physics سينمائية
+    const springConfig = { stiffness: 150, damping: 15, mass: 0.1 };
+    const x = useSpring(0, springConfig);
+    const y = useSpring(0, springConfig);
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        const { clientX, clientY } = e;
         if (!ref.current) return;
-
+        const { clientX, clientY } = e;
         const { height, width, left, top } = ref.current.getBoundingClientRect();
         
-        // حساب مركز العنصر بالنسبة لمكان الماوس
+        // حساب المسافة من المركز
         const middleX = clientX - (left + width / 2);
         const middleY = clientY - (top + height / 2);
         
-        // تحريك العنصر (تقسيم على 2.5 ليكون التأثير واضح ومسيطر عليه)
-        x.set(middleX / 2.5);
-        y.set(middleY / 2.5);
+        // 3. تطبيق الـ Intensity (كل ما زاد الرقم زادت قوة الجذب)
+        x.set(middleX * intensity);
+        y.set(middleY * intensity);
     }
 
     const reset = () => {
@@ -29,31 +35,29 @@ export default function Magnetic({ children }: { children: React.ReactNode }) {
         y.set(0);
     }
 
-    // وظيفة الاهتزاز للموبايل عند اللمس المطول أو الضغط
+    // 4. Haptic Feedback للموبايل (Tactile Experience)
     const triggerHaptic = () => {
         if (typeof window !== "undefined" && window.navigator.vibrate) {
-            window.navigator.vibrate(10); // اهتزاز خفيف جداً (Tactile)
+            window.navigator.vibrate(10); 
         }
     }
 
     return (
         <motion.div
-            style={{ 
-                position: "relative",
-                display: "inline-block", // لضمان أن الحاوية تأخذ حجم المحتوى فقط
-                x, y 
-            }}
             ref={ref}
             onMouseMove={handleMouseMove}
             onMouseLeave={reset}
-            // --- لمسات إبداعية للموبايل ---
-            whileTap={{ 
-                scale: 0.92, // تأثير الانضغاط
-                rotate: [0, -1, 1, 0], // اهتزازة بسيطة جداً عند اللمس
-                transition: { duration: 0.2 }
+            onTouchStart={triggerHaptic}
+            style={{ 
+                position: "relative",
+                display: "inline-block",
+                x, y 
             }}
-            onTouchStart={triggerHaptic} // اهتزاز بمجرد لمس الإصبع للزر
-            className="cursor-pointer"
+            whileTap={{ 
+                scale: 0.95,
+                transition: { duration: 0.1 }
+            }}
+            className="will-change-transform cursor-pointer" // Will-change لتحسين أداء الـ GPU
         >
             {children}
         </motion.div>
