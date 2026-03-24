@@ -14,48 +14,46 @@ export default function About() {
     offset: ["start end", "end start"] 
   });
 
-  // تنعيم حركة السكرول للموبايل (Spring Physics)
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
+    stiffness: 80,
+    damping: 25,
     restDelta: 0.001
   });
 
-
   const words = ABOUT_TEXT.split(" ");
-  const spotlightY = useTransform(smoothProgress, [0, 1], ["-10%", "110%"]);
+  // Spotlight ديناميكي يتحرك مع الـ Scroll ليجذب الانتباه للنص
+  const spotlightY = useTransform(smoothProgress, [0, 1], ["-20%", "120%"]);
 
   return (
     <motion.section 
       ref={containerRef} 
       dir="rtl" 
- 
-      className="relative py-20 md:py-64 overflow-hidden transition-colors duration-700"
+      className="relative py-24 md:py-72 overflow-hidden bg-transparent"
       id="about"
     >
-      {/* Spotlight أصغر وأقوى على الموبايل */}
+      {/* Dynamic Ambient Spotlight (OKLCH Glow) */}
       <motion.div 
         style={{ top: spotlightY }}
-        className="absolute left-1/2 -translate-x-1/2 w-[80vw] md:w-[50vw] h-[80vw] md:h-[50vw] bg-purple-600/15 blur-[80px] md:blur-[130px] rounded-full -z-10 pointer-events-none"
+        className="absolute left-1/2 -translate-x-1/2 w-[90vw] md:w-[60vw] h-[90vw] md:h-[60vw] bg-[oklch(0.6_0.2_285_/_0.1)] blur-[100px] md:blur-[150px] rounded-full -z-10 pointer-events-none"
       />
 
-      <div className="container mx-auto px-5 md:px-6 relative z-10">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10 md:gap-24">
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-12 md:gap-32">
           
-          {/* الجانب الأيمن: العنوان - في الموبايل بياخد وضع حر وفي الديسكتوب ثابت */}
-          <div className="lg:col-span-4 lg:sticky lg:top-40 h-fit space-y-6 md:space-y-8">
-            <div className="space-y-3 md:space-y-4 text-right">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/20 bg-purple-500/5">
-                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
-                <span className="text-purple-400 font-cairo  text-[9px] md:text-[10px] uppercase tracking-[0.2em]">
-                  من أنـا
+          {/* الجانب الأيمن: Branding & Stats */}
+          <div className="lg:col-span-4 lg:sticky lg:top-48 h-fit space-y-10 md:space-y-12">
+            <div className="space-y-4 text-right">
+              <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md">
+                <span className="w-2 h-2 bg-[oklch(0.7_0.2_330)] rounded-full animate-ping" />
+                <span className="text-[oklch(0.9_0.02_330)] font-cairo text-[10px] md:text-xs uppercase tracking-[0.3em] font-bold">
+                  Story Mode
                 </span>
               </div>
               
-              <h3 className="text-4xl md:text-7xl font-cairo  text-white leading-[1.1] md:leading-[0.9] tracking-tighter">
-                نمزج الفن <br className="hidden md:block" /> 
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-                  بالكود.
+              <h3 className="text-5xl md:text-8xl font-cairo font-black text-white leading-[0.9] tracking-tighter italic">
+                كود <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-l from-[oklch(0.7_0.2_250)] to-[oklch(0.7_0.2_330)]">
+                  بلمسة فن.
                 </span>
               </h3>
             </div>
@@ -63,9 +61,9 @@ export default function About() {
             <AboutStats progress={smoothProgress} />
           </div>
 
-          {/* الجانب الأيسر: النص المتفاعل - حجم خط مرن للموبايل */}
+          {/* الجانب الأيسر: الكتابة المتفاعلة (Reveal Text) */}
           <div className="lg:col-span-8">
-            <p className="flex flex-wrap content-start text-[1.75rem] sm:text-4xl md:text-7xl font-cairo  leading-[1.3] md:leading-[1.1] tracking-tighter text-right">
+            <div className="flex flex-wrap content-start text-[2rem] sm:text-5xl md:text-8xl font-cairo font-bold leading-[1.2] md:leading-[1.05] tracking-tighter text-right text-white">
               {words.map((word, i) => {
                 const start = i / words.length;
                 const end = start + (1 / words.length);
@@ -75,7 +73,7 @@ export default function About() {
                   </Word>
                 );
               })}
-            </p>
+            </div>
           </div>
 
         </div>

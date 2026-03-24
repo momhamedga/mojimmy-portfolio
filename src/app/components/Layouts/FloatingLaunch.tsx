@@ -1,52 +1,43 @@
 "use client"
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { MessageCircle, Send, Phone } from "lucide-react";
-import { useState, useCallback } from "react";
+import { MessageCircle, Send, Phone, Share2, Plus } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
 
-// 1. تعريف البيانات خارج المكون (Static Data)
 interface ActionItem {
   icon: React.ReactNode;
   label: string;
   color: string;
   href: string;
+  shadow: string;
 }
 
 const ACTIONS: ActionItem[] = [
-  { icon: <MessageCircle size={22} />, label: "واتساب", color: "bg-[#25D366]", href: "https://wa.me/+971589915968" },
-  { icon: <Send size={22} />, label: "تليجرام", color: "bg-[#0088cc]", href: "#" },
-  { icon: <Phone size={22} />, label: "اتصال", color: "bg-blue-600", href: "#" },
+  { icon: <MessageCircle size={22} />, label: "واتساب", color: "bg-[#25D366]", shadow: "shadow-[#25D366]/20", href: "https://wa.me/+971589915968" },
+  { icon: <Send size={22} />, label: "تليجرام", color: "bg-[#0088cc]", shadow: "shadow-[#0088cc]/20", href: "#" },
+  { icon: <Phone size={22} />, label: "اتصال", color: "bg-blue-600", shadow: "shadow-blue-600/20", href: "tel:+971589915968" },
 ];
 
 const menuVariants: Variants = {
-  initial: { opacity: 0, y: 20, scale: 0.8 },
+  initial: { opacity: 0, scale: 0.5, y: 50 },
   animate: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: { 
-      type: "spring", 
-      stiffness: 500, 
-      damping: 30,
-      staggerChildren: 0.1 
-    }
+    opacity: 1, scale: 1, y: 0,
+    transition: { type: "spring", stiffness: 400, damping: 25, staggerChildren: 0.08, delayChildren: 0.1 }
   },
   exit: { 
-    opacity: 0, 
-    y: 20, 
-    scale: 0.8,
-    transition: { duration: 0.2 } 
+    opacity: 0, scale: 0.5, y: 50,
+    transition: { duration: 0.3, ease: "anticipate", staggerChildren: 0.05, staggerDirection: -1 } 
   }
 };
 
 const itemVariants: Variants = {
-  initial: { x: -20, opacity: 0 },
-  animate: { x: 0, opacity: 1 }
+  initial: { y: 20, opacity: 0, filter: "blur(5px)" },
+  animate: { y: 0, opacity: 1, filter: "blur(0px)" },
+  exit: { y: 10, opacity: 0, filter: "blur(5px)" }
 };
 
 export default function FloatingLaunch() {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // 2. دالة الاهتزاز (Haptic) محسنة للموبايل
   const triggerHaptic = useCallback((intensity: number | number[] = 15) => {
     if (typeof window !== "undefined" && navigator.vibrate) {
       navigator.vibrate(intensity);
@@ -54,14 +45,27 @@ export default function FloatingLaunch() {
   }, []);
 
   const toggleMenu = () => {
-    triggerHaptic(isExpanded ? 10 : [20, 10, 20]); // نمط اهتزاز مميز عند الفتح
+    triggerHaptic(isExpanded ? 10 : [15, 5, 15]);
     setIsExpanded(!isExpanded);
   };
 
   return (
-    <div className="fixed bottom-8 left-8 z-[999] md:hidden flex flex-col items-center gap-4 select-none">
+    <div className="fixed bottom-8 left-8 z-[1000] md:hidden flex flex-col items-center select-none">
       
-      {/* خيارات الاتصال السريعة */}
+      {/* Dynamic Overlay - Spotlight Effect */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsExpanded(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Action Buttons */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div 
@@ -69,71 +73,81 @@ export default function FloatingLaunch() {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="flex flex-col gap-3 mb-2"
+            className="flex flex-col gap-4 mb-6"
           >
-            {ACTIONS.map((action, i) => (
+            {ACTIONS.map((action) => (
               <motion.a
                 key={action.label}
                 href={action.href}
                 variants={itemVariants}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${action.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-black/20 active:scale-90 transition-transform`}
-                onClick={() => triggerHaptic(15)}
+                className={`${action.color} ${action.shadow} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-2xl relative group transition-transform active:scale-90`}
+                onClick={() => triggerHaptic(10)}
               >
                 {action.icon}
+                {/* Tooltip Label */}
+                <span className="absolute left-full ml-4 px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-lg text-[10px] text-white font-cairo opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  {action.label}
+                </span>
               </motion.a>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* الزر الرئيسي */}
+      {/* Main Trigger Button */}
       <motion.button
         onClick={toggleMenu}
-        whileTap={{ scale: 0.9 }}
-        className="relative w-16 h-16 group outline-none"
-        style={{ willChange: "transform" }}
+        whileTap={{ scale: 0.92 }}
+        className="relative w-16 h-16 outline-none"
       >
-        {/* الهالة المشعة (Optimized Aura) */}
-        <motion.div 
-          animate={{ 
-            scale: isExpanded ? 1.1 : [1, 1.15, 1],
-            opacity: isExpanded ? 0.4 : [0.4, 0.7, 0.4] 
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-500 blur-2xl rounded-full pointer-events-none"
-        />
+        {/* Animated Glow Rings */}
+        {!isExpanded && (
+          <motion.div 
+            animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 border-2 border-purple-500 rounded-[1.8rem] z-0"
+          />
+        )}
 
-        {/* جسم الزر الزجاجي (Glassmorphism) */}
-        <div className="relative w-full h-full bg-[#121212] border border-white/10 rounded-[1.8rem] flex items-center justify-center overflow-hidden shadow-2xl">
-            <motion.div 
-              animate={{ rotate: isExpanded ? 135 : 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="z-10 flex items-center justify-center"
-            >
-              <span className="font-cairo text-2xl italic text-white tracking-tighter" style={{ textShadow: "0 0 10px rgba(168,85,247,0.8)" }}>
-                M
-              </span>
-            </motion.div>
+        {/* Main Body */}
+        <div className="relative z-10 w-full h-full bg-[#0D0D0E] border border-white/10 rounded-[1.8rem] flex items-center justify-center overflow-hidden shadow-2xl backdrop-blur-xl">
+          {/* Neon Gradient Mesh */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/20 via-transparent to-blue-500/20 opacity-50" />
+          
+          <motion.div 
+            animate={{ rotate: isExpanded ? 135 : 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            className="relative z-20"
+          >
+            {isExpanded ? (
+              <Plus size={28} className="text-white" />
+            ) : (
+              <div className="flex flex-col items-center">
+                 <span className="text-xl font-black text-white font-cairo tracking-tighter italic">M</span>
+                 <div className="w-1 h-1 bg-purple-500 rounded-full mt-[-4px] animate-pulse" />
+              </div>
+            )}
+          </motion.div>
 
-            {/* تأثير السائل الداخلي */}
-            <motion.div 
-              animate={{ y: isExpanded ? 0 : 80 }}
-              className="absolute inset-0 bg-gradient-to-t from-purple-600/30 to-transparent pointer-events-none"
-            />
+          {/* Liquid Fill Effect */}
+          <motion.div 
+            animate={{ y: isExpanded ? 0 : 80 }}
+            className="absolute inset-0 bg-gradient-to-t from-purple-500/40 via-purple-500/10 to-transparent pointer-events-none"
+          />
         </div>
 
-        {/* ملصق "Hot" */}
+        {/* Floating Indicator */}
         <AnimatePresence>
           {!isExpanded && (
             <motion.div 
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              className="absolute -right-1 -top-1 bg-gradient-to-r from-pink-600 to-purple-600 text-[9px] font-cairo text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg z-20"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              className="absolute -right-1 -top-1 bg-white text-black text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase z-30 shadow-white/20 shadow-lg"
             >
-              Hot
+              Live
             </motion.div>
           )}
         </AnimatePresence>

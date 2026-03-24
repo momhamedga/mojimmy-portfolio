@@ -1,73 +1,92 @@
 "use client";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 export const HeroContent = () => {
-  return (
-    <div className="relative space-y-12 flex flex-col items-center select-none pt-10 text-center">
-      
-      {/* 1. النيون العلوي (Ambient Glow) - بنفسجي ملكي */}
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-purple-600/10 blur-[140px] rounded-full pointer-events-none" />
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // 2026 Parallax Logic: حركة خفيفة للعناصر مع السكرول لزيادة العمق
+  const { scrollY } = useScroll();
+  const ghostTextY = useTransform(scrollY, [0, 500], [0, -100]);
+  const contentOpacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-      {/* 2. الـ Badge المتطور - عربي بالكامل */}
+  return (
+    <div 
+      ref={containerRef}
+      className="relative space-y-10 flex flex-col items-center select-none pt-12 text-center transform-gpu"
+    >
+      {/* 1. الإضاءة المحيطية (Ambient 2026) - استخدام OKLCH لسطوع نقي */}
+      <div className="absolute -top-60 left-1/2 -translate-x-1/2 w-[600px] h-[500px] bg-[oklch(0.6_0.25_285/0.08)] blur-[160px] rounded-full pointer-events-none" />
+
+      {/* 2. الـ Badge المتطور: استخدام Glassmorphism 2.0 */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", damping: 25 }}
-        className="group relative inline-flex items-center gap-3 px-6 py-2 rounded-full border border-purple-500/20 bg-purple-500/[0.03] backdrop-blur-3xl"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card group relative flex items-center gap-4 px-6 py-2.5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-2xl transition-all hover:bg-white/[0.05]"
       >
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500 shadow-[0_0_12px_#a855f7]"></span>
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40"></span>
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary shadow-[0_0_15px_oklch(0.65_0.25_285)]"></span>
         </span>
-        <span className="text-purple-100/70 font-cairo text-[11px] uppercase tracking-[0.2em] font-bold group-hover:text-white transition-colors">
-        نطور الافكار لمشاريع واقعية
+        <span className="text-white/60 font-cairo text-[10px] md:text-xs uppercase tracking-[0.25em] font-bold group-hover:text-primary transition-colors">
+          نطور الأفكار لمشاريع واقعية
         </span>
-        {/* خط نيون رفيع بيلمع تحت الـ Badge */}
-        <div className="absolute -bottom-[1px] left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50" />
       </motion.div>
 
-      {/* 3. العنوان الرئيسي (The Masterpiece) */}
+      {/* 3. العنوان الرئيسي (The Visual Masterpiece) */}
       <div className="relative">
-        {/* Ghost Text خلفية - كلمة "إبداع" بالعربي */}
+        {/* Ghost Text: استخدام الخط العريض جداً مع حركة Parallax */}
         <motion.span 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.04 }}
-          className="absolute -top-24 left-1/2 -translate-x-1/2 text-[12rem] font-[900] text-purple-500 whitespace-nowrap pointer-events-none hidden md:block tracking-tighter font-cairo"
+          style={{ y: ghostTextY }}
+          className="absolute -top-32 left-1/2 -translate-x-1/2 text-[15rem] font-black text-white/[0.02] whitespace-nowrap pointer-events-none hidden lg:block tracking-tighter font-cairo leading-none uppercase"
         >
           إبداع
         </motion.span>
 
         <motion.h1 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="text-4xl md:text-[8rem] font-[900] text-white leading-[1] tracking-tight font-cairo"
+          initial={{ opacity: 0, filter: "blur(15px)", y: 30 }}
+          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+          transition={{ duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
+          className="text-5xl md:text-[9rem] font-black text-white leading-[0.85] tracking-tighter font-cairo"
         >
-          نصنع <span className="text-white/10 italic ">واقعاً</span> <br />
-          <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-400 py-4 bg-gradient-move">
+          نصنع <span className="text-white/10 italic font-light">واقعاً</span> <br />
+          <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-400 py-6 bg-gradient-move neon-glow-primary">
             رقمياً مذهلاً.
-            {/* توهج سفلي نيون أزرق/بنفسجي */}
-            <div className="absolute -bottom-2 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent blur-md" />
           </span>
         </motion.h1>
       </div>
 
-      {/* 4. النص الفرعي (The Storyteller) - بخط Almarai المريح */}
-      <motion.p 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.8 }}
-        className="max-w-3xl text-gray-400 text-lg md:text-2xl leading-[1.8] px-6 font-cairo font-light"
-      >
-        <span className="text-white font-medium border-b border-purple-500/30">نحول التعقيد إلى بساطة.</span> متخصصون في بناء تجارب رقمية تتنفس ابتكاراً وتترك أثراً بصرياً يجسد مستقبل الويب في المنطقة.
-      </motion.p>
+    {/* 4. النص السردي المعدل */}
+<motion.p 
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ delay: 0.8, duration: 1 }}
+  className="max-w-4xl text-white/50 text-xl md:text-3xl leading-relaxed px-8 font-cairo font-light"
+>
+  نحن لا نبني مجرد مواقع، بل نصمم 
+  <span className="text-white font-medium mx-2 relative inline-block">
+    أنظمة حية
+    {/* ✅ التعديل هنا: حولنا الـ div لـ span مع الحفاظ على الـ styling */}
+    <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-primary/50 shadow-[0_0_8px_oklch(0.65_0.25_285)] block" />
+  </span>
+  تتنفس ابتكاراً، نحول التعقيد البرمجي إلى بساطة بصرية تجسد مستقبل الويب.
+</motion.p>
 
-      {/* 5. شعاع طاقة جانبي (Decorative Beam) */}
+      {/* 5. شعاع طاقة (Laser Line) - يعطي إيحاء بمسح الصفحة (Scanning) */}
       <motion.div 
-        animate={{ opacity: [0.2, 0.5, 0.2], y: [0, -20, 0] }}
-        transition={{ duration: 5, repeat: Infinity }}
-        className="absolute -right-20 top-1/4 w-[2px] h-32 bg-gradient-to-b from-transparent via-purple-500/50 to-transparent blur-[1px]"
+        animate={{ 
+          opacity: [0.1, 0.4, 0.1], 
+          height: ["20px", "150px", "20px"],
+          y: [0, 50, 0]
+        }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -left-10 top-1/3 w-[1px] bg-gradient-to-b from-transparent via-primary to-transparent blur-[2px] hidden md:block"
       />
+
+      {/* زينة هندسية: حلقات نيون خافتة */}
+      <div className="absolute -bottom-20 flex justify-center w-full pointer-events-none opacity-20">
+         <div className="w-[800px] h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent blur-sm" />
+      </div>
     </div>
   );
 };

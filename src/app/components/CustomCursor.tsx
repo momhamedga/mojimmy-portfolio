@@ -1,75 +1,11 @@
 "use client"
-import { useEffect, useState, useCallback, useRef, startTransition } from "react";
-import { motion, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useCustomCursor } from "../hooks/use-custom-cursor";
 
 export default function CustomCursor() {
-  const [mounted, setMounted] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [hoverText, setHoverText] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const { mounted, isVisible, isMobile, hoverState, x, y, trailX, trailY } = useCustomCursor();
 
-  // قيم الحركة الأساسية (بدون الربيع لسرعة الاستجابة الأولية)
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  // إعدادات الربيع (Spring) - محسنة للموبايل لتقليل الجهد
-  const springConfig = { stiffness: 500, damping: 40, mass: 0.5 };
-  const mainX = useSpring(mouseX, springConfig);
-  const mainY = useSpring(mouseY, springConfig);
-
-  // ذيل واحد فقط للموبايل لتقليل الـ Layers
-  const trailX = useSpring(mouseX, { stiffness: 150, damping: 30 });
-  const trailY = useSpring(mouseY, { stiffness: 150, damping: 30 });
-
-  useEffect(() => {
-    const checkDevice = () => setIsMobile(window.innerWidth < 768);
-    checkDevice();
-    setMounted(true);
-
-    const handleMove = (e: MouseEvent | TouchEvent) => {
-      const x = "clientX" in e ? e.clientX : (e as TouchEvent).touches[0].clientX;
-      const y = "clientY" in e ? e.clientY : (e as TouchEvent).touches[0].clientY;
-      
-      mouseX.set(x);
-      mouseY.set(y);
-
-      if (!isVisible) setIsVisible(true);
-    };
-
-    const handleInteraction = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const projectCard = target.closest('.project-card');
-      const isAction = target.closest('a, button, .group');
-      
-      startTransition(() => {
-        if (projectCard) {
-          setIsHovered(true);
-          setHoverText("استكشف");
-        } else if (isAction) {
-          setIsHovered(true);
-          setHoverText("");
-        } else {
-          setIsHovered(false);
-          setHoverText("");
-        }
-      });
-    };
-
-    window.addEventListener("mousemove", handleMove, { passive: true });
-    window.addEventListener("touchmove", handleMove, { passive: true });
-    window.addEventListener("mouseover", handleInteraction);
-    window.addEventListener("resize", checkDevice);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("touchmove", handleMove);
-      window.removeEventListener("mouseover", handleInteraction);
-      window.removeEventListener("resize", checkDevice);
-    };
-  }, [mouseX, mouseY, isVisible]);
-
-  if (!mounted) return null;
+  if (!mounted || isMobile) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[99999] overflow-hidden">
@@ -79,52 +15,55 @@ export default function CustomCursor() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
-            className="will-change-auto"
+            className="relative w-full h-full will-change-transform"
           >
-            {/* الذيل - مع تقليل الجودة للموبايل لزيادة الأداء */}
+            {/* 1. الهالة الخارجية (The Modern Aura) */}
             <motion.div
-              className="fixed top-0 left-0 rounded-full bg-primary/20 blur-[6px] will-change-transform"
-              style={{
-                x: trailX,
-                y: trailY,
-                translateX: "-50%",
-                translateY: "-50%",
-                width: isMobile ? 40 : 25,
-                height: isMobile ? 40 : 25,
-              }}
-            />
-
-            {/* الجسم الرئيسي للكرسر */}
-            <motion.div
-              style={{ 
-                x: mainX, 
-                y: mainY, 
-                translateX: "-50%", 
-                translateY: "-50%",
-              }}
-              className="fixed top-0 left-0 flex items-center justify-center mix-blend-difference will-change-transform"
+              style={{ x: trailX, y: trailY, translateX: "-50%", translateY: "-50%" }}
+              className="fixed top-0 left-0 flex items-center justify-center"
             >
               <motion.div
                 animate={{
-                  width: isHovered ? (isMobile ? 70 : 100) : (isMobile ? 0 : 16),
-                  height: isHovered ? (isMobile ? 70 : 100) : (isMobile ? 0 : 16),
-                  borderRadius: isHovered ? "20%" : "50%",
-                  backgroundColor: isHovered ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,1)",
+                  width: hoverState.active ? 80 : 45,
+                  height: hoverState.active ? 80 : 45,
+                  rotate: hoverState.active ? 180 : 0,
+                  borderWidth: hoverState.active ? "1px" : "1px",
+                  borderColor: hoverState.active ? "rgba(168, 85, 247, 0.5)" : "rgba(255, 255, 255, 0.1)"
                 }}
-                className="border border-white/30 flex items-center justify-center backdrop-blur-[4px]"
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                className="rounded-full border-dashed border-white/20 transition-colors duration-500"
+              />
+            </motion.div>
+
+            {/* 2. النواة المركزية (The Core Dot) */}
+            <motion.div
+              style={{ x, y, translateX: "-50%", translateY: "-50%" }}
+              className="fixed top-0 left-0 flex items-center justify-center mix-blend-difference"
+            >
+              <motion.div
+                animate={{
+                  scale: hoverState.active ? 2.5 : 1,
+                  backgroundColor: hoverState.active ? "#fff" : "#fff",
+                }}
+                className="w-2.5 h-2.5 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.5)] flex items-center justify-center"
               >
-                {isHovered && hoverText && (
+                {hoverState.active && hoverState.text && (
                   <motion.span
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-[11px] font-bold text-white tracking-tighter"
+                    className="text-[3px] font-black text-black tracking-widest"
                   >
-                    {hoverText}
+                    {hoverState.text}
                   </motion.span>
                 )}
               </motion.div>
             </motion.div>
+
+            {/* 3. تأثير الـ Glow الجانبي (Subtle Glow) */}
+            <motion.div
+              style={{ x: trailX, y: trailY, translateX: "-50%", translateY: "-50%" }}
+              className="fixed top-0 left-0 w-20 h-20 bg-purple-500/10 blur-[40px] rounded-full -z-10"
+              animate={{ opacity: hoverState.active ? 0.8 : 0.3 }}
+            />
           </motion.div>
         )}
       </AnimatePresence>

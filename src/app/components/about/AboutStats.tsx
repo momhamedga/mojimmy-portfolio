@@ -3,64 +3,52 @@ import { motion, MotionValue, useTransform, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export function AboutStats({ progress }: { progress: MotionValue<number> }) {
-  // 1. تنعيم حركة الشريط للموبايل لتبدو "Organic"
-  const smoothWidth = useSpring(useTransform(progress, [0, 0.7], ["0%", "99%"]), {
-    stiffness: 50,
-    damping: 20
+  const smoothWidth = useSpring(useTransform(progress, [0, 0.8], ["0%", "100%"]), {
+    stiffness: 40,
+    damping: 15
   });
 
-  // 2. ربط النسبة المئوية كنص يتغير مع السكرول
   const [percent, setPercent] = useState(0);
-  const percentage = useTransform(progress, [0, 0.7], [0, 99]);
+  const percentage = useTransform(progress, [0, 0.8], [0, 100]);
 
   useEffect(() => {
-    // تحديث الرقم في الواجهة عند السكرول
-    return percentage.onChange((v) => setPercent(Math.round(v)));
+    return percentage.onChange((v) => setPercent(Math.min(100, Math.max(0, Math.round(v)))));
   }, [percentage]);
 
   return (
-    <div className="pt-8 md:pt-10 space-y-5 border-t border-white/5 w-full max-w-xs group" dir="rtl">
+    <div className="pt-12 space-y-6 border-t border-white/10 w-full max-w-sm" dir="rtl">
       <div className="flex justify-between items-end">
         <div className="space-y-1">
-          <span className="text-purple-400 font-mono text-[9px] uppercase tracking-[0.2em] block">
-            Technical Mastery
+          <span className="text-[oklch(0.7_0.2_285)] font-mono text-[10px] uppercase tracking-[0.4em] block font-bold">
+            Execution Level
           </span>
-          <span className="text-gray-400 text-xs font-medium">الإتقان التقني</span>
+          <span className="text-white/40 text-xs font-cairo">دقة التنفيذ الرقمي</span>
         </div>
         
-        {/* العداد الرقمي التفاعلي */}
-        <div className="flex items-baseline gap-0.5">
-          <motion.span className="text-white font-black text-3xl md:text-4xl italic tracking-tighter">
+        <div className="flex items-baseline">
+          <motion.span className="text-white font-black text-5xl italic tracking-tighter leading-none">
             {percent}
           </motion.span>
-          <span className="text-purple-500 font-bold text-sm">%</span>
+          <span className="text-[oklch(0.7_0.2_285)] font-bold text-sm ml-1">%</span>
         </div>
       </div>
       
-      {/* شريط التقدم بتصميم نيون (Neon Glow) */}
-      <div className="h-[3px] w-full bg-white/5 rounded-full overflow-hidden relative">
-        {/* توهج خلفي (Glow) يظهر على شاشات الموبايل القوية */}
+      {/* Liquid Progress Bar */}
+      <div className="h-[4px] w-full bg-white/5 rounded-full relative overflow-visible">
         <motion.div 
           style={{ width: smoothWidth }}
-          className="absolute inset-0 bg-purple-500/20 blur-sm"
+          className="absolute inset-0 bg-[oklch(0.7_0.2_285)] blur-md opacity-30"
         />
-        
         <motion.div 
           style={{ width: smoothWidth }}
-          className="h-full bg-gradient-to-l from-blue-500 via-purple-500 to-pink-500 relative z-10" 
+          className="h-full bg-gradient-to-l from-[oklch(0.7_0.2_250)] via-[oklch(0.7_0.2_285)] to-[oklch(0.7_0.2_330)] relative z-10 rounded-full" 
         />
       </div>
       
-      {/* نصوص توضيحية بنظام الـ Micro-interactions */}
-      <div className="flex justify-between items-center opacity-60 group-hover:opacity-100 transition-opacity">
-        <p className="text-[8px] md:text-[9px] text-gray-500 font-medium tracking-wide uppercase">
-          Build . Scale . Optimize
-        </p>
-        <div className="flex gap-1">
-            {[1, 2, 3].map((i) => (
-                <div key={i} className={`w-1 h-1 rounded-full ${percent > (i * 30) ? 'bg-purple-500' : 'bg-white/10'}`} />
-            ))}
-        </div>
+      <div className="flex justify-between items-center text-[9px] tracking-[0.2em] uppercase font-bold text-white/20">
+        <span>Concept</span>
+        <span>Design</span>
+        <span>Deployment</span>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client"
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle } from "lucide-react";
+import { cn } from "@/src/lib/utils"; //
 
 interface Props {
   icon: any;
@@ -16,34 +17,31 @@ interface Props {
 export default function ContactInput({ icon: Icon, name, placeholder, type = "text", isTextArea, focusedField, setFocusedField, error }: Props) {
   const isFocused = focusedField === name;
 
-  // وظيفة للاهتزاز الخفيف عند التفاعل (لمسة الموبايل)
-  const triggerHaptic = () => {
-    if (typeof window !== "undefined" && window.navigator.vibrate) {
-      window.navigator.vibrate(10); 
-    }
-  };
-
   return (
-    <div className="relative w-full group mb-6">
+    <div className="relative w-full group">
       <motion.div 
-        onClick={triggerHaptic}
-        animate={isFocused ? { scale: 1.02 } : { scale: 1 }}
-        className={`flex items-start gap-4 p-4 rounded-2xl border transition-all duration-500 bg-white/[0.02] backdrop-blur-md
-        ${isFocused ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.15)] bg-white/[0.05]' : 'border-white/10'}
-        ${error ? 'border-red-500/50' : ''}`}
+        animate={isFocused ? { scale: 1.01 } : { scale: 1 }}
+        className={cn(
+          "flex items-start gap-5 p-6 rounded-3xl border transition-all duration-700 bg-white/[0.02] backdrop-blur-2xl relative overflow-hidden",
+          isFocused ? "border-purple-500 bg-white/[0.05] shadow-[0_0_40px_rgba(168,85,247,0.1)]" : "border-white/[0.08]",
+          error && "border-red-500/50"
+        )}
       >
         <Icon 
-          size={20} 
-          className={`mt-1 transition-colors duration-500 ${isFocused ? 'text-purple-400' : 'text-gray-500'}`} 
+          size={22} 
+          className={cn(
+            "mt-1 transition-colors duration-500",
+            isFocused ? "text-purple-400" : "text-gray-600"
+          )} 
         />
         
         {isTextArea ? (
           <textarea
             name={name}
-            rows={4}
-            onFocus={() => { setFocusedField(name); triggerHaptic(); }}
+            rows={5}
+            onFocus={() => setFocusedField(name)}
             onBlur={(e) => !e.target.value && setFocusedField(null)}
-            className="w-full bg-transparent text-white text-base md:text-lg outline-none resize-none placeholder:text-gray-600 font-cairo "
+            className="w-full bg-transparent text-white text-lg md:text-xl outline-none resize-none placeholder:text-white/20 font-cairo font-medium antialiased"
             placeholder={placeholder}
             spellCheck="false"
           />
@@ -52,23 +50,29 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
             name={name}
             type={type}
             autoComplete="off"
-            onFocus={() => { setFocusedField(name); triggerHaptic(); }}
+            onFocus={() => setFocusedField(name)}
             onBlur={(e) => !e.target.value && setFocusedField(null)}
-            className="w-full bg-transparent text-white text-base md:text-lg outline-none placeholder:text-gray-600 font-cairo "
+            className="w-full bg-transparent text-white text-lg md:text-xl outline-none placeholder:text-white/20 font-cairo font-medium antialiased h-full"
             placeholder={placeholder}
           />
         )}
+
+        {/* Focus Gradient Overlay */}
+        <div className={cn(
+          "absolute inset-0 bg-gradient-to-tr from-purple-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-700 pointer-events-none",
+          isFocused && "opacity-100"
+        )} />
       </motion.div>
 
       <AnimatePresence>
         {error && (
           <motion.div 
-            initial={{ opacity: 0, y: -10, x: 10 }} 
-            animate={{ opacity: 1, y: 0, x: 0 }}
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute -bottom-6 right-2 text-red-400 text-[11px] flex items-center gap-1 font-bold font-cairo  z-20"
+            className="absolute -bottom-7 right-4 text-red-400 text-xs flex items-center gap-2 font-black font-cairo z-20"
           >
-            <AlertCircle size={12} /> 
+            <AlertCircle size={14} /> 
             <span>{error}</span>
           </motion.div>
         )}

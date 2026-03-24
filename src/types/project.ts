@@ -1,8 +1,7 @@
 export interface Project {
   title: string;
   description: string;
-  size: string; // للتحكم في حجم الكارت في الـ Grid
-  gradient: string;
+  color: string;
   tags: string[];
   link: string;
   id: string;

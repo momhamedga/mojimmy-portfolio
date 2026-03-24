@@ -1,111 +1,121 @@
 @import "tailwindcss";
 
 /* -------------------------------------------------------------------------- */
-/* 1. Tailwind v4 Theme & Design System                                       */
+/* 1. Next-Gen Design System (OKLCH & CSS Variables)                          */
 /* -------------------------------------------------------------------------- */
 @theme {
-  /* ألوان OKLCH حيوية جداً للهوية البصرية */
-  --color-background: oklch(0.1 0.01 250); 
-  --color-foreground: oklch(0.98 0.01 250);
-  --color-primary: oklch(0.6 0.25 285);    /* البنفسجي بتاعنا */
-  --color-accent: oklch(0.7 0.3 330);      /* الوردي النيون */
+  /* ألوان OKLCH: أدق بمراحل في توزيع الإضاءة والـ Saturation */
+  --color-background: oklch(0.08 0.005 250); /* أغمق شوية عشان النيون ينطق */
+  --color-foreground: oklch(0.95 0.01 250);
+  --color-primary: oklch(0.65 0.25 285);     /* بنفسجي أنقى */
+  --color-accent: oklch(0.75 0.3 330);      /* وردي نيون ساطع */
+  --color-glass: oklch(1 0 0 / 0.03);       /* زجاجي فائق الشفافية */
   
-  /* ربط الخطوط بمتغيرات CSS اللي جاية من Next.js */
+  /* الخطوط */
   --font-cairo: var(--font-cairo);
-  --font-secondary: var(--font-secondary); /* الخط التاني اللي هتضيفه */
+  --font-almarai: var(--font-almarai);
+  --font-inter: var(--font-inter);
 
-  /* أنميشن مخصص للـ Gradient الملون في العنوان */
-  --animate-gradient-x: gradient-x 15s ease infinite;
+  /* أنيميشن 2026: استخدام الـ hardware acceleration */
+  --animate-float: floating 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-  @keyframes gradient-x {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  --animate-noise: noise-animation 0.2s steps(4) infinite;
-  @keyframes noise-animation {
-    0% { transform: translate(0,0) }
-    25% { transform: translate(-1%,-1%) }
-    50% { transform: translate(1%,1%) }
-    75% { transform: translate(-2%,1%) }
-    100% { transform: translate(0,0) }
+  @keyframes floating {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(1deg); }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. Base Modernization                                                      */
+/* 2. Base Reinforcement                                                      */
 /* -------------------------------------------------------------------------- */
 @layer base {
   :root {
     color-scheme: dark;
+    /* تحسين الـ Performance: منع الـ layout shift */
+    --scroll-padding: 5rem;
   }
 
   html {
     scroll-behavior: smooth !important;
+    scroll-padding-top: var(--scroll-padding);
     background-color: var(--color-background);
-    color: var(--color-foreground);
-    /* تطبيق خط Cairo كخط أساسي للموقع */
-    font-family: var(--font-cairo), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 
   body {
-    @apply antialiased selection:bg-primary/30 selection:text-white;
-    margin: 0;
-    overflow-x: hidden;
+    /* تطبيق Grainy Texture خفيف جداً على مستوى الـ body */
+    position: relative;
+    @apply text-foreground selection:bg-primary/20 selection:text-primary;
   }
 
-  /* تحسينات الخطوط العربية */
-  h1, h2, h3, h4 {
-    @apply tracking-tight font-black;
-    line-height: 1.1;
+  /* إضافة ملمس "Noise" ثابت وسينمائي */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3 Accuracy='0.5'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fracture' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+    pointer-events: none;
+    z-index: 9999;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 3. Cinematic Utilities                                                     */
+/* 3. High-End Cinematic Utilities                                            */
 /* -------------------------------------------------------------------------- */
 @layer utilities {
-  /* كلاس لتطبيق الخط التاني بسهولة */
-  .font-secondary {
-    font-family: var(--font-secondary);
+  /* الزجاج الفاخر (Glassmorphism 2026) */
+  .glass-card {
+    @apply bg-glass border border-white/5 backdrop-blur-xl;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   }
 
-  /* تأثير النص المضيء (Neon Text) */
-  .text-neon {
-    text-shadow: 0 0 10px oklch(0.6 0.25 285 / 0.5),
-                 0 0 20px oklch(0.6 0.25 285 / 0.3);
+  /* تأثير الـ Masking للـ Gradients */
+  .text-gradient-reveal {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-white/80 to-white/20;
   }
 
-  /* تأثير التدفق اللوني (Gradient Move) */
-  .bg-gradient-move {
-    background-size: 200% 200%;
-    animation: var(--animate-gradient-x);
+  /* نيون متطور يتأثر بالحركة */
+  .neon-glow-primary {
+    filter: drop-shadow(0 0 15px oklch(0.65 0.25 285 / 0.4));
   }
 
-  .cursor-glow {
-    box-shadow: 0 0 20px oklch(0.6 0.25 285 / 0.3);
+  /* ميزة Tailwind v4: الـ Container Queries */
+  .responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 1.5rem;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 4. Scrollbar & Root Fixes                                                  */
+/* 4. Scrollbar Redesign                                                      */
 /* -------------------------------------------------------------------------- */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border-radius: 10px;
+  background: linear-gradient(to bottom, transparent, var(--color-primary), transparent);
+  border-radius: 100vh;
 }
 
-/* إخفاء السكرول بار في الموبايل لزيادة المساحة البصرية */
+/* -------------------------------------------------------------------------- */
+/* 5. Mobile Optimizations                                                    */
+/* -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
-  ::-webkit-scrollbar {
-    display: none;
+  /* منع الـ Over-scroll البصري */
+  body {
+    overscroll-behavior-y: none;
+  }
+  
+  /* تبسيط الـ Glow في الموبايل لزيادة الـ FPS */
+  .neon-glow-primary {
+    filter: drop-shadow(0 0 8px oklch(0.65 0.25 285 / 0.3));
   }
 }

@@ -13,87 +13,95 @@ export default function Testimonials() {
     offset: ["start end", "end start"]
   });
 
-  // أنيميشن النصوص الخلفية بطريقة الـ Parallax المتقاطع
-  const xLeft = useTransform(scrollYProgress, [0, 1], [-500, 500]);
-  const xRight = useTransform(scrollYProgress, [0, 1], [500, -500]);
-  const rotateBack = useTransform(scrollYProgress, [0, 1], [-5, 5]);
+  // أنيميشن Parallax المطور بمعايير 2026
+  const springScroll = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  
+  const xLeft = useTransform(springScroll, [0, 1], [-400, 400]);
+  const xRight = useTransform(springScroll, [0, 1], [400, -400]);
+  const rotateBack = useTransform(springScroll, [0, 1], [-3, 3]);
 
   return (
-    <section ref={sectionRef} id="testimonials" className="relative py-32  overflow-hidden select-none">
+    <section ref={sectionRef} id="testimonials" className="relative py-32 md:py-48 overflow-hidden select-none ">
       
-      {/* تأثير الـ Aura (الإضاءة المحيطية) المتغيرة */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none" />
+      {/* Aura Lighting Effect */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] bg-purple-600/5 blur-[160px] rounded-full pointer-events-none transform-gpu" />
 
-      {/* النصوص الخلفية العملاقة - Layer 1 */}
-      <div className="absolute inset-0 flex flex-col justify-around pointer-events-none opacity-[0.04] select-none">
-        <motion.div style={{ x: xLeft, rotate: rotateBack }} className="flex gap-20">
-           {[...Array(3)].map((_,i) => (
-             <h2 key={i} className="text-[20vw] font-cairo  whitespace-nowrap text-white italic ">LIMITLESS • CREATIVITY •</h2>
+      {/* Background Typography Layer */}
+      <div className="absolute inset-0 flex flex-col justify-around pointer-events-none opacity-[0.03] select-none z-0">
+        <motion.div style={{ x: xLeft, rotate: rotateBack }} className="flex gap-24">
+           {[...Array(4)].map((_,i) => (
+             <h2 key={i} className="text-[clamp(8rem,18vw,22rem)] font-cairo font-black whitespace-nowrap text-white italic tracking-tighter">
+               LIMITLESS • CREATIVITY •
+             </h2>
            ))}
         </motion.div>
-        <motion.div style={{ x: xRight, rotate: -rotateBack }} className="flex gap-20">
-           {[...Array(3)].map((_,i) => (
-             <h2 key={i} className="text-[20vw] font-black whitespace-nowrap text-white font-cairo " dir="rtl">إتقان • شغف • ريادة •</h2>
+        <motion.div style={{ x: xRight, rotate: -rotateBack }} className="flex gap-24">
+           {[...Array(4)].map((_,i) => (
+             <h2 key={i} className="text-[clamp(8rem,18vw,22rem)] font-black whitespace-nowrap text-white font-cairo tracking-tighter" dir="rtl">
+               إتقان • شغف • ريادة •
+             </h2>
            ))}
         </motion.div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         
-        {/* هيدر سينمائي */}
-        <div className="text-right mb-32 relative">
+        {/* Cinematic Header */}
+        <div className="text-right mb-32 md:mb-48 relative">
           <motion.div 
             initial={{ width: 0 }}
-            whileInView={{ width: "100px" }}
-            className="h-1 bg-gradient-to-l from-purple-600 to-transparent mb-8 inline-block"
+            whileInView={{ width: "120px" }}
+            viewport={{ once: true }}
+            className="h-1.5 bg-gradient-to-l from-purple-600 to-transparent mb-10 inline-block rounded-full"
           />
-          <h2 className="text-7xl md:text-[10rem] font-black text-white font-cairo  leading-[0.8] tracking-tighter mb-4">
-             شركاء <br /> 
-             <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-400 via-blue-500 to-emerald-400 animate-gradient-x">
-               النجاح
-             </span>
+          <h2 className="text-7xl md:text-[11rem] font-black text-white font-cairo leading-[0.75] tracking-tighter mb-8">
+              شركاء <br /> 
+              <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-400 via-blue-500 to-emerald-400 animate-gradient-x">
+                النجاح
+              </span>
           </h2>
-          <p className="text-gray-500 text-lg md:text-2xl font-cairo  max-w-xl mr-auto">
+          <p className="text-gray-400 text-lg md:text-2xl font-cairo max-w-2xl mr-auto leading-relaxed">
             قصص واقعية كُتبت بأكوادنا، نعتز بكل حرف قيل في حقنا من قادة السوق العربي.
           </p>
         </div>
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch px-4">
-  {REVIEWS.map((rev, i) => (
-    <ReviewCard key={rev.id} review={rev} index={i} />
-  ))}
-</div>
+        {/* Reviews Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+          {REVIEWS.map((rev, i) => (
+            <ReviewCard key={rev.id} review={rev} index={i} />
+          ))}
+        </div>
 
-        {/* الـ CTA الإبداعي الأخير - Magnetic Feel */}
-        <Link href={"#contact"} className="group block mt-40">
+        {/* Final CTA - Magnetic Feel */}
+        <Link href={"#contact"} className="group block mt-48 md:mt-64">
            <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            whileHover={{ y: -10 }}
-            className="relative p-1 rounded-[4rem] bg-gradient-to-br from-white/10 via-transparent to-white/5 overflow-hidden"
+            viewport={{ once: true }}
+            whileHover={{ y: -15 }}
+            className="relative p-[1px] rounded-[4rem] bg-gradient-to-br from-white/20 via-transparent to-white/10 overflow-hidden"
           >
-            <div className="bg-[#050505] p-12 md:p-20 rounded-[3.8rem] relative z-10 flex flex-col items-center">
+            <div className="bg-[#050505] p-16 md:p-32 rounded-[3.9rem] relative z-10 flex flex-col items-center">
                <motion.div 
-                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
+                animate={{ scale: [1, 1.15, 1], rotate: [0, 8, -8, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                >
-                 <Sparkles className="text-yellow-500 mb-8" size={60} />
+                 <Sparkles className="text-yellow-500 mb-10 drop-shadow-[0_0_20px_rgba(234,179,8,0.3)]" size={70} />
                </motion.div>
                
-               <h3 className="text-4xl md:text-7xl font-cairo  text-white  text-center leading-tight mb-10">
+               <h3 className="text-5xl md:text-8xl font-cairo font-black text-white text-center leading-[1.1] mb-14 tracking-tighter">
                  هل أنت مستعد لتكون <br/> قصة النجاح القادمة؟
                </h3>
 
                <motion.button 
-                whileTap={{ scale: 0.9 }}
-                className="group relative flex items-center gap-4 px-12 py-6 font-cairo  bg-white text-black rounded-full font-black text-xl overflow-hidden transition-all hover:pr-16"
+                whileTap={{ scale: 0.94 }}
+                className="group relative flex items-center gap-6 px-14 py-7 font-cairo bg-white text-black rounded-full font-black text-2xl overflow-hidden transition-all hover:pr-20 transform-gpu shadow-[0_20px_50px_rgba(255,255,255,0.1)]"
                >
-                 <span>ابدأ رحلتك معنا الآن</span>
-                 <ArrowLeft className="absolute left-[-20px] group-hover:left-4 transition-all opacity-0 group-hover:opacity-100" />
+                 <span className="relative z-10">ابدأ رحلتك معنا الآن</span>
+                 <ArrowLeft className="absolute left-[-30px] group-hover:left-6 transition-all duration-500 opacity-0 group-hover:opacity-100" />
                </motion.button>
                
-               {/* تأثير الضوء المتحرك داخل الكارت */}
-               <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/10 via-transparent to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+               <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/5 via-transparent to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
             </div>
           </motion.div>
         </Link>

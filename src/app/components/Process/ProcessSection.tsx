@@ -1,57 +1,69 @@
 "use client"
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { useRef } from "react";
 import { PROCESS_STEPS } from "@/src/constants/process-steps";
+import { cn } from "@/src/lib/utils";
 
 export default function ProcessSection() {
   const containerRef = useRef<HTMLElement>(null);
   
-  // تتبع السكرول لرسم الخط الضوئي
+  // تتبع السكرول - معايير 2026 للاستجابة السريعة
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 80%", "end 20%"]
+    offset: ["start 90%", "end 10%"]
   });
 
-  const scaleY = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
+  // تنعيم الخط الضوئي (Spring Physics)
+  const scaleY = useSpring(scrollYProgress, { 
+    stiffness: 80, 
+    damping: 25, 
+    restDelta: 0.001 
+  });
 
   return (
-    <section ref={containerRef} id="process" className="relative py-24 md:py-40  overflow-hidden selection:bg-purple-500/30">
+    <section ref={containerRef} id="process" className="relative py-32 md:py-48 overflow-hidden  selection:bg-purple-500/30">
       <div className="max-w-7xl mx-auto px-6">
         
-        {/* العنوان الرئيسي */}
-        <div className="mb-24 md:mb-40 text-right">
+        {/* Header Cinematic */}
+        <div className="mb-32 md:mb-56 text-right relative z-10">
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
-            <span className="text-purple-500 font-cairo  tracking-[0.3em] text-xs md:text-sm uppercase block mb-4">
-              Step-by-Step Excellence
+            <span className="text-purple-500 font-cairo font-black tracking-[0.4em] text-[10px] md:text-xs uppercase block mb-6 opacity-80">
+              The Engineering Roadmap
             </span>
-            <h2 className="text-4xl md:text-7xl font-black text-white font-cairo  leading-tight">
-              رحلة تحويل <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-500 via-blue-500 to-emerald-500">الفكرة</span> لواقع
+            <h2 className="text-5xl md:text-9xl font-black text-white font-cairo leading-[0.85] tracking-tighter">
+              رحلة تحويل <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-500 via-blue-500 to-emerald-500">
+                الفكرة
+              </span> لواقع
             </h2>
           </motion.div>
         </div>
 
-        <div className="relative">
-          {/* الخط المركزي (المسار الضوئي) */}
-          {/* في الموبايل يثبت جهة اليمين، في الديسكتوب يتوسط الشاشة */}
-          <div className="absolute right-[20px] md:right-1/2 top-0 bottom-0 w-[2px] bg-white/[0.05] translate-x-1/2">
+        <div className="relative min-h-[1000px]">
+          {/* الخط المركزي (The Light Path) */}
+          <div className="absolute right-[12px] md:right-1/2 top-0 bottom-0 w-[1px] md:w-[2px] bg-white/[0.03] md:translate-x-1/2">
             <motion.div 
               style={{ scaleY, originY: 0 }}
-              className="absolute inset-0 w-full bg-gradient-to-b from-purple-500 via-blue-400 to-emerald-500 shadow-[0_0_25px_rgba(168,85,247,0.6)]"
+              className="absolute inset-0 w-full bg-gradient-to-b from-purple-600 via-blue-500 to-emerald-500 shadow-[0_0_40px_rgba(168,85,247,0.4)] will-change-transform"
             />
           </div>
 
           {/* عرض المراحل */}
-          <div className="space-y-24 md:space-y-48">
+          <div className="relative space-y-32 md:space-y-64">
             {PROCESS_STEPS.map((step, i) => (
               <StepItem key={step.id} step={step} index={i} />
             ))}
           </div>
         </div>
       </div>
+      
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/5 blur-[120px] rounded-full pointer-events-none" />
     </section>
   );
 }
@@ -62,65 +74,74 @@ function StepItem({ step, index }: { step: any, index: number }) {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 60 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-10%" }}
-      transition={{ duration: 0.7, delay: 0.1 }}
-      className={`relative flex items-center w-full ${isEven ? 'md:flex-row-reverse' : 'md:flex-row'}`}
+      viewport={{ once: true, margin: "-15%" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className={cn(
+        "relative flex items-center w-full",
+        isEven ? 'md:flex-row-reverse' : 'md:flex-row'
+      )}
     >
-      {/* 1. المحتوى النصي (تفاعلي بالكامل مع التاتش) */}
-      <div className="w-full md:w-[45%] pr-12 md:pr-0">
+      {/* 1. المحتوى النصي (Ultra-Modern Glassmorphism) */}
+      <div className="w-full md:w-[46%] pr-10 md:pr-0">
         <motion.div 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }} // تأثير الضغط للموبايل
-          className="relative p-6 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] backdrop-blur-xl hover:border-white/20 transition-all duration-500 group overflow-hidden cursor-default"
+          whileHover={{ y: -5, scale: 1.01 }}
+          whileTap={{ scale: 0.97 }}
+          className="relative p-8 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] backdrop-blur-3xl hover:border-white/20 transition-all duration-700 group cursor-pointer overflow-hidden transform-gpu"
         >
-          {/* رقم المرحلة كخلفية */}
-          <span className="absolute -top-6 -left-4 text-9xl font-black text-white/[0.02] group-hover:text-white/[0.05] transition-colors pointer-events-none select-none">
-            {step.id}
+          {/* رقم المرحلة "Ghost Typography" */}
+          <span className="absolute -top-10 -left-6 text-[12rem] font-black text-white/[0.02] group-hover:text-white/[0.04] transition-all duration-1000 pointer-events-none select-none italic">
+            0{step.id}
           </span>
 
           <div className="relative z-10 text-right">
              <div 
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mr-0 ml-auto md:ml-0 md:mr-auto"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 mr-0 ml-auto md:ml-0 md:mr-auto shadow-2xl transition-transform duration-700 group-hover:rotate-[10deg]"
               style={{ background: `${step.color}15`, border: `1px solid ${step.color}30` }}
             >
-              <Icon size={32} style={{ color: step.color }} className="group-hover:scale-110 transition-transform duration-500" />
+              <Icon size={30} style={{ color: step.color }} className="group-hover:scale-110 transition-all" />
             </div>
             
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 font-cairo ">
+            <h3 className="text-3xl md:text-4xl font-black text-white mb-6 font-cairo tracking-tight">
               {step.title}
             </h3>
-            <p className="text-gray-400 text-base md:text-lg leading-relaxed font-cairo  opacity-80 group-hover:opacity-100 transition-opacity">
+            <p className="text-gray-400 text-lg md:text-xl leading-relaxed font-cairo opacity-70 group-hover:opacity-100 transition-opacity">
               {step.desc}
             </p>
           </div>
           
           {/* خط التفاعل السفلي */}
           <div 
-            className="absolute bottom-0 right-0 h-1 transition-all duration-700 w-0 group-hover:w-full"
-            style={{ backgroundColor: step.color }}
+            className="absolute bottom-0 right-0 h-[3px] transition-all duration-1000 w-0 group-hover:w-full opacity-50"
+            style={{ backgroundColor: step.color, boxShadow: `0 0 20px ${step.color}` }}
           />
         </motion.div>
       </div>
 
-      {/* 2. النقطة المضيئة على المسار */}
-      <div className="absolute right-[20px] md:right-1/2 w-10 h-10 translate-x-1/2 flex items-center justify-center z-20">
-        <motion.div 
-          whileInView={{ 
-            scale: [1, 1.4, 1],
-            boxShadow: [`0 0 0px ${step.color}`, `0 0 20px ${step.color}`, `0 0 0px ${step.color}`] 
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="w-4 h-4 rounded-full bg-black border-2 z-10"
-          style={{ borderColor: step.color }}
-        />
-        {/* هالة خارجية للموبايل لإعطاء عمق بصري */}
-        <div className="absolute inset-0 bg-white/5 rounded-full animate-pulse" />
+      {/* 2. النقطة المضيئة (Neon Node) */}
+      <div className="absolute right-[12px] md:right-1/2 w-8 h-8 md:w-12 md:h-12 translate-x-1/2 flex items-center justify-center z-30">
+        <div className="relative">
+          <motion.div 
+            whileInView={{ 
+              scale: [1, 1.2, 1],
+              borderColor: [step.color, "#fff", step.color]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-black border-2 relative z-10"
+            style={{ borderColor: step.color }}
+          />
+          <motion.div 
+            animate={{ scale: [1, 2, 1], opacity: [0.1, 0.3, 0.1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute inset-[-15px] rounded-full blur-xl"
+            style={{ backgroundColor: step.color }}
+          />
+        </div>
       </div>
 
-      {/* 3. مساحة توازن للتصميم (ديسكتوب فقط) */}
-      <div className="hidden md:block md:w-[45%]" />
+      {/* 3. Spacer (Desktop Only) */}
+      <div className="hidden md:block md:w-[46%]" />
     </motion.div>
   );
 }
