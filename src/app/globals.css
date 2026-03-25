@@ -90,21 +90,70 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* 4. Scrollbar Redesign                                                      */
+/* 4. The Ghost Pulse Scrollbar - 2026 High-End Edition                       */
 /* -------------------------------------------------------------------------- */
+
+/* 1. الحاوية: نزيد العرض قليلاً لتسهيل التفاعل لكن نتركها شفافة */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 8px; 
+  background: transparent;
 }
 
+/* 2. المسار: مخفي تماماً */
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: transparent;
 }
 
+/* 3. الجزء المتحرك (الـ Thumb): السحر هنا */
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, transparent, var(--color-primary), transparent);
-  border-radius: 100vh;
+  /* تدرج لوني "نيون" مع تلاشي (Fade) في الأطراف */
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--color-primary) 15%,
+    var(--color-primary) 85%,
+    transparent 100%
+  );
+  
+  border-radius: 20px;
+  
+  /* تأثير الـ Floating: نستخدم حدود شفافة عريضة لتركيز السكرول في المنتصف كخيط نحيف */
+  border-left: 5px solid transparent; 
+  border-right: 1px solid transparent;
+  background-clip: padding-box;
+
+  /* إضافة Glowing Effect خفيف */
+  box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2);
+  
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* 4. التفاعل عند الـ Hover: يتحول من خيط نحيف لنيون مشع */
+::-webkit-scrollbar-thumb:hover {
+  /* نلغي الحدود الشفافة ليتوسع السكرول بار */
+  border-left: 2px solid transparent;
+  
+  /* نزيد قوة اللون والـ Glow */
+  background: linear-gradient(
+    to bottom,
+    var(--color-primary) 0%,
+    #d8b4fe 50%, /* لون أفتح في المنتصف للإضاءة */
+    var(--color-primary) 100%
+  );
+  
+  box-shadow: 0 0 15px var(--color-primary);
+}
+
+/* 5. حالة الـ Active (أثناء السحب): يزداد الـ Saturation */
+::-webkit-scrollbar-thumb:active {
+  filter: brightness(1.4);
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) transparent;
+}
 /* -------------------------------------------------------------------------- */
 /* 5. Mobile Optimizations                                                    */
 /* -------------------------------------------------------------------------- */

@@ -122,52 +122,77 @@ export default function Navbar() {
                </div>
             </aside>
 
-            {/* Right Panel - The Links */}
-            <section className="flex-1 w-full p-6 sm:p-12 md:p-20 flex flex-col justify-center relative bg-[#050505]" dir="rtl">
-              <button onClick={() => toggleMenu(false)} className="absolute top-6 left-6 md:top-12 md:left-12 p-3 rounded-full border border-white/5 hover:bg-white/5 transition-all group z-[1100]">
-                <X size={16} className="text-white/50 group-hover:rotate-90 group-hover:text-white transition-all duration-500" />
-              </button>
+{/* Right Panel - The Links */}
+<section className="flex-1 w-full p-6 sm:p-12 md:p-20 flex flex-col justify-center relative bg-[#050505]" dir="rtl">
+  
+  {/* زر الإغلاق: ثابت تماماً */}
+  <button 
+    onClick={() => toggleMenu(false)} 
+    className="absolute top-6 left-6 md:top-12 md:left-12 p-3 rounded-full border border-white/5 hover:bg-white/5 transition-all group z-[1100]"
+  >
+    <X size={16} className="text-white/50 group-hover:rotate-90 group-hover:text-white transition-all duration-500" />
+  </button>
 
-              <nav className="flex flex-col space-y-4 md:space-y-6 w-full max-w-full overflow-hidden">
-                {navLinks.map((link, i) => (
-                  <motion.div
-                    key={link.name}
-                    initial={{ opacity: 0, x: 20 }} 
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + (i * 0.05) }}
-                    className="w-full"
-                  >
-                    <Link
-                      href={`#${link.href}`}
-                      onClick={(e) => handleScroll(e, link.href)}
-                      className="group relative flex items-baseline gap-3 md:gap-8 py-1 w-full max-w-full"
-                    >
-                      <span className="text-[8px] md:text-[10px] font-mono text-purple-500/40 font-bold shrink-0">0{i + 1}</span>
-                      
-                      {/* حل مشكلة كسر النص والتجاوب */}
-                      <h1 className="text-[clamp(1.8rem,8vw,5.5rem)] font-cairo font-black text-transparent stroke-text group-hover:text-white transition-all duration-500 tracking-tighter leading-[1] whitespace-nowrap overflow-hidden text-ellipsis">
-                        {link.name}
-                      </h1>
-                      
-                      <ArrowLeft className="text-purple-500 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 hidden sm:block shrink-0" size={24} />
-                    </Link>
-                  </motion.div>
-                ))}
-              </nav>
+  {/* حاوية السكرول: تم إضافة overscroll-contain لمنع تحريك الصفحة الخلفية */}
+  <div 
+    className="w-full max-h-[65vh] overflow-y-auto pr-4 custom-nav-scroll overscroll-contain"
+    onWheel={(e) => e.stopPropagation()} // يضمن أن بكرة الماوس تعمل هنا فقط
+  >
+    <nav className="flex flex-col space-y-4 md:space-y-6 lg:space-y-8 w-full">
+      {navLinks.map((link, i) => (
+        <motion.div
+          key={link.name}
+          initial={{ opacity: 0, x: 20 }} 
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 + (i * 0.05) }}
+          className="w-full"
+        >
+          <Link
+            href={`#${link.href}`}
+            onClick={(e) => handleScroll(e, link.href)}
+            className="group relative flex items-baseline gap-4 md:gap-10 py-2 w-full"
+          >
+            {/* رقم الرابط - Ultra Minimal */}
+            <span className="text-[9px] md:text-[11px] font-mono text-purple-500/40 font-bold shrink-0">
+              0{i + 1}
+            </span>
+            
+            {/* النص الأساسي: تم تحسين الـ leading لمنع التداخل أثناء السكرول */}
+            <h1 className="text-[clamp(2.2rem,8vw,6.5rem)] font-cairo font-black text-transparent stroke-text group-hover:text-white transition-all duration-500 tracking-tighter leading-[0.9] whitespace-nowrap">
+              {link.name}
+            </h1>
+            
+            {/* سهم المؤشر - يظهر فقط في الشاشات الكبيرة */}
+            <ArrowLeft 
+              className="text-purple-500 opacity-0 -translate-x-5 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 hidden lg:block shrink-0" 
+              size={32} 
+            />
+          </Link>
+        </motion.div>
+      ))}
+    </nav>
+  </div>
 
-              <div className="mt-8 pt-6 border-t border-white/[0.03] flex flex-row gap-5 justify-between items-center w-full">
-                <div className="flex gap-4 md:gap-8">
-                  {['LinkedIn', 'Github'].map((soc) => (
-                    <a key={soc} href="#" className="text-[9px] font-bold uppercase tracking-[0.1em] text-white/20 hover:text-purple-400 transition-colors flex items-center gap-1 group">
-                      {soc} <ExternalLink size={8} />
-                    </a>
-                  ))}
-                </div>
-                <div className="text-[7px] text-white/5 font-mono tracking-widest uppercase">
-                  UAE • 2026
-                </div>
-              </div>
-            </section>
+  {/* الجزء السفلي: Socials & Location */}
+  <div className="mt-10 pt-8 border-t border-white/[0.03] flex flex-row gap-5 justify-between items-center w-full">
+    <div className="flex gap-6 md:gap-10">
+      {['LinkedIn', 'Github', 'Behance'].map((soc) => (
+        <a 
+          key={soc} 
+          href="#" 
+          className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/20 hover:text-purple-400 transition-colors flex items-center gap-1.5 group"
+        >
+          {soc} 
+          <ExternalLink size={10} className="group-hover:-translate-y-0.5 transition-transform opacity-50" />
+        </a>
+      ))}
+    </div>
+    
+    <div className="hidden sm:block text-[8px] text-white/5 font-mono tracking-[0.3em] uppercase">
+      Abu Dhabi • 2026
+    </div>
+  </div>
+</section>
           </motion.div>
         )}
       </AnimatePresence>
