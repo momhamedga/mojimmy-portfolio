@@ -1,18 +1,26 @@
 "use client"
-import { useEffect, useState, startTransition } from "react";
+import { useEffect, useState, startTransition, useRef } from "react";
 import { useMotionValue, useSpring } from "framer-motion";
 
 export const useCustomCursor = () => {
+  // 1. استخدام Lazy Initialization لمنع التحديث المتزامن عند التحميل
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => 
+    typeof window !== 'undefined' ? (window.innerWidth < 768 || 'ontouchstart' in window) : false
+  );
+  
   const [isVisible, setIsVisible] = useState(false);
   const [hoverState, setHoverState] = useState({ active: false, text: "" });
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Motion Values للتحديث اللحظي بدون Re-renders
+  // 2. استخدام useRef لتتبع الحالة بدون Re-renders بلا داعي
+  const rafId = useRef<number | null>(null);
+  const isVisibleRef = useRef(false);
+
+  // Motion Values للتحديث اللحظي (بتقرأ من الـ Mouse مباشرة)
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
 
-  // إعدادات الربيع (Spring Physics)
+  // إعدادات الفيزياء (Spring Physics)
   const springConfig = { stiffness: 800, damping: 45, mass: 0.1 };
   const trailConfig = { stiffness: 150, damping: 25, mass: 0.6 };
 
@@ -20,23 +28,24 @@ export const useCustomCursor = () => {
   const y = useSpring(mouseY, springConfig);
   const trailX = useSpring(mouseX, trailConfig);
   const trailY = useSpring(mouseY, trailConfig);
+useEffect(() => {
+    // 1. إخفاء الماوس الأصلي
+    if (!isMobile) document.body.style.cursor = 'none';
 
-  useEffect(() => {
-    const checkDevice = () => {
-      const mobile = window.innerWidth < 768 || 'ontouchstart' in window;
-      setIsMobile(mobile);
-      if (!mobile) document.body.style.cursor = 'none';
-    };
+    // 2. حل مشكلة الخط الأحمر: نحدث الـ Mounted في الفريم القادم
+    const rafInitial = requestAnimationFrame(() => {
+      setMounted(true);
+    });
 
-    checkDevice();
-    setMounted(true);
-
-    let rafId: number;
     const handleMove = (e: MouseEvent) => {
-      rafId = window.requestAnimationFrame(() => {
+      rafId.current = window.requestAnimationFrame(() => {
         mouseX.set(e.clientX);
         mouseY.set(e.clientY);
-        if (!isVisible) setIsVisible(true);
+        
+        if (!isVisibleRef.current) {
+          isVisibleRef.current = true;
+          setIsVisible(true);
+        }
       });
     };
 
@@ -47,25 +56,36 @@ export const useCustomCursor = () => {
       startTransition(() => {
         if (interactive) {
           const isProject = interactive.classList.contains('project-card');
-          setHoverState({ active: true, text: isProject ? "VIEW" : "" });
+          setHoverState(prev => 
+            prev.active && prev.text === (isProject ? "VIEW" : "") 
+            ? prev 
+            : { active: true, text: isProject ? "VIEW" : "" }
+          );
         } else {
-          setHoverState({ active: false, text: "" });
+          setHoverState(prev => !prev.active ? prev : { active: false, text: "" });
         }
       });
     };
 
+    const onResize = () => {
+      const mobile = window.innerWidth < 768 || 'ontouchstart' in window;
+      setIsMobile(mobile);
+      document.body.style.cursor = mobile ? 'auto' : 'none';
+    };
+
     window.addEventListener("mousemove", handleMove, { passive: true });
     window.addEventListener("mouseover", handleInteraction, { passive: true });
-    window.addEventListener("resize", checkDevice);
+    window.addEventListener("resize", onResize);
 
     return () => {
-      window.cancelAnimationFrame(rafId);
+      cancelAnimationFrame(rafInitial); // تنظيف الـ Frame الأولي
+      if (rafId.current) window.cancelAnimationFrame(rafId.current);
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseover", handleInteraction);
-      window.removeEventListener("resize", checkDevice);
+      window.removeEventListener("resize", onResize);
       document.body.style.cursor = 'auto';
     };
-  }, [mouseX, mouseY, isVisible]);
+  }, [isMobile, mouseX, mouseY]);
 
   return { mounted, isVisible, isMobile, hoverState, x, y, trailX, trailY };
 };

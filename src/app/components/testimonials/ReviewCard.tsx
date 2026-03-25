@@ -1,39 +1,47 @@
 "use client"
 import { motion, useSpring, useTransform, useMotionValue, AnimatePresence } from "framer-motion";
-import { useRef, useState, useMemo } from "react";
-import { Quote, Star, Zap, Eye } from "lucide-react";
+import { useRef, useState, useCallback, useMemo } from "react";
+import { Quote, Star } from "lucide-react";
 import { Review } from "@/src/constants/reviews-data";
 import Image from "next/image";
 
 const getFlagURL = (country: string) => {
   const codes: Record<string, string> = { EG: "eg", UAE: "ae", SA: "sa" };
-  return `https://flagcdn.com/${codes[country]}.svg`;
+  return `https://flagcdn.com/${codes[country] || "eg"}.svg`;
 };
 
 export const ReviewCard = ({ review, index }: { review: Review; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isPressed, setIsPressed] = useState(false);
   
-  // حساسات اللمس - تحسين الـ Performance بـ useMotionValue
+  // 1. استخدام MotionValues للتحديث المباشر خارج دورة ريندر ريأكت
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
 
-  // فيزياء "مغناطيسية" ناعمة جداً تناسب معايير 2026
+  // 2. إعدادات فيزياء الحركة (Spring Physics)
   const springConfig = { stiffness: 150, damping: 20, mass: 0.6 };
   const rotateX = useSpring(useTransform(y, [0, 1], [12, -12]), springConfig);
-  const rotateY = useSpring(useTransform(x, [0, 1], [-12, 12]), springConfig);
+  const rotateY = useSpring(useSpring(useTransform(x, [0, 1], [-12, 12]), springConfig));
   
-  // تأثير الـ Depth Cinematic
   const scale = useSpring(isPressed ? 0.94 : 1, springConfig);
   const translateZ = useSpring(isPressed ? -30 : 0, springConfig);
 
-  const handlePointerMove = (e: React.PointerEvent) => {
+  // 3. معالج حركة المؤشر (Memoized لتقليل استهلاك الذاكرة)
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    // تفعيل الـ GPU Tracking
     x.set((e.clientX - rect.left) / rect.width);
     y.set((e.clientY - rect.top) / rect.height);
-  };
+  }, [x, y]);
+
+  // 4. حساب التأثيرات الضوئية ديناميكياً (GPU Accelerated)
+  const spotlightGradient = useTransform([x, y], ([lx, ly]) => 
+    `radial-gradient(500px circle at ${Number(lx) * 100}% ${Number(ly) * 100}%, ${review.color}15, transparent 80%)`
+  );
+
+  const borderGradient = useTransform([x, y], ([lx, ly]) => 
+    `conic-gradient(from 0deg at ${Number(lx) * 100}% ${Number(ly) * 100}%, transparent, ${review.color}, transparent)`
+  );
 
   return (
     <motion.div
@@ -51,33 +59,25 @@ export const ReviewCard = ({ review, index }: { review: Review; index: number })
         scale, 
         translateZ, 
         transformStyle: "preserve-3d",
-        willChange: "transform" // ✅ إجبار المتصفح على استخدام الـ GPU
+        willChange: "transform, opacity" 
       }}
-      className="relative group h-full touch-none select-none cursor-pointer active:cursor-grabbing"
+      className="relative group h-full touch-none select-none cursor-pointer active:cursor-grabbing transform-gpu"
     >
-      {/* 1. تأثير الـ Glow الحواف (Ultra-Modern Neon) */}
+      {/* تأثير الـ Border Glow الخارجي */}
       <motion.div 
         className="absolute -inset-[1px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2.5rem] pointer-events-none blur-[1px]"
-        style={{
-          background: useTransform([x, y], ([lx, ly]) => 
-            `conic-gradient(from 0deg at ${Number(lx) * 100}% ${Number(ly) * 100}%, transparent, ${review.color}, transparent)`
-          )
-        }}
+        style={{ background: borderGradient }}
       />
 
-      <div className="relative z-10 p-7 md:p-9 rounded-[2.5rem] bg-[#070707]/90 backdrop-blur-2xl border border-white/[0.04] shadow-2xl h-full flex flex-col overflow-hidden transform-gpu">
+      <div className="relative z-10 p-7 md:p-9 rounded-[2.5rem] bg-[#070707]/90 backdrop-blur-2xl border border-white/[0.04] shadow-2xl h-full flex flex-col overflow-hidden">
         
-        {/* 2. تأثير الـ Spotlight الداخلي */}
+        {/* تأثير الـ Spotlight الداخلي */}
         <motion.div 
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-          style={{
-            background: useTransform([x, y], ([lx, ly]) => 
-              `radial-gradient(500px circle at ${Number(lx) * 100}% ${Number(ly) * 100}%, ${review.color}10, transparent 75%)`
-            )
-          }}
+          style={{ background: spotlightGradient }}
         />
 
-        {/* التقييم العلوي */}
+        {/* Header Section */}
         <div className="mb-8 flex justify-between items-start flex-row-reverse relative z-20">
           <motion.div 
             whileTap={{ scale: 0.85 }}
@@ -95,18 +95,18 @@ export const ReviewCard = ({ review, index }: { review: Review; index: number })
           </div>
         </div>
 
-        {/* نص الشهادة */}
+        {/* Testimonial Text */}
         <div className="flex-1 flex items-center mb-12 relative z-20">
-            <motion.p 
-              animate={{ color: isPressed ? "#fff" : "#e5e7eb" }}
-              className="text-gray-200 text-lg md:text-2xl leading-[1.85] text-right font-cairo font-medium" 
-              dir="rtl"
-            >
-              "{review.text}"
-            </motion.p>
+          <motion.p 
+            animate={{ color: isPressed ? "#fff" : "#e5e7eb" }}
+            className="text-gray-200 text-lg md:text-2xl leading-[1.85] text-right font-cairo font-medium" 
+            dir="rtl"
+          >
+            "{review.text}"
+          </motion.p>
         </div>
 
-        {/* بروفايل العميل */}
+        {/* Client Profile Footer */}
         <div className="flex flex-row-reverse items-center gap-4 pt-7 border-t border-white/[0.06] mt-auto relative z-20">
           <div className="relative group/avatar">
             <div 
@@ -121,26 +121,26 @@ export const ReviewCard = ({ review, index }: { review: Review; index: number })
           
           <div className="text-right flex-1 min-w-0">
             <div className="flex flex-row-reverse items-center gap-2.5 mb-1">
-                <h4 className="text-white font-bold text-base md:text-lg transition-colors group-hover:text-white truncate">
+                <h4 className="text-white font-bold text-base md:text-lg truncate transition-colors group-hover:text-white">
                   {review.name}
                 </h4>
                 <div className="overflow-hidden rounded-[2px] shadow-sm ring-1 ring-white/10 shrink-0">
                     <Image
                         width={18}
-                        height={12}              
+                        height={12}               
                         src={getFlagURL(review.country)} 
                         alt={review.country}
                         className="object-cover"
                     />
                 </div>
             </div>
-            <p className="text-gray-500 text-[10px] font-cairo font-black uppercase tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">
+            <p className="text-gray-500 text-[10px] font-cairo font-black uppercase tracking-widest opacity-70">
               {review.role}
             </p>
           </div>
         </div>
 
-        {/* 3. تأثير الـ Wave عند الضغط المطول */}
+        {/* تأثير الـ Wave عند الضغط (Liquid Effect) */}
         <AnimatePresence>
           {isPressed && (
             <motion.div 

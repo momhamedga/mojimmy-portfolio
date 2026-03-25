@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Dimension {
@@ -8,36 +8,49 @@ interface Dimension {
 }
 
 export default function Preloader() {
-    const [progress, setProgress] = useState<number>(0);
     const [dimension, setDimension] = useState<Dimension>({ width: 0, height: 0 });
     const [isActive, setIsActive] = useState<boolean>(true);
+    
+    // 1. Refs للأداء العالي (بدون Re-renders للأرقام)
+    const progressTextRef = useRef<HTMLSpanElement>(null);
+    const progressCircleRef = useRef<SVGCircleElement>(null);
+    const progressVal = useRef(0);
 
     useEffect(() => {
         const handleResize = () => {
-            setDimension({ 
-                width: window.innerWidth, 
-                height: window.innerHeight 
-            });
+            setDimension({ width: window.innerWidth, height: window.innerHeight });
         };
 
         handleResize();
         window.addEventListener("resize", handleResize);
 
-        // Smart Progress: بيبدأ سريع ويبطأ في الآخر عشان يدي إيحاء بالـ Real-time Processing
-        const interval = setInterval(() => {
-            setProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => setIsActive(false), 800);
-                    return 100;
-                }
-                const increment = prev > 80 ? 0.5 : 1.5; // تباطؤ عند النهاية
-                return Math.min(prev + increment, 100);
-            });
-        }, 15);
+        // 2. محرك البروجرس بـ useRef
+        const updateProgress = () => {
+            if (progressVal.current >= 100) {
+                setTimeout(() => setIsActive(false), 800);
+                return;
+            }
+
+            // سرعة متغيرة (Smart Slow-down)
+            const increment = progressVal.current > 80 ? 0.3 : 1.2;
+            progressVal.current += increment;
+
+            // تحديث الـ DOM مباشرة (أسرع بـ 100 مرة من الـ State)
+            if (progressTextRef.current) {
+                progressTextRef.current.innerText = Math.floor(progressVal.current).toString();
+            }
+            if (progressCircleRef.current) {
+                const offset = 100 - progressVal.current;
+                progressCircleRef.current.style.strokeDashoffset = offset.toString();
+            }
+
+            requestAnimationFrame(updateProgress);
+        };
+
+        const animationFrame = requestAnimationFrame(updateProgress);
 
         return () => {
-            clearInterval(interval);
+            cancelAnimationFrame(animationFrame);
             window.removeEventListener("resize", handleResize);
         };
     }, []);
@@ -45,8 +58,6 @@ export default function Preloader() {
     const paths = useMemo(() => {
         const { width, height } = dimension;
         if (width === 0) return { initial: "", target: "" };
-        
-        // منحنى الستارة السفلي (Bezier Curve) ليعطي إحساس السوائل
         return {
             initial: `M0 0 L${width} 0 L${width} ${height} Q${width / 2} ${height + 350} 0 ${height} L0 0`,
             target: `M0 0 L${width} 0 L${width} ${height} Q${width / 2} ${height} 0 ${height} L0 0`
@@ -66,23 +77,12 @@ export default function Preloader() {
                     }}
                     initial="initial"
                     exit="exit"
-                    className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#020202] overflow-hidden touch-none"
+                    className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#020202] overflow-hidden"
                 >
                     {dimension.width > 0 && (
                         <>
-                            {/* Ambient Glow - هالة ضوئية تتحرك مع البروجرس */}
-                            <motion.div 
-                                animate={{ 
-                                    scale: [1, 1.2, 1],
-                                    opacity: [0.1, 0.2, 0.1],
-                                    rotate: [0, 90, 180]
-                                }}
-                                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                                className="absolute w-[500px] h-[500px] bg-purple-600/5 blur-[150px] rounded-full pointer-events-none"
-                            />
-
                             <div className="relative flex flex-col items-center">
-                                {/* Circular Progress - Ultra-Thin Design */}
+                                {/* Circular Progress - Ultra-Thin */}
                                 <div className="relative w-32 h-32 md:w-48 md:h-48">
                                     <svg className="w-full h-full rotate-[-90deg]">
                                         <circle
@@ -90,60 +90,41 @@ export default function Preloader() {
                                             className="stroke-white/[0.03] fill-none"
                                             strokeWidth="1"
                                         />
-                                        <motion.circle
+                                        <circle
+                                            ref={progressCircleRef}
                                             cx="50%" cy="50%" r="48%"
-                                            className="stroke-purple-500 fill-none"
+                                            className="stroke-purple-500 fill-none transition-all duration-150 ease-out"
                                             strokeWidth="2"
                                             strokeDasharray="100"
-                                            animate={{ strokeDashoffset: 100 - progress }}
-                                            transition={{ duration: 0.2, ease: "easeOut" }}
+                                            strokeDashoffset="100"
                                             style={{ 
                                                 strokeLinecap: 'round',
-                                                filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.5))'
+                                                filter: 'drop-shadow(0 0 12px rgba(168,85,247,0.6))'
                                             }}
                                         />
                                     </svg>
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <motion.span 
-                                            key={Math.floor(progress)}
-                                            initial={{ opacity: 0, y: 5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="text-2xl md:text-4xl font-black text-white tabular-nums tracking-tighter"
+                                        <span 
+                                            ref={progressTextRef}
+                                            className="text-2xl md:text-5xl font-black text-white tabular-nums tracking-tighter"
                                         >
-                                            {Math.floor(progress)}
-                                        </motion.span>
+                                            0
+                                        </span>
                                     </div>
                                 </div>
 
                                 {/* Brand Reveal */}
-                                <div className="mt-16 text-center overflow-hidden" dir="ltr">
-                                    <motion.h1 className="text-4xl md:text-7xl font-black tracking-[0.25em] text-white flex justify-center gap-2">
-                                        {"MOJIMMY".split("").map((char, index) => (
-                                            <motion.span
-                                                key={index}
-                                                animate={{ 
-                                                    color: progress > (index * 14.2) ? "#fff" : "#1a1a1a",
-                                                    y: progress > (index * 14.2) ? 0 : 20,
-                                                    opacity: progress > (index * 14.2) ? 1 : 0.2
-                                                }}
-                                                transition={{ duration: 0.5, ease: "backOut" }}
-                                            >
-                                                {char}
-                                            </motion.span>
-                                        ))}
-                                    </motion.h1>
-                                    <motion.div 
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${progress}%` }}
-                                        className="h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent mt-4 mx-auto"
-                                    />
-                                    <p className="mt-6 text-[9px] uppercase tracking-[0.8em] text-white/20 font-light">
-                                        Digital Architecture loading
+                                <div className="mt-16 text-center" dir="ltr">
+                                    <h1 className="text-4xl md:text-7xl font-black tracking-[0.2em] text-white opacity-20">
+                                        MOJIMMY
+                                    </h1>
+                                    <p className="mt-4 text-[10px] uppercase tracking-[0.5em] text-purple-500 font-bold animate-pulse">
+                                        Architecting the Future
                                     </p>
                                 </div>
                             </div>
 
-                            {/* The SVG Curtain - The Grand Exit */}
+                            {/* The SVG Curtain Exit */}
                             <svg className="absolute top-0 w-full h-[calc(100%+350px)] -z-10 pointer-events-none">
                                 <motion.path
                                     variants={{

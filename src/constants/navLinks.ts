@@ -22,30 +22,42 @@ export const navLinks: NavLink[] = [
   },
   { 
     id: 3, 
-    name: "الخدمات", 
-    href: "services", 
+    name: "عني", 
+    href: "about", 
     number: "03" 
   },
   { 
     id: 4, 
-    name: "الخبرة", 
-    href: "experience", 
+    name: "الخدمات", 
+    href: "services", 
     number: "04" 
   },
+
   { 
     id: 5, 
-    name: "الآراء", 
-    href: "testimonials", 
-    number: "05" 
+    name: "رحلة العمل", 
+    href: "process", 
+    number: "06" 
   },
   { 
     id: 6, 
+    name: "الآراء", 
+    href: "testimonials", 
+    number: "07" 
+  },
+  { 
+    id: 7, 
+    name: "الأسئلة", 
+    href: "faq", 
+    number: "08" 
+  },
+  { 
+    id: 8, 
     name: "تواصل معي", 
     href: "contact", 
-    number: "06" 
+    number: "09" 
   },
 ];
-
 // روابط التواصل الاجتماعي للإبداع في القائمة الجانبية
 export const socialLinks = [
   { name: "Behance", href: "#", label: "BE" },

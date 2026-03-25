@@ -1,88 +1,93 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { NEURAL_CONFIG } from "@/src/lib/db";
 
 export function useNeuralCore(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
+  // 1. استخدام Refs للقيم التي تتغير باستمرار لمنع الـ Re-renders وتوفير الذاكرة
+  const mouseRef = useRef({ x: -1000, y: -1000 });
+  const tickRef = useRef(0);
+  const particlesRef = useRef<any[]>([]);
+  const animationFrameId = useRef<number>(0);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // استخدام alpha: false لتحسين أداء الرندرة (فريمات أكتر)
+    // تحسين الرندرة بـ alpha: false (أسرع بكتير لأن المتصفح مش بيحسب الشفافية للخلفية)
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    let animationFrameId: number;
-    let tick = 0;
-    
-    // حساب الأداء بناءً على عدد الأنوية (Hardware Acceleration Logic)
+    // 2. Hardware Acceleration Logic
     const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
     const isHighEnd = cores >= 8;
     const optimizedCount = isHighEnd 
       ? NEURAL_CONFIG.particleCount 
       : Math.floor(NEURAL_CONFIG.particleCount * (cores / 12));
-    
-    const mouse = { x: -1000, y: -1000 };
 
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      // إعادة توزيع الجزيئات عند تغيير الحجم لضمان تغطية الشاشة
+      initParticles();
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
     };
 
-    // تعريف الجزيئات ببيانات محسنة
-    const particles = Array.from({ length: optimizedCount }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * NEURAL_CONFIG.velocity,
-      vy: (Math.random() - 0.5) * NEURAL_CONFIG.velocity,
-      size: Math.random() * 1.5 + 1 // أحجام عشوائية بسيطة لواقعية أكتر
-    }));
+    // 3. تعريف الجزيئات وتخزينها في Ref
+    const initParticles = () => {
+      particlesRef.current = Array.from({ length: optimizedCount }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * NEURAL_CONFIG.velocity,
+        vy: (Math.random() - 0.5) * NEURAL_CONFIG.velocity,
+        size: Math.random() * 1.5 + 1
+      }));
+    };
 
     const draw = () => {
-      // تنظيف الشاشة (Background)
+      // Background Clean
       ctx.fillStyle = NEURAL_CONFIG.colors.background;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      tick += NEURAL_CONFIG.pulseSpeed;
-      // تأثير النبض السينمائي
-      const pulse = (Math.sin(tick) + 1) / 2;
+      tickRef.current += NEURAL_CONFIG.pulseSpeed;
+      const pulse = (Math.sin(tickRef.current) + 1) / 2;
+
+      const particles = particlesRef.current;
+      const mouse = mouseRef.current;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
-        // 1. تحديث الموقع
         p.x += p.vx;
         p.y += p.vy;
 
-        // 2. تفاعل الماوس (Repulsion Effect)
+        // Repulsion Effect (Mouse Interaction)
         const dx = mouse.x - p.x;
         const dy = mouse.y - p.y;
-        const distMouse = dx * dx + dy * dy; // استخدام التربيع لتجنب Math.sqrt (أسرع)
+        const distMouseSq = dx * dx + dy * dy; // المربع أسرع من الـ Math.sqrt
         const radiusSq = NEURAL_CONFIG.mouseRadius * NEURAL_CONFIG.mouseRadius;
 
-        if (distMouse < radiusSq) {
-          const distance = Math.sqrt(distMouse);
+        if (distMouseSq < radiusSq) {
+          const distance = Math.sqrt(distMouseSq);
           const force = (NEURAL_CONFIG.mouseRadius - distance) / NEURAL_CONFIG.mouseRadius;
           p.x -= dx * force * 0.02;
           p.y -= dy * force * 0.02;
         }
 
-        // 3. الارتداد من الحواف
+        // Border Bounce
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-        // 4. رسم النقطة (Node)
+        // Draw Nodes
         ctx.fillStyle = pulse > 0.85 ? "#ffffff" : NEURAL_CONFIG.colors.node;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size + (pulse * 0.4), 0, Math.PI * 2);
         ctx.fill();
 
-        // 5. رسم الروابط (Connections) - تحسين الـ Loop
-        // لو الجهاز ضعيف، بنرسم روابط أقل (Skip connections)
+        // Optimized Connections Loop
         const step = isHighEnd ? 1 : 2; 
         for (let j = i + step; j < particles.length; j += step) {
           const p2 = particles[j];
@@ -93,7 +98,6 @@ export function useNeuralCore(canvasRef: React.RefObject<HTMLCanvasElement | nul
           
           if (distSq < connDistSq) {
             const distance = Math.sqrt(distSq);
-            // شفافية ديناميكية بناءً على البعد والنبض
             const opacity = (1 - distance / NEURAL_CONFIG.connectionDistance) * (0.1 + pulse * 0.2); 
             ctx.strokeStyle = `rgba(${NEURAL_CONFIG.colors.line}, ${opacity})`;
             ctx.lineWidth = 0.4;
@@ -104,18 +108,19 @@ export function useNeuralCore(canvasRef: React.RefObject<HTMLCanvasElement | nul
           }
         }
       }
-      animationFrameId = requestAnimationFrame(draw);
+      animationFrameId.current = requestAnimationFrame(draw);
     };
 
     window.addEventListener("resize", resize);
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    
     resize();
     draw();
 
     return () => {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", handleMouseMove);
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     };
-  }, [canvasRef]);
+  }, [canvasRef]); // Dependency وحيدة لضمان الثبات
 }

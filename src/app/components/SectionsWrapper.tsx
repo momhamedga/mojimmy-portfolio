@@ -2,10 +2,11 @@
 
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
+import MobileScrollTop from './MobileScrollTop';
 
 // دالة مساعدة بلمسة سينمائية (Blur Loading) بدل مجرد Div فارغ
 const SectionLoader = () => (
-  <div className="w-full h-[40vh] flex items-center justify-center bg-[#020203]/50 animate-pulse">
+  <div className="w-full h-[40vh] flex items-center justify-center animate-pulse">
     <div className="w-12 h-[1px] bg-white/10" />
   </div>
 );
@@ -16,7 +17,6 @@ const Projects = dynamic(() => import("./projects"), { ssr: false, loading: Sect
 const TechStack = dynamic(() => import("./tech-stack"), { ssr: false, loading: SectionLoader });
 const About = dynamic(() => import("./about/About"), { ssr: false, loading: SectionLoader });
 const Services = dynamic(() => import("./services"), { ssr: false, loading: SectionLoader });
-const CodeLaboratory = dynamic(() => import("./lab/CodeLaboratory"), { ssr: false, loading: SectionLoader });
 const Testimonials = dynamic(() => import("./testimonials/Testimonials"), { ssr: false, loading: SectionLoader });
 const ProcessSection = dynamic(() => import("./Process/ProcessSection"), { ssr: false, loading: SectionLoader });
 const InteractiveFAQ = dynamic(() => import("./FAQ/InteractiveFAQ"), { ssr: false, loading: SectionLoader });
@@ -30,7 +30,7 @@ export default function SectionsWrapper() {
     { id: 'tech', Component: TechStack },
     { id: 'about', Component: About },
     { id: 'services', Component: Services },
-    { id: 'lab', Component: CodeLaboratory },
+  
     { id: 'process', Component: ProcessSection },
     { id: 'testimonials', Component: Testimonials },
     { id: 'faq', Component: InteractiveFAQ },
@@ -56,6 +56,7 @@ export default function SectionsWrapper() {
         </motion.section>
       ))}
       <Footer />
+      <MobileScrollTop />
     </main>
   );
 }

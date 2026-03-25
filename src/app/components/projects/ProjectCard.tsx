@@ -1,30 +1,42 @@
 "use client";
 import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react"; // إضافة useRef
 import { ArrowUpLeft } from "lucide-react";
 import { Project } from "@/src/types/project";
 import Link from "next/link";
 
 export function ProjectCard({ project, index }: { project: Project; index: number }) {
   const [isActive, setIsActive] = useState(false);
-
-  // 1. استلام اللون المخصص أو استخدام لون افتراضي
+  
+  // 1. استخدام useRef لتخزين أبعاد الكارد وتجنب الحسابات المتكررة
+  const cardRef = useRef<HTMLDivElement>(null);
+  
   const themeColor = project.color || 'oklch(0.65 0.25 285)'; 
   
-  // 2. أنيميشن تفاعلي (نفس المنطق بتاعك المطور)
   const mouseX = useMotionValue(0);
-  const xOffset = useSpring(useTransform(mouseX, [-100, 100], [-15, 15]), { stiffness: 300, damping: 30 });
+  const xOffset = useSpring(useTransform(mouseX, [-100, 100], [-15, 15]), { 
+    stiffness: 300, 
+    damping: 30 
+  });
+
+  // 2. استخدام useCallback مع useRef لتحسين أداء التتبع
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    // حساب المنتصف بدقة بناءً على الـ Ref
+    mouseX.set(e.clientX - (rect.left + rect.width / 2));
+  }, [mouseX]);
 
   return (
     <motion.div
+      ref={cardRef} // ربط الـ Ref
       layout
       onMouseEnter={() => setIsActive(true)}
-      onMouseLeave={() => setIsActive(false)}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        mouseX.set(e.clientX - (rect.left + rect.width / 2));
+      onMouseLeave={() => {
+        setIsActive(false);
+        mouseX.set(0); // إعادة النص لمكانه عند الخروج
       }}
-      // حقن اللون في Variable محلية للكارد ده بس
+      onMouseMove={handleMouseMove}
       style={{ "--accent-color": themeColor } as any}
       className="relative w-full border-b border-white/5 group cursor-pointer overflow-hidden transition-all duration-500 bg-transparent"
     >
@@ -50,13 +62,11 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12">
             
             <div className="flex items-start gap-8 md:gap-16">
-              {/* رقم المشروع */}
               <span className="font-mono text-sm text-white/10 mt-5 group-hover:text-[var(--accent-color)] transition-colors duration-500">
-                {project.id}
+                {project.id.toString().padStart(2, '0')}
               </span>
 
               <div className="flex flex-col gap-8">
-                {/* العنوان اللي بيتأثر بلون المشروع عند الـ Hover */}
                 <motion.h3 
                   style={{ x: xOffset }}
                   className="text-5xl md:text-[9rem] font-black font-cairo text-white/90 group-hover:text-white transition-all duration-700 tracking-tighter leading-[0.8]"
@@ -68,7 +78,6 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
                   {project.title.split(' ').slice(1).join(' ')}
                 </motion.h3>
                 
-                {/* Tags ملونة */}
                 <div className="flex flex-wrap gap-3">
                   {project.tags?.map(tag => (
                     <span key={tag} className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-white/20 border border-white/5 px-4 py-2 rounded-full group-hover:border-[var(--accent-color)]/30 group-hover:text-[var(--accent-color)] transition-all duration-500">
@@ -79,7 +88,6 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
               </div>
             </div>
 
-            {/* الوصف السينمائي الجانبي */}
             <AnimatePresence>
               {isActive && (
                 <motion.div 
@@ -95,7 +103,6 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
               )}
             </AnimatePresence>
 
-            {/* زرار المعاينة المتلون */}
             <Link href={project.link} target="_blank" className="relative self-center lg:self-auto">
               <motion.div
                 whileHover={{ scale: 1.05 }}
