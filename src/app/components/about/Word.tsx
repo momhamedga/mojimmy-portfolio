@@ -1,24 +1,16 @@
-"use client"
-import { motion, MotionValue, useTransform } from "framer-motion";
+"use client";
+import { motion, useTransform } from "framer-motion";
 
-export function Word({ children, range, progress }: { children: string; range: [number, number]; progress: MotionValue<number> }) {
-  // تدرج في الظهور والوضوح
-  const opacity = useTransform(progress, range, [0.05, 1]);
-  const y = useTransform(progress, range, [10, 0]);
-  const blur = useTransform(progress, range, [8, 0]);
-
+export const Word = ({ children, range, progress }: any) => {
+  // تحسين: الكلمة تبدأ بـ 0.1 بدل 0 عشان تكون مقروءة خفيف قبل الـ Scroll
+  const opacity = useTransform(progress, range, [0.1, 1]);
+  
   return (
-    <span className="relative inline-block ml-3 md:ml-6 mb-2">
-      <motion.span 
-        style={{ 
-          opacity, 
-          y,
-          filter: useTransform(blur, (v) => `blur(${v}px)`) 
-        }} 
-        className="inline-block transition-colors duration-500 hover:text-[oklch(0.7_0.2_250)]"
-      >
+    <span className="relative mx-2 md:mx-3 mt-2 md:mt-4">
+      <span className="absolute opacity-[0.03] text-white">{children}</span>
+      <motion.span style={{ opacity }} className="text-white">
         {children}
       </motion.span>
     </span>
   );
-}
+};

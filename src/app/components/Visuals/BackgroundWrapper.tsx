@@ -1,15 +1,28 @@
 "use client"
 import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 
-// استيراد المكون بشكل ديناميكي وقفل الـ SSR تماماً
+// استيراد المكون مع تحسين الـ Loading
 const BackgroundCanvas = dynamic(
   () => import('./DynamicBackground').then((mod) => mod.BackgroundCanvas),
   { 
     ssr: false,
-    loading: () => <div className="fixed inset-0 bg-[#05050a] -z-10" /> // خلفية سادة لحد ما الـ Canvas يحمل
+    // بدل السواد، نستخدم نفس لون الخلفية المتغير بتاعنا عشان ميبانش فرق
+    loading: () => (
+      <div className="fixed inset-0 bg-background -z-20 transition-opacity duration-500" />
+    )
   }
 );
 
 export default function BackgroundWrapper() {
-  return <BackgroundCanvas />;
+  // استخدام useMemo عشان نضمن إن الـ Wrapper ميعملش Re-render غير لو فعلاً محتاجين
+  const memoizedCanvas = useMemo(() => <BackgroundCanvas />, []);
+
+  return (
+    <div className="contents">
+      {memoizedCanvas}
+      {/* طبقة Noise خفيفة جداً بتتحمل فوراً فوق الـ Loading لحد ما الـ Canvas يجهز */}
+      <div className="fixed inset-0 opacity-[0.01] bg-noise pointer-events-none z-[-5]" />
+    </div>
+  );
 }

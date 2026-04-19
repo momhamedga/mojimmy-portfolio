@@ -1,112 +1,115 @@
-"use client"
+"use client";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useRef, memo } from "react";
 import { ArrowUpLeft, Zap } from "lucide-react";
-import { Service } from "@/src/constants/services";
 import Link from "next/link";
 
-export const ServiceCard = memo(({ service, index }: { service: Service; index: number }) => {
+// 1. تعريف الـ Interface محلياً للتأكد من اختفاء الخطوط الحمراء
+interface ServiceType {
+  id: number | string;
+  arabicTitle: string;
+  description: string;
+  icon: React.ReactNode;
+  color?: string;
+  tech: string[];
+}
+
+interface ServiceCardProps {
+  service: ServiceType;
+  index: number;
+}
+
+export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "start start"]
   });
 
-  // فيزياء الحركة (Spring) - مريحة للعين وسريعة الاستجابة
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 60, damping: 25 });
   
-  // أنيميشن العناصر
-  const scale = useTransform(smoothProgress, [0, 1], [0.85, 1]);
-  const opacity = useTransform(smoothProgress, [0, 0.5, 1], [0, 0.8, 1]);
-  const rotate = useTransform(smoothProgress, [0, 1], [-5, 0]);
+  // تحديد الأنواع للـ Framer Motion Transforms
+  const scale = useTransform(smoothProgress, [0, 1], [0.92, 1]);
+  const opacity = useTransform(smoothProgress, [0, 0.5, 1], [0, 0.9, 1]);
+  const rotateX = useTransform(smoothProgress, [0, 1], [-10, 0]);
   
-  // استخراج درجة اللون للهيفر (نظام OKLCH)
   const accentColor = service.color || 'oklch(0.7 0.2 285)';
 
   return (
     <div 
       ref={containerRef}
-      className="min-h-screen w-full flex items-center justify-center sticky top-0 py-10 md:py-20"
-      style={{ perspective: "1200px" }}
+      className="min-h-[90vh] md:min-h-screen w-full flex items-center justify-center sticky top-0 py-6 md:py-20"
+      style={{ perspective: "1000px" }}
     >
       <motion.div 
-        style={{ scale, opacity, rotateX: rotate }}
-        className="container mx-auto px-6 w-full max-w-7xl transform-gpu"
+        style={{ scale, opacity, rotateX }}
+        className="container mx-auto px-4 md:px-6 w-full max-w-7xl transform-gpu will-change-transform"
       >
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 p-8 md:p-20 rounded-[3rem] md:rounded-[5rem] border border-white/5 bg-[oklch(0.15_0.02_0_/_0.6)] backdrop-blur-[50px] overflow-hidden shadow-2xl">
+        <div className="relative flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-10 p-6 md:p-20 rounded-[2.5rem] md:rounded-[5rem] border border-white/5 bg-[oklch(0.12_0.01_0_/_0.8)] backdrop-blur-[30px] md:backdrop-blur-[50px] overflow-hidden shadow-2xl">
           
-          {/* إضاءة خلفية دايناميكية */}
           <div 
-            className="absolute -top-24 -right-24 w-96 h-96 opacity-10 blur-[120px] rounded-full pointer-events-none"
+            className="absolute -top-24 -right-24 w-64 h-64 md:w-96 md:h-96 opacity-[0.07] blur-[80px] md:blur-[120px] rounded-full pointer-events-none"
             style={{ backgroundColor: accentColor }}
           />
 
-          {/* الجانب النصي */}
+          <div className="order-1 lg:order-2 flex items-center justify-center relative min-h-[200px] md:min-h-[300px]">
+             <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+               className="absolute inset-0 border-[1px] border-dashed border-white/5 rounded-full scale-90 md:scale-100"
+             />
+             
+             <div 
+               className="relative z-10 w-32 h-32 md:w-80 md:h-80 flex items-center justify-center rounded-[2rem] md:rounded-[5rem] bg-white/[0.02] border border-white/10 backdrop-blur-2xl transition-all duration-700"
+               style={{ boxShadow: `0 0 50px ${accentColor}10` }}
+             >
+                <div 
+                  className="text-5xl md:text-[10rem] transition-all duration-700"
+                  style={{ color: accentColor }}
+                >
+                  {service.icon}
+                </div>
+             </div>
+          </div>
+
           <motion.div 
-            className="order-2 lg:order-1 flex flex-col justify-center items-start text-right space-y-8" 
+            className="order-2 lg:order-1 flex flex-col justify-center items-start text-right space-y-6 md:space-y-8" 
             dir="rtl"
           >
             <div 
-              className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/5"
               style={{ color: accentColor }}
             >
-              <Zap size={16} fill="currentColor" />
-              <span className="text-xs font-mono font-black uppercase tracking-widest">Phase 0{index + 1}</span>
+              <Zap size={14} fill="currentColor" />
+              <span className="text-[10px] font-mono font-black uppercase tracking-widest">Phase 0{index + 1}</span>
             </div>
 
-            <h2 className="text-5xl md:text-8xl font-cairo font-black text-white leading-[0.9] tracking-tighter">
+            <h2 className="text-3xl md:text-8xl font-cairo font-black text-white leading-tight md:leading-[0.9] tracking-tighter">
               {service.arabicTitle}
             </h2>
 
-            <p className="text-white/40 text-lg md:text-2xl font-cairo font-light leading-relaxed max-w-xl">
+            <p className="text-white/40 text-sm md:text-2xl font-cairo font-light leading-relaxed max-w-xl">
               {service.description}
             </p>
 
-            {/* الـ Tech Tags بنظام الـ Pills */}
-            <div className="flex flex-wrap gap-2 pt-4">
+            <div className="flex flex-wrap gap-2">
               {service.tech.map((t) => (
-                <span key={t} className="px-5 py-2 text-[10px] md:text-xs font-bold uppercase tracking-wider text-white/30 bg-white/[0.02] border border-white/5 rounded-full hover:border-[oklch(0.7_0.2_285_/_0.3)] transition-all">
+                <span key={t} className="px-3 py-1 md:px-5 md:py-2 text-[9px] md:text-xs font-bold uppercase tracking-wider text-white/20 bg-white/[0.02] border border-white/5 rounded-full">
                   {t}
                 </span>
               ))}
             </div>
 
-            <Link href="#contact" className="group pt-10">
-              <div className="flex items-center gap-6">
-                 <div className="w-16 h-16 md:w-24 md:h-24 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700 shadow-xl group-hover:shadow-[0_0_50px_oklch(1_0_0_/_0.1)]">
-                   <ArrowUpLeft size={32} className="group-hover:rotate-45 transition-transform duration-500" />
+            <Link href="#contact" className="group pt-6 md:pt-10 self-stretch md:self-auto">
+              <div className="flex items-center justify-center md:justify-start gap-4 md:gap-6 p-4 md:p-0 rounded-2xl border border-white/5 md:border-none bg-white/[0.01] md:bg-transparent">
+                 <div className="w-12 h-12 md:w-24 md:h-24 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-500">
+                    <ArrowUpLeft size={24} className="group-hover:rotate-45 transition-transform" />
                  </div>
-                 <span className="text-xl md:text-3xl font-cairo font-bold text-white/50 group-hover:text-white transition-colors">تحدث معنا</span>
+                 <span className="text-lg md:text-3xl font-cairo font-bold text-white/50 group-hover:text-white">تواصل معنا</span>
               </div>
             </Link>
           </motion.div>
-
-          {/* الجانب البصري (The Hero Icon) */}
-          <div className="order-1 lg:order-2 flex items-center justify-center relative min-h-[300px]">
-             {/* حلقة دوران نيون */}
-             <motion.div 
-               animate={{ rotate: 360 }}
-               transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-               className="absolute inset-0 border-[1px] border-dashed border-white/10 rounded-full scale-75 md:scale-100"
-             />
-             
-             <div 
-               className="relative z-10 w-48 h-48 md:w-80 md:h-80 flex items-center justify-center rounded-[3rem] md:rounded-[5rem] bg-gradient-to-br from-white/[0.05] to-transparent border border-white/10 shadow-inner backdrop-blur-2xl group transition-all duration-700 hover:scale-105"
-               style={{ boxShadow: `0 0 80px ${accentColor}15` }}
-             >
-                <div 
-                  className="text-7xl md:text-[10rem] transition-all duration-700 filter grayscale group-hover:grayscale-0 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]"
-                  style={{ color: accentColor }}
-                >
-                  {service.icon}
-                </div>
-                
-                {/* Floating Elements للموبايل */}
-                <div className="absolute -top-4 -left-4 w-12 h-12 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl flex items-center justify-center animate-bounce">
-                   <Zap size={20} style={{ color: accentColor }} />
-                </div>
-             </div>
-          </div>
           
         </div>
       </motion.div>

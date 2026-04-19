@@ -1,59 +1,56 @@
-"use client"
+"use client";
 import { motion, useScroll, useSpring } from "framer-motion";
-import { useRef } from "react";
+import { useRef, memo } from "react";
 import { PROCESS_STEPS } from "@/src/constants/process-steps";
 import { cn } from "@/src/lib/utils";
 
 export default function ProcessSection() {
   const containerRef = useRef<HTMLElement>(null);
   
-  // تتبع السكرول - معايير 2026 للاستجابة السريعة
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 90%", "end 10%"]
+    offset: ["start 80%", "end 20%"] // تحسين توقيت البداية والنهاية
   });
 
-  // تنعيم الخط الضوئي (Spring Physics)
   const scaleY = useSpring(scrollYProgress, { 
-    stiffness: 80, 
-    damping: 25, 
+    stiffness: 50, // تقليل القسوة شوية لسكرول أنعم (Lerp effect)
+    damping: 20, 
     restDelta: 0.001 
   });
 
   return (
-    <section ref={containerRef} id="process" className="relative py-32 md:py-48 overflow-hidden  selection:bg-purple-500/30">
+    <section ref={containerRef} id="process" className="relative py-32 md:py-48 overflow-hidden ">
       <div className="max-w-7xl mx-auto px-6">
         
-        {/* Header Cinematic */}
+        {/* العنوان السينمائي */}
         <div className="mb-32 md:mb-56 text-right relative z-10">
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1 }}
           >
-            <span className="text-purple-500 font-cairo font-black tracking-[0.4em] text-[10px] md:text-xs uppercase block mb-6 opacity-80">
-              The Engineering Roadmap
+            <span className="text-primary font-cairo font-bold tracking-[0.4em] text-[10px] md:text-xs uppercase block mb-6">
+              Engineering Workflow
             </span>
-            <h2 className="text-5xl md:text-9xl font-black text-white font-cairo leading-[0.85] tracking-tighter">
+            <h2 className="text-5xl md:text-8xl font-black text-white font-cairo leading-none tracking-tighter">
               رحلة تحويل <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-500 via-blue-500 to-emerald-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary via-primary/50 to-accent">
                 الفكرة
               </span> لواقع
             </h2>
           </motion.div>
         </div>
 
-        <div className="relative min-h-[1000px]">
-          {/* الخط المركزي (The Light Path) */}
-          <div className="absolute right-[12px] md:right-1/2 top-0 bottom-0 w-[1px] md:w-[2px] bg-white/[0.03] md:translate-x-1/2">
+        <div className="relative min-h-[1200px]">
+          {/* الخط المركزي - متصل بالـ Theme Colors */}
+          <div className="absolute right-[12px] md:right-1/2 top-0 bottom-0 w-[2px] bg-white/[0.03] md:translate-x-1/2 overflow-hidden">
             <motion.div 
               style={{ scaleY, originY: 0 }}
-              className="absolute inset-0 w-full bg-gradient-to-b from-purple-600 via-blue-500 to-emerald-500 shadow-[0_0_40px_rgba(168,85,247,0.4)] will-change-transform"
+              className="absolute inset-0 w-full bg-gradient-to-b from-primary via-accent to-primary shadow-[0_0_30px_var(--color-primary)] will-change-transform"
             />
           </div>
 
-          {/* عرض المراحل */}
           <div className="relative space-y-32 md:space-y-64">
             {PROCESS_STEPS.map((step, i) => (
               <StepItem key={step.id} step={step} index={i} />
@@ -61,87 +58,73 @@ export default function ProcessSection() {
           </div>
         </div>
       </div>
-      
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/5 blur-[120px] rounded-full pointer-events-none" />
     </section>
   );
 }
 
-function StepItem({ step, index }: { step: any, index: number }) {
+// استخدام memo لمنع إعادة رندر المراحل أثناء السكرول (Critical for performance)
+const StepItem = memo(({ step, index }: { step: any, index: number }) => {
   const isEven = index % 2 === 0;
   const Icon = step.icon;
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 60 }}
+      initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-15%" }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      viewport={{ once: true, margin: "-10%" }}
+      transition={{ duration: 0.8 }}
       className={cn(
         "relative flex items-center w-full",
         isEven ? 'md:flex-row-reverse' : 'md:flex-row'
       )}
     >
-      {/* 1. المحتوى النصي (Ultra-Modern Glassmorphism) */}
-      <div className="w-full md:w-[46%] pr-10 md:pr-0">
+      {/* 1. الكارد الزجاجي */}
+      <div className="w-full md:w-[45%] pr-12 md:pr-0">
         <motion.div 
-          whileHover={{ y: -5, scale: 1.01 }}
-          whileTap={{ scale: 0.97 }}
-          className="relative p-8 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] backdrop-blur-3xl hover:border-white/20 transition-all duration-700 group cursor-pointer overflow-hidden transform-gpu"
+          whileHover={{ y: -8, transition: { duration: 0.4 } }}
+          className="group relative p-8 md:p-12 rounded-[2.5rem] bg-glass border border-white/5 backdrop-blur-3xl hover:border-primary/30 transition-all duration-700 cursor-default"
         >
-          {/* رقم المرحلة "Ghost Typography" */}
-          <span className="absolute -top-10 -left-6 text-[12rem] font-black text-white/[0.02] group-hover:text-white/[0.04] transition-all duration-1000 pointer-events-none select-none italic">
+          {/* رقم المرحلة Background */}
+          <span className="absolute -top-10 -left-6 text-[10rem] font-black text-white/[0.01] group-hover:text-primary/[0.03] transition-colors duration-1000 italic select-none">
             0{step.id}
           </span>
 
           <div className="relative z-10 text-right">
-             <div 
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 mr-0 ml-auto md:ml-0 md:mr-auto shadow-2xl transition-transform duration-700 group-hover:rotate-[10deg]"
-              style={{ background: `${step.color}15`, border: `1px solid ${step.color}30` }}
+            <div 
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-8 ml-auto shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
+              style={{ background: `var(--color-primary-transparent)`, border: `1px solid var(--color-primary-faded)` }}
             >
-              <Icon size={30} style={{ color: step.color }} className="group-hover:scale-110 transition-all" />
+              <Icon size={28} className="text-primary group-hover:text-white transition-colors" />
             </div>
             
-            <h3 className="text-3xl md:text-4xl font-black text-white mb-6 font-cairo tracking-tight">
+            <h3 className="text-2xl md:text-3xl font-black text-white mb-4 font-cairo">
               {step.title}
             </h3>
-            <p className="text-gray-400 text-lg md:text-xl leading-relaxed font-cairo opacity-70 group-hover:opacity-100 transition-opacity">
+            <p className="text-gray-400 text-base md:text-lg leading-relaxed font-cairo opacity-70 group-hover:opacity-100 transition-opacity">
               {step.desc}
             </p>
           </div>
           
-          {/* خط التفاعل السفلي */}
-          <div 
-            className="absolute bottom-0 right-0 h-[3px] transition-all duration-1000 w-0 group-hover:w-full opacity-50"
-            style={{ backgroundColor: step.color, boxShadow: `0 0 20px ${step.color}` }}
-          />
+          {/* خط التفاعل السفلي النيوني */}
+          <div className="absolute bottom-0 right-0 h-[2px] w-0 group-hover:w-full bg-gradient-to-l from-primary to-transparent transition-all duration-700 shadow-[0_0_15px_var(--color-primary)]" />
         </motion.div>
       </div>
 
-      {/* 2. النقطة المضيئة (Neon Node) */}
-      <div className="absolute right-[12px] md:right-1/2 w-8 h-8 md:w-12 md:h-12 translate-x-1/2 flex items-center justify-center z-30">
+      {/* 2. النود المضيئة (The Neon Junction) */}
+      <div className="absolute right-[12px] md:right-1/2 w-8 h-8 md:w-10 md:h-10 translate-x-1/2 flex items-center justify-center z-30">
         <div className="relative">
           <motion.div 
-            whileInView={{ 
-              scale: [1, 1.2, 1],
-              borderColor: [step.color, "#fff", step.color]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-black border-2 relative z-10"
-            style={{ borderColor: step.color }}
+            whileInView={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-4 h-4 rounded-full bg-background border-2 border-primary relative z-10 shadow-[0_0_15px_var(--color-primary)]"
           />
-          <motion.div 
-            animate={{ scale: [1, 2, 1], opacity: [0.1, 0.3, 0.1] }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="absolute inset-[-15px] rounded-full blur-xl"
-            style={{ backgroundColor: step.color }}
-          />
+          <div className="absolute inset-[-10px] rounded-full bg-primary/20 blur-md animate-pulse" />
         </div>
       </div>
 
-      {/* 3. Spacer (Desktop Only) */}
-      <div className="hidden md:block md:w-[46%]" />
+      <div className="hidden md:block md:w-[45%]" />
     </motion.div>
   );
-}
+});
+
+StepItem.displayName = "StepItem";

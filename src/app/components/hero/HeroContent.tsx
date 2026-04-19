@@ -3,70 +3,58 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useRef, useEffect } from "react";
 
 export const HeroContent = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null); // Ref للإضاءة المحيطية
-  
+  const glowRef = useRef<HTMLDivElement>(null); 
   const { scrollY } = useScroll();
-  const ghostTextY = useTransform(scrollY, [0, 500], [0, -100]);
+  
+  // تحريك النص الخلفي فقط في الكمبيوتر لتقليل جهد الموبايل
+  const ghostY = useSpring(useTransform(scrollY, [0, 500], [0, -80]), { stiffness: 100, damping: 30 });
 
-  // استخدام Spring عشان الحركة تكون أنعم (Fluid Motion)
-  const springConfig = { stiffness: 100, damping: 30 };
-  const smoothY = useSpring(ghostTextY, springConfig);
-
-  // تأثير تتبع الماوس للإضاءة بدون Re-render
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!glowRef.current) return;
+      if (!glowRef.current || window.innerWidth < 768) return;
       const { clientX, clientY } = e;
-      // تحريك الإضاءة مباشرة عبر الـ DOM لسرعة خارقة
-      glowRef.current.style.transform = `translate(calc(-50% + ${clientX * 0.05}px), ${clientY * 0.05}px)`;
+      requestAnimationFrame(() => {
+        if (glowRef.current) {
+          glowRef.current.style.transform = `translate(calc(-50% + ${clientX * 0.02}px), ${clientY * 0.02}px)`;
+        }
+      });
     };
-
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   return (
-    <div 
-      ref={containerRef}
-      className="relative space-y-10 flex flex-col items-center select-none pt-12 text-center transform-gpu"
-    >
-      {/* 1. الإضاءة المحيطية - الآن تتحرك مع الماوس عبر الـ Ref */}
-      <div 
-        ref={glowRef}
-        className="absolute -top-60 left-1/2 -translate-x-1/2 w-[600px] h-[500px] bg-[oklch(0.6_0.25_285/0.1)] blur-[160px] rounded-full pointer-events-none transition-transform duration-700 ease-out" 
-      />
+    <section className="relative min-h-[80vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden">
+   
 
+      {/* Badge - Mobile Optimized */}
       <motion.div 
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card group relative flex items-center gap-4 px-6 py-2.5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-2xl transition-all"
+        className="glass-card flex items-center gap-3 px-4 py-2 rounded-full border border-white/5 bg-white/[0.01] mb-8"
       >
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-500/40"></span>
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
-        </span>
-        <span className="text-white/60 font-cairo text-[10px] md:text-xs uppercase tracking-[0.25em] font-bold group-hover:text-purple-400 transition-colors">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+        <span className="text-white/50 font-cairo text-[10px] md:text-xs uppercase tracking-widest font-bold">
           نطور الأفكار لمشاريع واقعية
         </span>
       </motion.div>
 
-      <div className="relative">
+      <div className="relative z-10">
+        {/* Ghost Text - Desktop Only */}
         <motion.span 
-          style={{ y: smoothY }}
-          className="absolute -top-32 left-1/2 -translate-x-1/2 text-[15rem] font-black text-white/[0.02] whitespace-nowrap pointer-events-none hidden lg:block tracking-tighter font-cairo leading-none uppercase"
+          style={{ y: ghostY }}
+          className="absolute -top-24 left-1/2 -translate-x-1/2 text-[10rem] md:text-[16rem] font-black text-white/[0.01] pointer-events-none hidden lg:block tracking-tighter font-cairo leading-none"
         >
           إبداع
         </motion.span>
 
         <motion.h1 
-          initial={{ opacity: 0, filter: "blur(15px)", y: 30 }}
-          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-          transition={{ duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
-          className="text-5xl md:text-[9rem] font-black text-white leading-[0.85] tracking-tighter font-cairo"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl md:text-[8rem] font-black text-white leading-[1.1] md:leading-[0.9] tracking-tighter font-cairo"
         >
-          نصنع <span className="text-white/10 italic font-light">واقعاً</span> <br />
-          <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-blue-400 py-6 bg-gradient-move">
+          نصنع <span className="text-white/20 italic font-extralight">واقعاً</span> <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white/50">
             رقمياً مذهلاً.
           </span>
         </motion.h1>
@@ -75,16 +63,13 @@ export const HeroContent = () => {
       <motion.p 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 1 }}
-        className="max-w-4xl text-white/50 text-xl md:text-3xl leading-relaxed px-8 font-cairo font-light"
+        transition={{ delay: 0.4 }}
+        className="max-w-2xl mt-8 text-white/40 text-lg md:text-2xl font-cairo font-light leading-relaxed"
       >
-        نحن لا نبني مجرد مواقع، بل نصمم 
-        <span className="text-white font-medium mx-2 relative inline-block group">
-          أنظمة حية
-          <span className="absolute -bottom-1 left-0 w-0 group-hover:w-full h-[1px] bg-purple-500 transition-all duration-700 shadow-[0_0_8px_oklch(0.65_0.25_285)] block" />
-        </span>
-        تتنفس ابتكاراً، نحول التعقيد البرمجي إلى بساطة بصرية.
+        نحول التعقيد البرمجي إلى بساطة بصرية، نصمم 
+        <span className="text-white mx-1.5 font-medium underline decoration-primary/30 underline-offset-8">أنظمة حية</span> 
+        تتنفس ابتكاراً.
       </motion.p>
-    </div>
+    </section>
   );
 };

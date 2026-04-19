@@ -4,19 +4,20 @@
 /* 1. Next-Gen Design System (OKLCH & CSS Variables)                          */
 /* -------------------------------------------------------------------------- */
 @theme {
-  /* ألوان OKLCH: أدق بمراحل في توزيع الإضاءة والـ Saturation */
-  --color-background: oklch(0.08 0.005 250); /* أغمق شوية عشان النيون ينطق */
+--color-background: var(--color-background);
   --color-foreground: oklch(0.95 0.01 250);
-  --color-primary: oklch(0.65 0.25 285);     /* بنفسجي أنقى */
-  --color-accent: oklch(0.75 0.3 330);      /* وردي نيون ساطع */
-  --color-glass: oklch(1 0 0 / 0.03);       /* زجاجي فائق الشفافية */
+--color-primary: var(--color-primary);    
+--color-accent: var(--color-accent);    
+--color-glass: oklch(1 0 0 / 0.03);     
   
-  /* الخطوط */
+  /* ألوان خاصة بتجربة التطبيق (App-like Palette) */
+  --color-mobile-card: oklch(0.12 0.01 250 / 0.8);
+  --color-ios-blur: rgba(255, 255, 255, 0.05);
+
   --font-cairo: var(--font-cairo);
   --font-almarai: var(--font-almarai);
   --font-inter: var(--font-inter);
 
-  /* أنيميشن 2026: استخدام الـ hardware acceleration */
   --animate-float: floating 6s ease-in-out infinite;
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
@@ -27,12 +28,11 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. Base Reinforcement                                                      */
+/* 2. Base Reinforcement (Performance Focused)                                */
 /* -------------------------------------------------------------------------- */
 @layer base {
   :root {
     color-scheme: dark;
-    /* تحسين الـ Performance: منع الـ layout shift */
     --scroll-padding: 5rem;
   }
 
@@ -41,21 +41,22 @@
     scroll-padding-top: var(--scroll-padding);
     background-color: var(--color-background);
     -webkit-font-smoothing: antialiased;
+    /* تحسين سرعة الاستجابة للموبايل */
+    touch-action: manipulation;
   }
 
   body {
-    /* تطبيق Grainy Texture خفيف جداً على مستوى الـ body */
     position: relative;
-    @apply text-foreground selection:bg-primary/20 selection:text-primary;
+    @apply text-foreground selection:bg-primary/20 selection:text-primary overflow-x-hidden;
   }
 
-  /* إضافة ملمس "Noise" ثابت وسينمائي */
+  /* ملمس Noise سينمائي محسّن للأداء (Base64 لتقليل الـ Network Requests) */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3 Accuracy='0.5'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fracture' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.02;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAXCAMAAABY9N0VAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRF////zMzMzMzM79mSbwAAAAJ0Uk5T/wD/zzU8AAAAP0lEQVR42mJgYGRiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmICDABz7gD/8DkF2QAAAABJRU5ErkJggg==");
+    opacity: 0.015;
     pointer-events: none;
     z-index: 9999;
   }
@@ -65,106 +66,105 @@
 /* 3. High-End Cinematic Utilities                                            */
 /* -------------------------------------------------------------------------- */
 @layer utilities {
-  /* الزجاج الفاخر (Glassmorphism 2026) */
   .glass-card {
     @apply bg-glass border border-white/5 backdrop-blur-xl;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   }
 
-  /* تأثير الـ Masking للـ Gradients */
+  /* تطبيق الـ Masking للـ LCP Optimization */
   .text-gradient-reveal {
     @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-white/80 to-white/20;
+    will-change: transform, opacity;
   }
 
-  /* نيون متطور يتأثر بالحركة */
   .neon-glow-primary {
     filter: drop-shadow(0 0 15px oklch(0.65 0.25 285 / 0.4));
   }
 
-  /* ميزة Tailwind v4: الـ Container Queries */
-  .responsive-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-    gap: 1.5rem;
+  /* 4. Ghost Pulse Scrollbar - optimized v4 */
+  ::-webkit-scrollbar {
+    width: 6px; 
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, transparent, var(--color-primary), transparent);
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 4. The Ghost Pulse Scrollbar - 2026 High-End Edition                       */
-/* -------------------------------------------------------------------------- */
-
-/* 1. الحاوية: نزيد العرض قليلاً لتسهيل التفاعل لكن نتركها شفافة */
-::-webkit-scrollbar {
-  width: 8px; 
-  background: transparent;
-}
-
-/* 2. المسار: مخفي تماماً */
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* 3. الجزء المتحرك (الـ Thumb): السحر هنا */
-::-webkit-scrollbar-thumb {
-  /* تدرج لوني "نيون" مع تلاشي (Fade) في الأطراف */
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    var(--color-primary) 15%,
-    var(--color-primary) 85%,
-    transparent 100%
-  );
-  
-  border-radius: 20px;
-  
-  /* تأثير الـ Floating: نستخدم حدود شفافة عريضة لتركيز السكرول في المنتصف كخيط نحيف */
-  border-left: 5px solid transparent; 
-  border-right: 1px solid transparent;
-  background-clip: padding-box;
-
-  /* إضافة Glowing Effect خفيف */
-  box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2);
-  
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-/* 4. التفاعل عند الـ Hover: يتحول من خيط نحيف لنيون مشع */
-::-webkit-scrollbar-thumb:hover {
-  /* نلغي الحدود الشفافة ليتوسع السكرول بار */
-  border-left: 2px solid transparent;
-  
-  /* نزيد قوة اللون والـ Glow */
-  background: linear-gradient(
-    to bottom,
-    var(--color-primary) 0%,
-    #d8b4fe 50%, /* لون أفتح في المنتصف للإضاءة */
-    var(--color-primary) 100%
-  );
-  
-  box-shadow: 0 0 15px var(--color-primary);
-}
-
-/* 5. حالة الـ Active (أثناء السحب): يزداد الـ Saturation */
-::-webkit-scrollbar-thumb:active {
-  filter: brightness(1.4);
-}
-
-/* Firefox Support */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-primary) transparent;
-}
-/* -------------------------------------------------------------------------- */
-/* 5. Mobile Optimizations                                                    */
+/* 5. Mobile & App Experience (The Magic Touch)                               */
 /* -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
-  /* منع الـ Over-scroll البصري */
   body {
-    overscroll-behavior-y: none;
+    /* تجربة سحب "مطاطية" زي الـ iOS */
+    overscroll-behavior-y: contain;
   }
   
-  /* تبسيط الـ Glow في الموبايل لزيادة الـ FPS */
-  .neon-glow-primary {
-    filter: drop-shadow(0 0 8px oklch(0.65 0.25 285 / 0.3));
+  /* Mobile App Card - نسخة خاصة للموبايل فقط */
+  .mobile-app-card {
+    background: var(--color-mobile-card);
+    @apply backdrop-blur-2xl rounded-[32px] border border-white/10;
   }
+
+  /* تقليل الأنيميشن في الموبايل لتوفير البطارية ورفع الـ FPS */
+  .animate-float {
+    animation-duration: 10s;
+  }
+}
+
+@layer base {
+  /* الصباح: Cyan */
+  .theme-morning {
+    --color-primary: oklch(0.7 0.2 210);
+    --color-background: oklch(0.1 0.01 210);
+    --color-accent: oklch(0.8 0.1 190);
+  }
+
+  /* الظهيرة: Indigo */
+  .theme-afternoon {
+    --color-primary: oklch(0.6 0.2 260);
+    --color-background: oklch(0.08 0.02 260);
+    --color-accent: oklch(0.7 0.15 280);
+  }
+
+  /* المساء: Sunset */
+  .theme-evening {
+    --color-primary: oklch(0.65 0.25 330);
+    --color-background: oklch(0.07 0.02 330);
+    --color-accent: oklch(0.7 0.2 20);
+  }
+
+  /* الليل: Neon */
+  .theme-night {
+    --color-primary: oklch(0.6 0.3 285);
+    --color-background: oklch(0.05 0.03 285);
+    --color-accent: oklch(0.5 0.2 300);
+  }
+}
+
+/* ربط الخلفية بالمتغير */
+body {
+  background-color: var(--color-background);
+  transition: background-color 2s ease, color 2s ease;
+}
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
