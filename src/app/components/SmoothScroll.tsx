@@ -1,54 +1,47 @@
-"use client"
-import { ReactLenis, useLenis } from 'lenis/react'
-import { ReactNode, useEffect, memo } from 'react'
+"use client";
+
+import { ReactLenis } from 'lenis/react';
+import { ReactNode, useEffect, memo } from 'react';
 
 interface SmoothScrollProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 const SmoothScroll = ({ children }: SmoothScrollProps) => {
-  // استخدام useLenis لمراقبة السكرول وتحديث أي قيم لو احتجنا
-  const lenis = useLenis((lenis) => {
-    // يمكنك إضافة منطق هنا مثل: إخفاء عناصر معينة عند سرعة سكرول عالية
-  })
-
+  
   useEffect(() => {
-    // تحديث الـ Scrollbar ليناسب المتغيرات الجديدة عند تغيير الـ Theme
-    // Lenis بيتعامل مع الـ HTML overflow، فبنضمن إن الـ scrollbar مخفي أو مخصص
+    // إعلام المتصفح أن محرك Lenis يعمل بنجاح بدون قفل الـ overflow
     document.documentElement.classList.add('lenis-active');
     
     return () => {
       document.documentElement.classList.remove('lenis-active');
-      lenis?.destroy();
-    }
-  }, [lenis])
+    };
+  }, []);
 
   return (
     <ReactLenis 
       root 
       options={{ 
-        duration: 1.2,       // سرعة استجابة متوازنة (مش بطيئة أوي ولا سريعة)
-        lerp: 0.08,          // تنعيم احترافي جداً للماوس (Smooth as butter)
-        wheelMultiplier: 1.1, // هزة خفيفة زيادة عشان تدي إحساس الـ Momentum
+        duration: 1.2,        // سرعة استجابة متوازنة واحترافية جداً
+        lerp: 0.1,            // زيادة التنعيم للحصول على حركة سينمائية
+        wheelMultiplier: 1.0, // ضبط حساسية بكرة الماوس القياسية لمنع الـ Jitter
         touchMultiplier: 1.5, 
         smoothWheel: true,
         infinite: false,
         orientation: 'vertical',
         gestureOrientation: 'vertical',
-        syncTouch: false,    // Next.js 15 + Lenis بيفضل false في العادة لتجنب الـ Jitter
-        autoRaf: true,       // يخلي Lenis يتكفل بالـ RequestAnimationFrame لوحده
+        syncTouch: false,     // متوافق تماماً مع Next.js 16 و React 19
+        autoRaf: true,        // Lenis يتكفل بإدارة الـ Animation Frames تلقائياً
       }}
     >
-      {/* إضافة Wrapper بسيط للتحكم في كيفية ظهور المحتوى أثناء السكرول
-         transition-colors هنا مهمة عشان الـ background يتغير بنعومة مع السكرولر
-      */}
-      <main className="transition-colors duration-[2000ms] ease-in-out">
+      {/* تم تحويل الـ Wrapper لـ div عادي لمنع تكرار الـ main الـ Semantic */}
+      <div className="transition-colors duration-2000 ease-in-out">
         {children}
-      </main>
+      </div>
 
       <style jsx global>{`
-        /* تخصيص الـ Scrollbar ليكون متوافق مع الـ Time Theme */
-        html.lenis {
+        /* تهيئة الـ HTML للتعامل مع السكرول الناعم */
+        html.lenis, html.lenis body {
           height: auto;
         }
         
@@ -60,32 +53,33 @@ const SmoothScroll = ({ children }: SmoothScrollProps) => {
           overscroll-behavior: contain;
         }
 
-        /* تصميم الـ Scrollbar الاحترافي */
+        /* تخصيص الـ Scrollbar الاحترافي لـ Ultra-Modern Space Cinematic */
         ::-webkit-scrollbar {
-          width: 5px;
+          width: 6px;
         }
         
         ::-webkit-scrollbar-track {
-          background: var(--color-background);
+          background: #020202;
         }
         
         ::-webkit-scrollbar-thumb {
-          background: var(--color-primary);
-          border-radius: 10px;
-          opacity: 0.5;
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 100px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: background 0.3s ease;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-          background: var(--color-accent);
+          background: var(--color-primary, #fff);
         }
 
-        /* تحسين استجابة الـ Smooth Scroll على المتصفحات الضعيفة */
+        /* إزالة الـ overflow: hidden تماماً لضمان حرية حركة بكرة الماوس */
         .lenis-active {
-          overflow: hidden;
+          scroll-behavior: auto !important;
         }
       `}</style>
     </ReactLenis>
-  )
-}
+  );
+};
 
-export default memo(SmoothScroll)
+export default memo(SmoothScroll);

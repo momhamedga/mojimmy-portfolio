@@ -1,61 +1,42 @@
-"use client"
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { useRef } from "react";
+"use client";
+
+import { motion } from "framer-motion";
 import { ProjectCard } from "./ProjectCard";
 import { PROJECTS } from "@/src/constants/projects";
 
 export default function Projects() {
-  const containerRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ 
-    target: containerRef, 
-    offset: ["start end", "end start"] 
-  });
-
-  const rawTextX = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
-  const textX = useSpring(rawTextX, { stiffness: 40, damping: 15 });
-
   return (
-    <section 
-      ref={containerRef} 
-      id="projects" 
-      dir="rtl" 
-      className="py-16 md:py-48 relative bg-transparent overflow-hidden"
-    >
-      {/* Ghost Text - Desktop Only */}
-      <motion.div 
-        style={{ x: textX }} 
-        className="absolute top-20 left-0 whitespace-nowrap opacity-[0.015] pointer-events-none select-none z-0 hidden lg:block"
-      >
-        <span className="text-[20vw] font-black text-white uppercase tracking-tighter leading-none font-inter">
-          PROJECTS • معرض الأعمال • PROJECTS •
-        </span>
-      </motion.div>
-
+    <section id="projects" dir="rtl" className="py-24 md:py-32 relative bg-transparent overflow-hidden">
       <div className="container mx-auto px-6 relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+
+        {/* الهيدر */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-16 md:mb-40"
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="mb-14 md:mb-16 text-center"
         >
-          <div className="flex items-center gap-3 mb-6 md:mb-8">
-            <div className="h-[1px] w-8 md:w-12 bg-primary shadow-[0_0_10px_oklch(0.65_0.25_285)]" />
-            <span className="text-primary font-cairo text-[10px] md:text-sm tracking-[0.3em] font-bold uppercase">
-              Featured Work 2026
+          <div className="inline-flex items-center gap-3 mb-5">
+            <div className="h-px w-8 bg-primary shadow-[0_0_10px_var(--color-primary)]" />
+            <span className="text-foreground-dim font-cairo text-[10px] md:text-xs tracking-[0.3em] font-black uppercase">
+              Featured Work
             </span>
+            <div className="h-px w-8 bg-primary shadow-[0_0_10px_var(--color-primary)]" />
           </div>
-          
-          <h2 className="font-cairo text-5xl md:text-[9rem] font-black text-white tracking-tighter leading-[1] md:leading-[0.85]">
-            مشاريع <br className="hidden md:block" /> 
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-400 italic">
+
+          <h2 className="font-cairo text-3xl sm:text-4xl md:text-5xl font-black text-foreground tracking-tight">
+            مشاريع{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent">
               مختارة.
             </span>
           </h2>
         </motion.div>
 
-        <div className="flex flex-col gap-10 md:gap-32">
-          {PROJECTS.map((project, index) => (
-            <ProjectCard key={project.id} project={project} index={index} />
+        {/* شبكة المشاريع */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {PROJECTS.map((project, i) => (
+            <ProjectCard key={project.id} project={project} index={i} />
           ))}
         </div>
       </div>

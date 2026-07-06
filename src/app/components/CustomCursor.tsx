@@ -8,7 +8,7 @@ export default function CustomCursor() {
   if (!mounted || isMobile) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[99999] overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-99999 overflow-hidden">
       <AnimatePresence>
         {isVisible && (
           <motion.div 
@@ -28,9 +28,11 @@ export default function CustomCursor() {
                   height: hoverState.active ? 80 : 45,
                   rotate: hoverState.active ? 180 : 0,
                   borderWidth: hoverState.active ? "1px" : "1px",
-                  borderColor: hoverState.active ? "rgba(168, 85, 247, 0.5)" : "rgba(255, 255, 255, 0.1)"
+                  borderColor: hoverState.active
+                    ? "color-mix(in oklch, var(--color-primary) 50%, transparent)"
+                    : "color-mix(in oklch, var(--color-foreground) 20%, transparent)"
                 }}
-                className="rounded-full border-dashed border-white/20 transition-colors duration-500"
+                className="rounded-full border-dashed transition-colors duration-500"
               />
             </motion.div>
 
@@ -61,7 +63,7 @@ export default function CustomCursor() {
             {/* 3. تأثير الـ Glow الجانبي (Subtle Glow) */}
             <motion.div
               style={{ x: trailX, y: trailY, translateX: "-50%", translateY: "-50%" }}
-              className="fixed top-0 left-0 w-20 h-20 bg-purple-500/10 blur-[40px] rounded-full -z-10"
+              className="fixed top-0 left-0 w-20 h-20 bg-primary/10 blur-2xl rounded-full -z-10"
               animate={{ opacity: hoverState.active ? 0.8 : 0.3 }}
             />
           </motion.div>

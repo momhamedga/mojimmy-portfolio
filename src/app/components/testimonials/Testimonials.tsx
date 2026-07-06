@@ -1,6 +1,6 @@
 "use client"
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { useMemo, useRef, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { Sparkles, ArrowLeft } from "lucide-react";
 import { REVIEWS } from "@/src/constants/reviews-data";
 import { ReviewCard } from "./ReviewCard";
@@ -28,10 +28,10 @@ export default function Testimonials() {
       
       {/* Background Typography */}
       <div className="absolute inset-0 flex flex-col justify-around pointer-events-none opacity-[0.03] select-none">
-        <motion.div style={{ x: xLeft }} className="flex gap-20 whitespace-nowrap text-[12vw] font-black text-white italic">
+        <motion.div style={{ x: xLeft }} className="flex gap-20 whitespace-nowrap text-[12vw] font-black text-foreground italic">
           {Array(3).fill("LIMITLESS • CREATIVITY •").join(" ")}
         </motion.div>
-        <motion.div style={{ x: xRight }} className="flex gap-20 whitespace-nowrap text-[12vw] font-black text-white" dir="rtl">
+        <motion.div style={{ x: xRight }} className="flex gap-20 whitespace-nowrap text-[12vw] font-black text-foreground" dir="rtl">
           {Array(3).fill("إتقان • شغف • ريادة •").join(" ")}
         </motion.div>
       </div>
@@ -39,12 +39,12 @@ export default function Testimonials() {
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         
         {/* Header */}
-        <div className="text-right mb-24 md:mb-32">
-          <motion.div initial={{ width: 0 }} whileInView={{ width: "80px" }} className="h-1 bg-primary mb-8 ml-auto rounded-full" />
-          <h2 className="text-6xl md:text-9xl font-black text-white font-cairo leading-none tracking-tighter mb-6">
-            شركاء <br/> <span className="text-primary">النجاح</span>
+        <div className="text-right mb-16 md:mb-20">
+          <motion.div initial={{ width: 0 }} whileInView={{ width: "80px" }} className="h-1 bg-primary mb-6 ml-auto rounded-full" />
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-foreground font-cairo leading-tight tracking-tight mb-4">
+            شركاء <span className="text-primary">النجاح</span>
           </h2>
-          <p className="text-gray-400 text-lg md:text-xl font-cairo max-w-2xl ml-auto">
+          <p className="text-foreground-dim text-lg md:text-xl font-cairo max-w-2xl ml-auto">
              نعتز بكل حرف قيل في حقنا من قادة السوق العربي.
           </p>
         </div>
@@ -63,8 +63,8 @@ export default function Testimonials() {
           className="mt-32 md:mt-48 p-12 md:p-24 rounded-[3rem] bg-glass border border-primary/20 text-center cursor-pointer group relative overflow-hidden"
         >
           <Sparkles className="text-yellow-500 mx-auto mb-8 animate-pulse" size={48} />
-          <h3 className="text-4xl md:text-7xl font-black text-white mb-10 font-cairo">هل أنت مستعد لتكون قصة النجاح القادمة؟</h3>
-          <div className="inline-flex items-center gap-4 px-10 py-5 bg-primary text-black rounded-full font-black text-xl hover:scale-105 transition-transform">
+          <h3 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground mb-10 font-cairo">هل أنت مستعد لتكون قصة النجاح القادمة؟</h3>
+          <div className="inline-flex items-center gap-4 px-10 py-5 bg-primary text-white rounded-full font-black text-xl hover:scale-105 transition-transform">
             <span>ابدأ رحلتك معنا</span>
             <ArrowLeft />
           </div>

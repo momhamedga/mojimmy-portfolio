@@ -2,17 +2,17 @@
 import { useState, useRef, useEffect } from "react";
 import { HeroContent } from "./HeroContent";
 import { HeroActions } from "./HeroActions";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import dynamic from 'next/dynamic';
 
 // Dynamic Import مع Loading State بسيط لو حبيت
-const StartProjectModal = dynamic(() => import("../ProjectModal/StartProjectModal"), { 
+const StartProjectModal = dynamic(() => import("../ProjectModal/StartProjectModal"), {
   ssr: false,
 });
 
 export default function Hero() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // 1. Ref لمراقبة الـ Section في الـ Viewport
   const sectionRef = useRef<HTMLElement>(null);
 
@@ -34,18 +34,32 @@ export default function Hero() {
   }, []);
 
   return (
-    <section 
-      id="home" 
+    <section
+      id="home"
       ref={sectionRef}
-      className="relative min-h-[90vh] flex flex-col items-center justify-center pt-20 overflow-hidden"
+      className="relative min-h-[85vh] flex flex-col items-center justify-center pt-32 md:pt-36 pb-16 overflow-hidden"
     >
-      {/* 3. الإضاءة العلوية باستخدام Ref-logic خفي */}
-      <div 
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[400px] bg-purple-600/10 blur-[150px] pointer-events-none rounded-full transition-opacity duration-1000"
+      {/* أورورا متحركة: 3 كتل ضوئية بلون العلامة التجارية بتتحرك ببطء وعضوية */}
+      <div
+        className="absolute inset-0 -z-10 pointer-events-none transition-opacity duration-1000"
         style={{ opacity: 'var(--hero-opacity, 1)' }}
-      />
-
-    
+      >
+        <motion.div
+          animate={{ x: [0, 60, -30, 0], y: [0, -40, 20, 0], scale: [1, 1.15, 0.95, 1] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[-10%] right-[15%] w-105 h-105 bg-primary/20 blur-[110px] rounded-full"
+        />
+        <motion.div
+          animate={{ x: [0, -50, 30, 0], y: [0, 30, -20, 0], scale: [1, 0.9, 1.1, 1] }}
+          transition={{ duration: 26, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-[10%] left-[10%] w-95 h-95 bg-accent/15 blur-[110px] rounded-full"
+        />
+        <motion.div
+          animate={{ x: [0, 30, -40, 0], y: [0, -20, 30, 0] }}
+          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+          className="absolute bottom-[-15%] left-1/3 w-80 h-80 bg-primary/10 blur-[100px] rounded-full"
+        />
+      </div>
 
       <div className="relative z-20 container mx-auto px-6 flex flex-col items-center text-center">
         <HeroContent />
@@ -57,9 +71,6 @@ export default function Hero() {
           <StartProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         )}
       </AnimatePresence>
-
-      {/* لمسة نهائية: الـ Grain Texture اللي بيخلي التصميم Cinematic */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
     </section>
   );
 }

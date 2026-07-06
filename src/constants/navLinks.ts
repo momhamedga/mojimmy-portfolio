@@ -33,37 +33,30 @@ export const navLinks: NavLink[] = [
     number: "04" 
   },
 
-  { 
-    id: 5, 
-    name: "رحلة العمل", 
-    href: "process", 
-    number: "06" 
+  {
+    id: 5,
+    name: "رحلة العمل",
+    href: "process",
+    number: "05"
   },
-  { 
-    id: 6, 
-    name: "الآراء", 
-    href: "testimonials", 
-    number: "07" 
+  {
+    id: 6,
+    name: "الآراء",
+    href: "testimonials",
+    number: "06"
   },
-  { 
-    id: 7, 
-    name: "الأسئلة", 
-    href: "faq", 
-    number: "08" 
+  {
+    id: 7,
+    name: "الأسئلة",
+    href: "faq",
+    number: "07"
   },
-  { 
-    id: 8, 
-    name: "تواصل معي", 
-    href: "contact", 
-    number: "09" 
+  {
+    id: 8,
+    name: "تواصل معي",
+    href: "contact",
+    number: "08"
   },
-];
-// روابط التواصل الاجتماعي للإبداع في القائمة الجانبية
-export const socialLinks = [
-  { name: "Behance", href: "#", label: "BE" },
-  { name: "LinkedIn", href: "#", label: "LN" },
-  { name: "Instagram", href: "#", label: "IG" },
-  { name: "X / Twitter", href: "#", label: "TW" },
 ];
 
 // معلومات الموقع (أبوظبي)

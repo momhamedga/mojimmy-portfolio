@@ -34,7 +34,7 @@ export default function About() {
       {/* Ambient Spotlight - Hidden on very small screens for performance */}
       <motion.div 
         style={{ top: spotlightY }}
-        className="absolute left-1/2 -translate-x-1/2 w-[100vw] md:w-[60vw] h-[100vw] md:h-[60vw] bg-[oklch(0.6_0.2_285_/_0.08)] blur-[80px] md:blur-[150px] rounded-full -z-10 pointer-events-none"
+        className="absolute left-1/2 -translate-x-1/2 w-[100vw] md:w-[60vw] h-[100vw] md:h-[60vw] bg-primary/8 blur-[80px] md:blur-[150px] rounded-full -z-10 pointer-events-none"
       />
 
       <div className="container mx-auto px-6 relative z-10">
@@ -46,20 +46,20 @@ export default function About() {
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md"
+                className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-border bg-foreground/[0.02] backdrop-blur-md"
               >
                 <span className="w-2 h-2 bg-primary rounded-full animate-ping" />
-                <span className="text-white/50 font-cairo text-[10px] md:text-xs uppercase tracking-[0.3em] font-bold">
+                <span className="text-foreground/50 font-cairo text-[10px] md:text-xs uppercase tracking-[0.3em] font-bold">
                   Story Mode
                 </span>
               </motion.div>
               
-              <h3 className="text-4xl md:text-8xl font-cairo font-black text-white leading-[1.1] md:leading-[0.9] tracking-tighter">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-cairo font-black text-foreground leading-[1.1] md:leading-[0.95] tracking-tight">
                 كود <br className="hidden md:block"/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent italic">
+                <span className="text-transparent bg-clip-text bg-linear-to-l from-primary to-accent">
                   بلمسة فن.
                 </span>
-              </h3>
+              </h2>
             </div>
 
             {/* الإحصائيات تظهر هنا في الموبايل وتكون sticky في الديسكتوب */}
@@ -68,7 +68,7 @@ export default function About() {
 
           {/* الجانب الأيسر: الكتابة المتفاعلة */}
           <div className="lg:col-span-8 mt-10 md:mt-0">
-            <div className="flex flex-wrap content-start text-3xl sm:text-5xl md:text-8xl font-cairo font-bold leading-[1.3] md:leading-[1.05] tracking-tighter text-right text-white/10">
+            <div className="flex flex-wrap content-start text-2xl sm:text-3xl md:text-5xl font-cairo font-bold leading-[1.4] md:leading-[1.2] tracking-tight text-right text-foreground/10">
               {words.map((word, i) => {
                 const start = i / words.length;
                 const end = start + (1 / words.length);

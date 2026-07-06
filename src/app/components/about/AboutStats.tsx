@@ -16,36 +16,36 @@ export function AboutStats({ progress }: { progress: MotionValue<number> }) {
   }, [percentage]);
 
   return (
-    <div className="pt-12 space-y-6 border-t border-white/10 w-full max-w-sm" dir="rtl">
+    <div className="pt-12 space-y-6 border-t border-border w-full max-w-sm" dir="rtl">
       <div className="flex justify-between items-end">
         <div className="space-y-1">
-          <span className="text-[oklch(0.7_0.2_285)] font-mono text-[10px] uppercase tracking-[0.4em] block font-bold">
+          <span className="text-primary font-mono text-[10px] uppercase tracking-[0.4em] block font-bold">
             Execution Level
           </span>
-          <span className="text-white/40 text-xs font-cairo">دقة التنفيذ الرقمي</span>
+          <span className="text-foreground/40 text-xs font-cairo">دقة التنفيذ الرقمي</span>
         </div>
-        
+
         <div className="flex items-baseline">
-          <motion.span className="text-white font-black text-5xl italic tracking-tighter leading-none">
+          <motion.span className="text-foreground font-black text-5xl italic tracking-tighter leading-none">
             {percent}
           </motion.span>
-          <span className="text-[oklch(0.7_0.2_285)] font-bold text-sm ml-1">%</span>
+          <span className="text-primary font-bold text-sm ml-1">%</span>
         </div>
       </div>
-      
+
       {/* Liquid Progress Bar */}
-      <div className="h-[4px] w-full bg-white/5 rounded-full relative overflow-visible">
-        <motion.div 
+      <div className="h-1 w-full bg-foreground/5 rounded-full relative overflow-visible">
+        <motion.div
           style={{ width: smoothWidth }}
-          className="absolute inset-0 bg-[oklch(0.7_0.2_285)] blur-md opacity-30"
+          className="absolute inset-0 bg-primary blur-md opacity-30"
         />
-        <motion.div 
+        <motion.div
           style={{ width: smoothWidth }}
-          className="h-full bg-gradient-to-l from-[oklch(0.7_0.2_250)] via-[oklch(0.7_0.2_285)] to-[oklch(0.7_0.2_330)] relative z-10 rounded-full" 
+          className="h-full bg-linear-to-l from-primary to-accent relative z-10 rounded-full"
         />
       </div>
       
-      <div className="flex justify-between items-center text-[9px] tracking-[0.2em] uppercase font-bold text-white/20">
+      <div className="flex justify-between items-center text-[9px] tracking-[0.2em] uppercase font-bold text-foreground/20">
         <span>Concept</span>
         <span>Design</span>
         <span>Deployment</span>

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,13 +17,21 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    /* --- Ultra-Modern 2026 Security & Code Quality Rules --- */
+    "noUnusedLocals": true, // يعترض لو فيه متغيرات متعرفة ومش مستخدمة
+    "noUnusedParameters": true, // يعترض لو الـ Parameters بتاعة الدوال مش مستخدمة
+    "noImplicitReturns": true, // يضمن إن كل مسارات الدالة بترجع قيمة
+    "noFallthroughCasesInSwitch": true, // يمنع الأخطاء في جمل الـ Switch-Case
+    "exactOptionalPropertyTypes": true, // يضمن إن الـ Optional Properties متخدش undefined بالخطأ
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -27,8 +39,10 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

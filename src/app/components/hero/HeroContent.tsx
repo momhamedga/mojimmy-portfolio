@@ -1,75 +1,108 @@
 "use client";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { useRef, useEffect } from "react";
 
-export const HeroContent = () => {
-  const glowRef = useRef<HTMLDivElement>(null); 
-  const { scrollY } = useScroll();
-  
-  // تحريك النص الخلفي فقط في الكمبيوتر لتقليل جهد الموبايل
-  const ghostY = useSpring(useTransform(scrollY, [0, 500], [0, -80]), { stiffness: 100, damping: 30 });
+import { motion, useInView, animate } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+
+interface StatItem {
+  label: string;
+  target?: number;
+  prefix?: string;
+  display?: string;
+}
+
+const STATS: StatItem[] = [
+  { target: 50, prefix: "+", label: "مشروع مكتمل" },
+  { target: 5, prefix: "+", label: "سنوات خبرة" },
+  { display: "24/7", label: "دعم فني" },
+];
+
+const Counter = ({ target, prefix }: { target: number; prefix: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-10%" });
+  const [value, setValue] = useState(0);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!glowRef.current || window.innerWidth < 768) return;
-      const { clientX, clientY } = e;
-      requestAnimationFrame(() => {
-        if (glowRef.current) {
-          glowRef.current.style.transform = `translate(calc(-50% + ${clientX * 0.02}px), ${clientY * 0.02}px)`;
-        }
-      });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+    if (!isInView) return;
+    const controls = animate(0, target, {
+      duration: 1.4,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setValue(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [isInView, target]);
 
   return (
-    <section className="relative min-h-[80vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden">
-   
+    <span ref={ref} className="tabular-nums">
+      {prefix}{value}
+    </span>
+  );
+};
 
-      {/* Badge - Mobile Optimized */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
+export const HeroContent = () => {
+  return (
+    <div className="relative flex flex-col items-center justify-center w-full max-w-4xl mx-auto">
+
+      {/* البادج العائم */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card flex items-center gap-3 px-4 py-2 rounded-full border border-white/5 bg-white/[0.01] mb-8"
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-border bg-surface backdrop-blur-md mb-8 shadow-sm"
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-        <span className="text-white/50 font-cairo text-[10px] md:text-xs uppercase tracking-widest font-bold">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--color-primary)]" />
+        <span className="text-foreground-dim font-cairo text-[10px] md:text-xs uppercase tracking-[0.25em] font-black">
           نطور الأفكار لمشاريع واقعية
         </span>
       </motion.div>
 
-      <div className="relative z-10">
-        {/* Ghost Text - Desktop Only */}
-        <motion.span 
-          style={{ y: ghostY }}
-          className="absolute -top-24 left-1/2 -translate-x-1/2 text-[10rem] md:text-[16rem] font-black text-white/[0.01] pointer-events-none hidden lg:block tracking-tighter font-cairo leading-none"
-        >
-          إبداع
-        </motion.span>
-
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-[8rem] font-black text-white leading-[1.1] md:leading-[0.9] tracking-tighter font-cairo"
-        >
-          نصنع <span className="text-white/20 italic font-extralight">واقعاً</span> <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white/50">
-            رقمياً مذهلاً.
-          </span>
-        </motion.h1>
-      </div>
-
-      <motion.p 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="max-w-2xl mt-8 text-white/40 text-lg md:text-2xl font-cairo font-light leading-relaxed"
+      {/* العنوان الرئيسي */}
+      <motion.h1
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
+        className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-foreground leading-[1.4] md:leading-tight tracking-normal font-cairo text-balance"
       >
-        نحول التعقيد البرمجي إلى بساطة بصرية، نصمم 
-        <span className="text-white mx-1.5 font-medium underline decoration-primary/30 underline-offset-8">أنظمة حية</span> 
+        نصنع <span className="text-foreground/40">واقعاً</span> <br className="hidden md:block" />
+        <motion.span
+          animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          className="text-transparent bg-clip-text bg-linear-to-r from-primary via-accent to-primary bg-size-[200%_auto]"
+        >
+          رقمياً مذهلاً.
+        </motion.span>
+      </motion.h1>
+
+      {/* وصف قصير */}
+      <motion.p
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.8 }}
+        className="max-w-lg mt-5 text-foreground-dim text-sm md:text-lg font-cairo font-light leading-relaxed px-4"
+      >
+        نحول التعقيد البرمجي إلى بساطة بصرية، نصمم
+        <span className="text-foreground mx-2 font-medium underline decoration-accent/40 underline-offset-8">أنظمة حية</span>
         تتنفس ابتكاراً.
       </motion.p>
-    </section>
+
+      {/* شريط الإحصائيات الزجاجي */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55, duration: 0.8 }}
+        className="glass-light mt-9 flex items-stretch gap-1 rounded-2xl p-1.5"
+      >
+        {STATS.map((stat, i) => (
+          <div
+            key={stat.label}
+            className={`flex flex-col items-center px-5 sm:px-7 py-3 ${i > 0 ? "border-r border-border" : ""}`}
+          >
+            <span className="text-lg sm:text-2xl font-black font-cairo text-primary tabular-nums">
+              {stat.display ?? <Counter target={stat.target!} prefix={stat.prefix!} />}
+            </span>
+            <span className="text-[9px] sm:text-[10px] text-foreground-dim font-cairo font-bold uppercase tracking-wide whitespace-nowrap">{stat.label}</span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
   );
 };

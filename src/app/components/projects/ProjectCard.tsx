@@ -1,112 +1,81 @@
 "use client";
-import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from "framer-motion";
-import { useState, useRef, useCallback } from "react";
+
+import { motion } from "framer-motion";
 import { ArrowUpLeft } from "lucide-react";
 import { Project } from "@/src/types/project";
 import Link from "next/link";
 
-export function ProjectCard({ project, index }: { project: Project; index: number }) {
-  const [isActive, setIsActive] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const themeColor = project.color || 'oklch(0.65 0.25 285)'; 
-  
-  const mouseX = useMotionValue(0);
-  const xOffset = useSpring(useTransform(mouseX, [-100, 100], [-15, 15]), { 
-    stiffness: 300, damping: 30 
-  });
+interface ProjectCardProps {
+  project: Project;
+  index: number;
+}
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!cardRef.current || window.innerWidth < 1024) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    mouseX.set(e.clientX - (rect.left + rect.width / 2));
-  }, [mouseX]);
+export function ProjectCard({ project, index }: ProjectCardProps) {
+  const hasLink = Boolean(project.link);
 
   return (
     <motion.div
-      ref={cardRef}
-      onMouseEnter={() => setIsActive(true)}
-      onMouseLeave={() => { setIsActive(false); mouseX.set(0); }}
-      onMouseMove={handleMouseMove}
-      className="relative w-full border-b border-white/5 group cursor-pointer overflow-hidden transition-all duration-500 bg-transparent"
+      initial={{ opacity: 0, y: 25 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-10%" }}
+      transition={{ duration: 0.6, delay: index * 0.08, ease: "easeOut" }}
     >
-      {/* Background Glow - Desktop Only */}
-      <div className={`absolute inset-0 transition-all duration-700 pointer-events-none hidden lg:block ${
-          isActive ? 'bg-[oklch(0.65_0.25_285/0.03)] backdrop-blur-md' : 'bg-transparent'
-        }`} 
-      />
-
-      <div className="relative z-10 px-4 py-10 md:py-28">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 md:gap-12">
-          
-          <div className="flex items-start gap-6 md:gap-16">
-            <span className="font-mono text-xs md:text-sm text-white/10 mt-2 md:mt-5 group-hover:text-primary transition-colors font-inter">
+      <Link
+        href={project.link || "#"}
+        target={hasLink ? "_blank" : undefined}
+        rel={hasLink ? "noopener noreferrer" : undefined}
+        className="group block h-full"
+      >
+        <div
+          className="relative h-full rounded-3xl border border-border bg-surface/60 backdrop-blur-xl overflow-hidden transition-all duration-500 md:group-hover:-translate-y-1.5 md:group-hover:shadow-xl"
+          style={{ '--project-color': project.color } as React.CSSProperties}
+        >
+          {/* شريط الغلاف العلوي — بلون المشروع نفسه، بديل عن صورة الغلاف */}
+          <div
+            className="relative h-24 md:h-28 flex items-center justify-between px-6 overflow-hidden transition-colors duration-500 border-b border-border md:group-hover:border-(--project-color)/30"
+            style={{ background: `linear-gradient(135deg, color-mix(in oklch, ${project.color} 18%, transparent), transparent)` }}
+          >
+            <span className="text-4xl md:text-5xl font-black font-mono text-foreground/10">
               {project.id.toString().padStart(2, '0')}
             </span>
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: project.color, boxShadow: `0 0 12px ${project.color}` }}
+            />
+          </div>
 
-            <div className="flex flex-col gap-6 md:gap-8">
-              <motion.h3 
-                style={{ x: xOffset }}
-                className="text-4xl md:text-[8rem] font-black font-cairo text-white/90 group-hover:text-white transition-all duration-700 tracking-tighter leading-[1] md:leading-[0.8]"
-              >
-                <span className="group-hover:text-primary transition-colors">
-                  {project.title.split(' ')[0]}
+          {/* المحتوى */}
+          <div className="p-6 md:p-7 flex flex-col gap-4 text-right" dir="rtl">
+            <h3 className="text-xl md:text-2xl font-black font-cairo text-foreground tracking-tight md:group-hover:text-(--project-color) transition-colors duration-300">
+              {project.title}
+            </h3>
+
+            <p className="text-sm text-foreground-dim leading-relaxed font-cairo font-light">
+              {project.description}
+            </p>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {project.tags?.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[10px] font-bold uppercase tracking-wider text-foreground-dim border border-border px-2.5 py-1 rounded-full"
+                >
+                  {tag}
                 </span>
-                <br />
-                {project.title.split(' ').slice(1).join(' ')}
-              </motion.h3>
-              
-              {/* Mobile Description - يظهر دائما في الموبايل */}
-              <p className="block lg:hidden text-sm md:text-lg text-white/40 leading-relaxed font-cairo font-light max-w-md">
-                {project.description}
-              </p>
+              ))}
+            </div>
 
-              <div className="flex flex-wrap gap-2 md:gap-3">
-                {project.tags?.map(tag => (
-                  <span key={tag} className="text-[8px] md:text-xs font-bold uppercase tracking-widest text-white/20 border border-white/5 px-3 py-1.5 rounded-full group-hover:border-primary/30 group-hover:text-primary transition-all">
-                    {tag}
-                  </span>
-                ))}
+            <div className="flex items-center justify-between pt-3 mt-1 border-t border-border">
+              <span className="text-xs font-bold text-foreground-dim md:group-hover:text-foreground transition-colors duration-300">
+                {hasLink ? "زيارة المشروع" : "قريباً"}
+              </span>
+              <div className="w-9 h-9 rounded-full border border-border flex items-center justify-center md:group-hover:border-(--project-color) transition-all duration-300">
+                <ArrowUpLeft size={15} className="text-foreground-dim md:group-hover:text-(--project-color) transition-all duration-300 md:group-hover:-translate-y-0.5 md:group-hover:translate-x-0.5" />
               </div>
             </div>
           </div>
-
-          {/* Desktop Description */}
-          <AnimatePresence>
-            {isActive && (
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="hidden xl:block max-w-sm"
-              >
-                <p className="text-xl text-white/40 leading-relaxed font-cairo font-light pr-8 border-r-2 border-primary/20 italic">
-                  {project.description}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Action Button - Optimized for Touch */}
-          <Link href={project.link || "#"} target="_blank" className="relative self-end lg:self-auto">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.9 }}
-              className="relative flex h-16 w-16 md:h-40 md:w-40 items-center justify-center rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 group-hover:border-primary/50 transition-all duration-700"
-            >
-              <ArrowUpLeft className="w-6 h-6 md:w-16 md:h-16 text-white group-hover:text-primary transition-all group-hover:-translate-y-1 group-hover:translate-x-1" />
-            </motion.div>
-          </Link>
         </div>
-      </div>
-
-      {/* Laser Bottom - Optimized Animation */}
-      <motion.div 
-        className="absolute bottom-0 left-0 h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent z-20"
-        initial={{ width: 0 }}
-        whileInView={{ width: "100%" }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.5, ease: "circOut" }}
-      />
+      </Link>
     </motion.div>
   );
 }

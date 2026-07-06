@@ -22,16 +22,16 @@ export const PROJECTS: Project[] = [
     id: "03", 
     title: "HH LAWYER", 
     description: "مكتب المحامي حسين الحارثي، وجهتكم الموثوقة للعدالة والاستشارات القانونية المتكاملة.", 
-    color: "oklch(0.75 0.15 80)", // ذهبي قانوني فخم
-    tags: ["Legal Tech", "SEO 2026", "Dark Mode"],
+    color: "oklch(0.65 0.15 80)", // ذهبي قانوني فخم
+    tags: ["Legal Tech", "SEO 2026", "Dark Mode", "Next","React"],
     link: "https://hhlawyer.vercel.app"
   },
   { 
     id: "04",
-    title: "CAPTAIN AHMED", 
-    description: "موقع رياضي ذكي يولد تمارين مخصصة باستخدام الذكاء الاصطناعي مع لوحات تحكم متطورة.", 
-    color: "oklch(0.7 0.25 45)", // برتقالي رياضي طاقة (Energy Orange)
-    tags: ["Fitness AI", "Motion Graphics", "Supabase"],
-    link: "https://kabtinahmedelebendary.online"
+    title: "jusoor international consulting ", 
+    description: "  منظومة  جسور انترناشيونال للأستشارات الإداريةالمتكاملة مع لوحات تحكم متطورة.", 
+    color: "oklch(01 0.25 95)", // برتقالي رياضي طاقة (Energy Orange)
+    tags: ["Next", "Motion Graphics", "React","typescript"],
+    link: "https://josour-international.vercel.app"
   },
 ];

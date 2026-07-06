@@ -15,6 +15,7 @@ export default function Preloader() {
     const progressTextRef = useRef<HTMLSpanElement>(null);
     const progressCircleRef = useRef<SVGCircleElement>(null);
     const progressVal = useRef(0);
+    const finishTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const handleResize = () => {
@@ -27,7 +28,7 @@ export default function Preloader() {
         // 2. محرك البروجرس بـ useRef
         const updateProgress = () => {
             if (progressVal.current >= 100) {
-                setTimeout(() => setIsActive(false), 800);
+                finishTimeoutRef.current = setTimeout(() => setIsActive(false), 800);
                 return;
             }
 
@@ -52,6 +53,7 @@ export default function Preloader() {
         return () => {
             cancelAnimationFrame(animationFrame);
             window.removeEventListener("resize", handleResize);
+            if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current);
         };
     }, []);
 
@@ -77,7 +79,7 @@ export default function Preloader() {
                     }}
                     initial="initial"
                     exit="exit"
-                    className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#020202] overflow-hidden"
+                    className="fixed inset-0 z-99999 flex flex-col items-center justify-center bg-[#020202] overflow-hidden"
                 >
                     {dimension.width > 0 && (
                         <>

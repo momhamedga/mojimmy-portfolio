@@ -36,11 +36,11 @@ export default function AnimatedFavicon() {
 
       // 3. رسم حرف الـ M بتدرج نيون (Linear Gradient)
       const gradient = ctx.createLinearGradient(0, 0, 32, 32);
-      gradient.addColorStop(0, "#a855f7"); // Purple-500
-      gradient.addColorStop(1, "#3b82f6"); // Blue-500
+      gradient.addColorStop(0, "#297cef"); // Royal Blue
+      gradient.addColorStop(1, "#db2943"); // Crimson
 
       ctx.shadowBlur = glowSize;
-      ctx.shadowColor = "rgba(168, 85, 247, 0.8)";
+      ctx.shadowColor = "rgba(41, 124, 239, 0.8)";
       
       ctx.fillStyle = pulse > 0.5 ? "#ffffff" : gradient; 
       ctx.font = "900 20px system-ui, -apple-system, sans-serif";
@@ -50,10 +50,10 @@ export default function AnimatedFavicon() {
 
       // 4. نقطة الحالة (Status Indicator) - بتتحرك ببطء
       ctx.shadowBlur = 12 * pulse;
-      ctx.shadowColor = "#a855f7";
+      ctx.shadowColor = "#db2943";
       ctx.beginPath();
       ctx.arc(26, 26, 3 * pulse, 0, Math.PI * 2);
-      ctx.fillStyle = "#a855f7";
+      ctx.fillStyle = "#db2943";
       ctx.fill();
 
       // تحديث الرابط بـ Low Quality PNG لتقليل حجم الـ Data URL

@@ -1,48 +1,68 @@
 "use server"
 
-export async function submitContactForm(formData: FormData) {
-  // 1. استخراج البيانات والتأكد منها
+const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+interface SubmitResult {
+  success: boolean;
+  message?: string;
+}
+
+export async function submitContactForm(formData: FormData): Promise<SubmitResult> {
+  // حقل فخ للبوتات (honeypot) — مخفي عن المستخدم الحقيقي، أي قيمة فيه تعني إرسال آلي
+  const honeypot = formData.get("company");
+  if (typeof honeypot === "string" && honeypot.trim().length > 0) {
+    return { success: true };
+  }
+
   const name = formData.get("name");
   const email = formData.get("email");
   const message = formData.get("message");
-  const access_key = "b02db0d8-32b5-41cc-b422-6bc4440cdcd5";
+  const subject = formData.get("subject");
 
-  // تأكد إن البيانات مش فاضية قبل ما نبعت
-  if (!name || !email || !message) {
-    return { success: false, message: "بيانات ناقصة" };
+  if (
+    typeof name !== "string" || typeof email !== "string" || typeof message !== "string" ||
+    name.trim().length < 2 || name.length > 100 ||
+    !EMAIL_PATTERN.test(email) || email.length > 200 ||
+    message.trim().length < 10 || message.length > 3000
+  ) {
+    return { success: false, message: "بيانات غير صحيحة، من فضلك راجع الحقول" };
+  }
+
+  const accessKey = process.env.WEB3FORMS_ACCESS_KEY;
+  if (!accessKey) {
+    console.error("WEB3FORMS_ACCESS_KEY غير معرّف في environment variables");
+    return { success: false, message: "الخدمة غير متاحة حالياً، حاول لاحقاً" };
   }
 
   try {
-    const response = await fetch("https://api.web3forms.com/submit", {
+    const response = await fetch(WEB3FORMS_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
-      // تحويل البيانات لـ JSON صريح
       body: JSON.stringify({
-        name: name,
-        email: email,
-        message: message,
-        access_key: access_key,
+        access_key: accessKey,
+        name,
+        email,
+        message,
         from_name: "موقعك الشخصي",
-        subject: "رسالة جديدة من نموذج الاتصال"
+        subject: typeof subject === "string" && subject.length > 0 ? subject : "رسالة جديدة من نموذج الاتصال",
       }),
     });
 
-    // جلب النص الخام أولاً للتأكد إنه مش HTML
     const text = await response.text();
-    
+
     try {
       const result = JSON.parse(text);
-      return result; // هيرجع { success: true }
-    } catch (parseError) {
+      return result;
+    } catch {
       console.error("الرد ليس JSON:", text);
-      return { success: false, error: "الرد من السيرفر غير متوقع" };
+      return { success: false, message: "الرد من السيرفر غير متوقع" };
     }
-
   } catch (error) {
     console.error("Server Action Error:", error);
-    return { success: false, error: "فشل الاتصال بالسيرفر" };
+    return { success: false, message: "فشل الاتصال بالسيرفر" };
   }
 }

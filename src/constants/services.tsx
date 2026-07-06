@@ -1,12 +1,10 @@
-import { 
-  Layout, 
-  Code2, 
-  Smartphone, 
-  Rocket, 
-  ShieldCheck, 
-  Cpu, 
-  Globe, 
-  Zap 
+import {
+  Layout,
+  Code2,
+  Smartphone,
+  Rocket,
+  ShieldCheck,
+  Cpu
 } from "lucide-react";
 import { ReactNode } from "react";
 

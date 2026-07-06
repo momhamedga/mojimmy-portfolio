@@ -1,22 +1,36 @@
 @import "tailwindcss";
 
+/* تفعيل dark variant عبر كلاس (متوافق مع next-themes attribute="class") بدل الاعتماد فقط على media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* -------------------------------------------------------------------------- */
 /* 1. Next-Gen Design System (OKLCH & CSS Variables)                          */
 /* -------------------------------------------------------------------------- */
 @theme {
---color-background: var(--color-background);
+  /* قيم افتراضية (تُستبدل فعليًا عبر :root / .dark أدناه — موجودة هنا فقط عشان Tailwind يولّد الـ utilities) */
+  /* هوية الألوان: أزرق ملكي (Primary) + كريمسون (Accent) */
+  --color-background: oklch(0.06 0.02 255);
+  --color-surface: oklch(0.13 0.02 255);
   --color-foreground: oklch(0.95 0.01 250);
---color-primary: var(--color-primary);    
---color-accent: var(--color-accent);    
---color-glass: oklch(1 0 0 / 0.03);     
-  
-  /* ألوان خاصة بتجربة التطبيق (App-like Palette) */
+  --color-foreground-dim: oklch(0.7 0.02 255);
+  --color-primary: oklch(0.6 0.19 258);
+  --color-accent: oklch(0.58 0.21 20);
+  --color-border: oklch(1 0 0 / 0.08);
+  --color-glass: oklch(1 0 0 / 0.03);
+
   --color-mobile-card: oklch(0.12 0.01 250 / 0.8);
   --color-ios-blur: rgba(255, 255, 255, 0.05);
+
+  /* مشتقّات primary — كانت مُستخدمة في أماكن كتير بدون تعريف (متغيّر غير موجود = تأثير معطّل بصمت) */
+  --color-primary-transparent: color-mix(in oklch, var(--color-primary) 18%, transparent);
+  --color-primary-faded: color-mix(in oklch, var(--color-primary) 8%, transparent);
 
   --font-cairo: var(--font-cairo);
   --font-almarai: var(--font-almarai);
   --font-inter: var(--font-inter);
+
+  /* breakpoint إضافي كان مستخدم في الكود (xs:) بدون ما يكون معرّف أصلاً */
+  --breakpoint-xs: 30rem;
 
   --animate-float: floating 6s ease-in-out infinite;
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -28,29 +42,62 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. Base Reinforcement (Performance Focused)                                */
+/* 2. Base Reinforcement (Lenis Friendly & Performance Focused)               */
 /* -------------------------------------------------------------------------- */
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
     --scroll-padding: 5rem;
+
+    --color-background: oklch(0.985 0.004 255);
+    --color-surface: oklch(0.965 0.008 255);
+    --color-foreground: oklch(0.2 0.02 255);
+    --color-foreground-dim: oklch(0.45 0.02 250);
+    --color-primary: oklch(0.45 0.18 258);
+    --color-accent: oklch(0.5 0.19 20);
+    --color-border: oklch(0 0 0 / 0.08);
+    --color-glass: oklch(0 0 0 / 0.03);
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --color-background: oklch(0.06 0.02 255);
+    --color-surface: oklch(0.13 0.02 255);
+    --color-foreground: oklch(0.95 0.01 250);
+    --color-foreground-dim: oklch(0.7 0.02 255);
+    --color-primary: oklch(0.6 0.19 258);
+    --color-accent: oklch(0.58 0.21 20);
+    --color-border: oklch(1 0 0 / 0.08);
+    --color-glass: oklch(1 0 0 / 0.03);
   }
 
   html {
-    scroll-behavior: smooth !important;
-    scroll-padding-top: var(--scroll-padding);
     background-color: var(--color-background);
     -webkit-font-smoothing: antialiased;
-    /* تحسين سرعة الاستجابة للموبايل */
     touch-action: manipulation;
+  }
+
+  /* تهيئة الـ Lenis على الـ html بشكل رسمي ومعتمد */
+  html.lenis, html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
   }
 
   body {
     position: relative;
+    background-color: var(--color-background);
+    transition: background-color 0.4s ease, color 0.4s ease;
     @apply text-foreground selection:bg-primary/20 selection:text-primary overflow-x-hidden;
   }
 
-  /* ملمس Noise سينمائي محسّن للأداء (Base64 لتقليل الـ Network Requests) */
   body::before {
     content: "";
     position: fixed;
@@ -67,23 +114,33 @@
 /* -------------------------------------------------------------------------- */
 @layer utilities {
   .glass-card {
-    @apply bg-glass border border-white/5 backdrop-blur-xl;
+    @apply bg-glass border border-border backdrop-blur-xl;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   }
 
-  /* تطبيق الـ Masking للـ LCP Optimization */
   .text-gradient-reveal {
-    @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-white/80 to-white/20;
+    @apply bg-clip-text text-transparent bg-linear-to-b from-foreground via-foreground/80 to-foreground/20;
     will-change: transform, opacity;
   }
 
   .neon-glow-primary {
-    filter: drop-shadow(0 0 15px oklch(0.65 0.25 285 / 0.4));
+    filter: drop-shadow(0 0 15px color-mix(in oklch, var(--color-primary) 40%, transparent));
   }
 
-  /* 4. Ghost Pulse Scrollbar - optimized v4 */
+  /* زجاجية خفيفة موحّدة — تُستخدم فوق أي خلفية فاتحة أو داكنة */
+  .glass-light {
+    @apply bg-surface/60 backdrop-blur-xl border border-border;
+  }
+
+  /* 💡 تشغيل السكرول بار الداخلي للمنيو (المسؤول عن الصورة) */
+  .custom-nav-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) transparent;
+  }
+
+  /* الـ Webkit Scrollbar الأساسي للصفحة واللوحات */
   ::-webkit-scrollbar {
-    width: 6px; 
+    width: 6px;
     background: transparent;
   }
 
@@ -99,72 +156,4 @@
     background: var(--color-primary);
     box-shadow: 0 0 10px var(--color-primary);
   }
-}
-
-/* -------------------------------------------------------------------------- */
-/* 5. Mobile & App Experience (The Magic Touch)                               */
-/* -------------------------------------------------------------------------- */
-@media (max-width: 768px) {
-  body {
-    /* تجربة سحب "مطاطية" زي الـ iOS */
-    overscroll-behavior-y: contain;
-  }
-  
-  /* Mobile App Card - نسخة خاصة للموبايل فقط */
-  .mobile-app-card {
-    background: var(--color-mobile-card);
-    @apply backdrop-blur-2xl rounded-[32px] border border-white/10;
-  }
-
-  /* تقليل الأنيميشن في الموبايل لتوفير البطارية ورفع الـ FPS */
-  .animate-float {
-    animation-duration: 10s;
-  }
-}
-
-@layer base {
-  /* الصباح: Cyan */
-  .theme-morning {
-    --color-primary: oklch(0.7 0.2 210);
-    --color-background: oklch(0.1 0.01 210);
-    --color-accent: oklch(0.8 0.1 190);
-  }
-
-  /* الظهيرة: Indigo */
-  .theme-afternoon {
-    --color-primary: oklch(0.6 0.2 260);
-    --color-background: oklch(0.08 0.02 260);
-    --color-accent: oklch(0.7 0.15 280);
-  }
-
-  /* المساء: Sunset */
-  .theme-evening {
-    --color-primary: oklch(0.65 0.25 330);
-    --color-background: oklch(0.07 0.02 330);
-    --color-accent: oklch(0.7 0.2 20);
-  }
-
-  /* الليل: Neon */
-  .theme-night {
-    --color-primary: oklch(0.6 0.3 285);
-    --color-background: oklch(0.05 0.03 285);
-    --color-accent: oklch(0.5 0.2 300);
-  }
-}
-
-/* ربط الخلفية بالمتغير */
-body {
-  background-color: var(--color-background);
-  transition: background-color 2s ease, color 2s ease;
-}
-html.lenis {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
 }

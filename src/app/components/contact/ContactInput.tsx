@@ -1,11 +1,11 @@
 "use client"
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, type LucideIcon } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { useState } from "react";
 
 interface Props {
-  icon: any;
+  icon: LucideIcon;
   name: string;
   placeholder: string;
   type?: string;
@@ -21,10 +21,10 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
       <motion.div 
         animate={isFocused ? { scale: 1.01 } : { scale: 1 }}
         className={cn(
-          "relative flex items-start gap-4 p-6 rounded-[2rem] border transition-all duration-500 bg-white/[0.02] backdrop-blur-3xl",
-          isFocused 
-            ? "border-primary bg-white/[0.05] shadow-[0_0_50px_rgba(var(--primary-rgb),0.1)]" 
-            : "border-white/[0.05] hover:border-white/10",
+          "relative flex items-start gap-4 p-6 rounded-[2rem] border transition-all duration-500 bg-foreground/[0.02] backdrop-blur-3xl",
+          isFocused
+            ? "border-primary bg-foreground/[0.05] shadow-[0_0_50px_var(--color-primary-transparent)]"
+            : "border-border hover:border-primary/30",
           error ? "border-red-500/50" : ""
         )}
       >
@@ -33,7 +33,7 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
             size={18} 
             className={cn(
               "transition-all duration-500",
-              isFocused ? "text-primary scale-110 rotate-[-10deg]" : "text-gray-600"
+              isFocused ? "text-primary scale-110 rotate-[-10deg]" : "text-foreground-dim"
             )} 
           />
         </div>
@@ -44,7 +44,7 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
             rows={4}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className="w-full bg-transparent text-white text-lg outline-none resize-none placeholder:text-white/10 font-cairo font-medium"
+            className="w-full bg-transparent text-foreground text-lg outline-none resize-none placeholder:text-foreground/10 font-cairo font-medium"
             placeholder={placeholder}
           />
         ) : (
@@ -54,14 +54,14 @@ export default function ContactInput({ icon: Icon, name, placeholder, type = "te
             autoComplete="off"
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className="w-full bg-transparent text-white text-lg outline-none placeholder:text-white/10 font-cairo font-medium h-full"
+            className="w-full bg-transparent text-foreground text-lg outline-none placeholder:text-foreground/10 font-cairo font-medium h-full"
             placeholder={placeholder}
           />
         )}
 
         {/* Decorative Side Edge */}
         <div className={cn(
-          "absolute right-0 top-1/2 -translate-y-1/2 w-[3px] bg-primary transition-all duration-500 rounded-l-full",
+          "absolute right-0 top-1/2 -translate-y-1/2 w-0.75 bg-primary transition-all duration-500 rounded-l-full",
           isFocused ? "h-1/2 opacity-100" : "h-0 opacity-0"
         )} />
       </motion.div>

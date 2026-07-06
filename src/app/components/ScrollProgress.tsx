@@ -1,6 +1,6 @@
 "use client"
-import { motion, useScroll, useSpring, useTransform, useMotionValueEvent } from "framer-motion";
-import { useRef, useEffect } from "react";
+import { motion, useScroll, useSpring, useMotionValueEvent } from "framer-motion";
+import { useRef } from "react";
 
 export default function ScrollProgress() {
   const { scrollYProgress } = useScroll();
@@ -35,14 +35,14 @@ export default function ScrollProgress() {
   });
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[99999] pointer-events-none">
+    <div className="fixed top-0 left-0 right-0 z-99999 pointer-events-none">
       {/* 1. الخط الأساسي (The Glowing Line) */}
       <motion.div
         ref={lineRef}
-        className="absolute top-0 left-0 right-0 origin-left bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-400"
-        style={{ 
+        className="absolute top-0 left-0 right-0 origin-left bg-linear-to-r from-primary via-accent to-primary"
+        style={{
             scaleX,
-            boxShadow: "0 0 20px rgba(168, 85, 247, 0.4)"
+            boxShadow: "0 0 20px color-mix(in oklch, var(--color-primary) 40%, transparent)"
         }}
       />
 
@@ -56,11 +56,11 @@ export default function ScrollProgress() {
         <div className="w-1.5 h-4 bg-white rounded-full shadow-[0_0_15px_2px_#fff] blur-[0.2px]" />
         
         {/* كشاف الضوء النازل (Flare effect) */}
-        <div className="w-[1px] h-20 bg-gradient-to-b from-white/40 via-white/5 to-transparent" />
+        <div className="w-px h-20 bg-linear-to-b from-white/40 via-white/5 to-transparent" />
       </div>
 
       {/* 3. خلفية Glassmorphism خفيفة جداً لتعزيز العمق */}
-      <div className="absolute top-0 left-0 right-0 h-[4px] bg-white/[0.03] backdrop-blur-[2px] -z-10" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-foreground/3 backdrop-blur-[2px] -z-10" />
     </div>
   );
 }

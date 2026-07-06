@@ -52,8 +52,8 @@ export const MobileDock = memo(() => {
   };
 
   return (
-    <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-[400px]">
-      <nav className="relative flex items-center justify-around p-2 rounded-[2.2rem] bg-black/40 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+    <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-100 w-[92%] max-w-100">
+      <nav className="relative flex items-center justify-around p-2 rounded-[2.2rem] bg-surface/70 backdrop-blur-2xl border border-border shadow-xl shadow-black/10 overflow-hidden">
         
         {/* تأثير إضاءة خلفي (Glow) يتبع العنصر النشط */}
         <div className="absolute inset-0 pointer-events-none">
@@ -80,7 +80,7 @@ export const MobileDock = memo(() => {
                 {isActive && (
                   <motion.div
                     layoutId="mobile-nav-pill"
-                    className="absolute inset-x-1.5 inset-y-1 bg-gradient-to-b from-white/[0.08] to-transparent rounded-[1.2rem] border border-white/[0.05] z-0"
+                    className="absolute inset-x-1.5 inset-y-1 bg-linear-to-b from-foreground/8 to-transparent rounded-[1.2rem] border border-border z-0"
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
@@ -89,12 +89,12 @@ export const MobileDock = memo(() => {
               {/* الأيقونة */}
               <div className={cn(
                 "relative z-10 transition-all duration-500",
-                isActive ? "text-primary -translate-y-1" : "text-white/30"
+                isActive ? "text-primary -translate-y-1" : "text-foreground-dim"
               )}>
-                <Icon 
-                   size={22} 
-                   strokeWidth={isActive ? 2.5 : 2} 
-                   className={isActive ? "drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" : ""}
+                <Icon
+                   size={22}
+                   strokeWidth={isActive ? 2.5 : 2}
+                   style={isActive ? { filter: "drop-shadow(0 0 8px color-mix(in oklch, var(--color-primary) 50%, transparent))" } : undefined}
                 />
               </div>
 
@@ -103,7 +103,7 @@ export const MobileDock = memo(() => {
                 animate={{ opacity: isActive ? 1 : 0.4, scale: isActive ? 1 : 0.9 }}
                 className={cn(
                   "relative z-10 text-[10px] font-cairo font-black mt-1 uppercase tracking-tighter transition-colors",
-                  isActive ? "text-white" : "text-white/40"
+                  isActive ? "text-foreground" : "text-foreground-dim"
                 )}
               >
                 {item.label}
@@ -113,7 +113,7 @@ export const MobileDock = memo(() => {
               {isActive && (
                 <motion.div 
                   layoutId="dot"
-                  className="absolute bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_#a855f7]"
+                  className="absolute bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_var(--color-primary)]"
                 />
               )}
             </button>
