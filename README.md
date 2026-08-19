@@ -1,4 +1,4 @@
-# Mohamed Jimmy Portfolio
+# Mohamed Gamal Portfolio
 
 موقع بورتفوليو شخصي بالعربية (RTL)، صفحة واحدة، مبني على Next.js App Router ومنشور على Vercel.
 

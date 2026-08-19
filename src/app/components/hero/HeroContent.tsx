@@ -13,11 +13,14 @@ export const HeroContent = () => {
       {/* الاسم — يشغل موضع البادج نفسه */}
       <div className="enter-rise flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-border bg-surface backdrop-blur-md mb-8 shadow-sm">
         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--color-primary)]" />
-        <span
-          dir="ltr"
-          className="text-foreground-dim font-cairo text-[10px] md:text-xs uppercase tracking-[0.25em] font-black"
-        >
-          Mohamed Jimmy
+        {/*
+          الاسم صار عربيًا في 7.1، فأُزيلت الخصائص اللاتينية:
+          dir="ltr" (الاتجاه يُورَث من <html dir="rtl">)، و tracking الواسع
+          الذي يفصل حروف الخط المتصل، و uppercase الذي لا أثر له في العربية.
+          الحجم واللون والوزن والبنية كما هي.
+        */}
+        <span className="text-foreground-dim font-cairo text-[10px] md:text-xs font-black">
+          محمد جمال
         </span>
       </div>
 
