@@ -1,22 +1,22 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { ProjectCard } from "./ProjectCard";
-import { PROJECTS } from "@/src/constants/projects";
+import { PROJECTS } from "@/constants/projects";
 
+/**
+ * Server Component — عرض رأسي للمشاريع، محتوى ثابت بالكامل بصفر JavaScript.
+ *
+ * 5B.4: شبكة 2×2 → مكدّس بعرض كامل. المشاريع أهم دليل في الموقع،
+ * فأخذت حضورًا بصريًا أكبر بدل بطاقتين متجاورتين ضيّقتين.
+ */
 export default function Projects() {
   return (
-    <section id="projects" dir="rtl" className="py-24 md:py-32 relative bg-transparent overflow-hidden">
+    <section
+      id="projects"
+      dir="rtl"
+      className="py-24 md:py-32 relative bg-transparent overflow-hidden"
+    >
       <div className="container mx-auto px-6 relative z-10">
-
         {/* الهيدر */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="mb-14 md:mb-16 text-center"
-        >
+        <div className="reveal mb-14 md:mb-16 text-center">
           <div className="inline-flex items-center gap-3 mb-5">
             <div className="h-px w-8 bg-primary shadow-[0_0_10px_var(--color-primary)]" />
             <span className="text-foreground-dim font-cairo text-[10px] md:text-xs tracking-[0.3em] font-black uppercase">
@@ -31,12 +31,12 @@ export default function Projects() {
               مختارة.
             </span>
           </h2>
-        </motion.div>
+        </div>
 
-        {/* شبكة المشاريع */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {PROJECTS.map((project, i) => (
-            <ProjectCard key={project.id} project={project} index={i} />
+        {/* عرض رأسي — بطاقة بعرض كامل لكل مشروع */}
+        <div className="flex flex-col gap-8 md:gap-10">
+          {PROJECTS.map((project) => (
+            <ProjectCard key={project.id} project={project} />
           ))}
         </div>
       </div>

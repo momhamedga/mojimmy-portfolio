@@ -1,6 +1,5 @@
-"use client"
+"use client";
 import { useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 
 interface OptionProps {
   label: string;
@@ -8,6 +7,19 @@ interface OptionProps {
   onClick: () => void;
 }
 
+/**
+ * خيار خطوة داخل المودال.
+ *
+ * إتاحة (Phase 4): كان الاختيار مرئيًا فقط — قارئ الشاشة ما كانش يعرف
+ * أي خيار مُنتقى. بقى `<button>` أصلي بـ`aria-pressed`.
+ *
+ * ليه button مش radio؟ لأن اختيار الخيار **ينقل للخطوة التالية فورًا**،
+ * فهو إجراء تنقّل لا حقل نموذج. مع radio كانت أسهم الكيبورد هتغيّر الاختيار
+ * وتقفز للخطوة التالية مع كل ضغطة، فيستحيل تصفّح الخيارات بالكيبورد.
+ * (§40 بيسمح بالأزرار صراحةً في حالة خيارات التنقّل.)
+ *
+ * كل الحركات بقت CSS فبتحترم prefers-reduced-motion من الطبقة العامة.
+ */
 export const StepOption = ({ label, selected, onClick }: OptionProps) => {
   const isProcessing = useRef(false);
 
@@ -21,74 +33,40 @@ export const StepOption = ({ label, selected, onClick }: OptionProps) => {
   };
 
   return (
-    <motion.button
-      whileTap={{ scale: 0.98 }}
+    <button
+      type="button"
+      aria-pressed={selected}
       onClick={handleSafeClick}
-      // إزالة الكلاسات الملونة الثابتة واستبدالها بمتغيرات CSS
-      className={`w-full text-right p-6 rounded-[1.8rem] border transition-all duration-700 group relative overflow-hidden
-        ${selected 
-          ? "text-foreground shadow-2xl" 
-          : "border-border bg-foreground/[0.02] text-foreground/30 hover:border-primary/20 hover:bg-foreground/[0.04]"}`}
-      style={{
-        borderColor: selected ? "var(--color-primary)" : "",
-        backgroundColor: selected ? "color-mix(in oklch, var(--color-primary) 8%, transparent)" : ""
-      }}
+      className={`w-full text-right p-6 rounded-[1.8rem] border transition-all duration-500 relative overflow-hidden active:scale-[0.98] ${
+        selected
+          ? "text-foreground border-primary shadow-2xl"
+          : "border-border-strong bg-foreground/[0.02] text-foreground-dim hover:border-primary/50 hover:bg-foreground/[0.04] hover:text-foreground"
+      }`}
+      style={
+        selected
+          ? { backgroundColor: "color-mix(in oklch, var(--color-primary) 10%, transparent)" }
+          : undefined
+      }
     >
-      {/* 1. التوهج الخلفي (Adaptive Glow) */}
-      <AnimatePresence>
-        {selected && (
-          <motion.div 
-            layoutId="option-glow"
-            className="absolute inset-0 blur-2xl opacity-10 transition-colors duration-2000"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.15 }}
-            exit={{ opacity: 0 }}
-            style={{ backgroundColor: "var(--color-primary)" }}
-          />
-        )}
-      </AnimatePresence>
+      <span className="flex items-center justify-between relative z-10">
+        {/* مؤشر بصري — الحالة الحقيقية معلنة عبر aria-pressed */}
+        <span
+          aria-hidden="true"
+          className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
+            selected
+              ? "bg-primary scale-125 shadow-[0_0_12px_var(--color-primary)]"
+              : "bg-foreground/20"
+          }`}
+        />
 
-      <div className="flex items-center justify-between relative z-10">
-        {/* 2. مؤشر الحالة (Interactive Dot) */}
-        <div className="relative">
-           <div 
-             className={`w-2.5 h-2.5 rounded-full transition-all duration-700 ${selected ? "scale-125 shadow-[0_0_12px_var(--color-primary)]" : "bg-foreground/10"}`} 
-             style={{ backgroundColor: selected ? "var(--color-primary)" : "" }}
-           />
-           {selected && (
-             <motion.div 
-               layoutId="dot-pulse"
-               className="absolute inset-0 rounded-full blur-[4px] transition-colors duration-2000"
-               style={{ backgroundColor: "var(--color-primary)" }}
-               animate={{ scale: [1, 2, 1], opacity: [0.6, 0, 0.6] }}
-               transition={{ duration: 2, repeat: Infinity }}
-             />
-           )}
-        </div>
-
-        <span className={`font-cairo font-bold text-base tracking-tight transition-all duration-500 ${selected ? "translate-x-1" : "group-hover:text-foreground/60"}`}>
+        <span
+          className={`font-cairo font-bold text-base tracking-tight transition-transform duration-500 ${
+            selected ? "translate-x-1" : ""
+          }`}
+        >
           {label}
         </span>
-      </div>
-
-      {/* 3. تأثير اللمعة السينمائي (Adaptive Gloss) */}
-      <AnimatePresence>
-        {selected && (
-          <motion.div 
-            className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/[0.05] to-transparent -skew-x-20"
-            initial={{ x: "-150%" }}
-            animate={{ x: "150%" }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* 4. تأثير الحدود المضيئة عند الـ Hover (اختياري لكنه فخم جداً) */}
-      {!selected && (
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-            <div className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-foreground/10 to-transparent" />
-        </div>
-      )}
-    </motion.button>
+      </span>
+    </button>
   );
 };

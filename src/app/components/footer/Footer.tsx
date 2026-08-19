@@ -1,166 +1,140 @@
-"use client"
-import { motion } from "framer-motion";
-import { Github, Facebook, Instagram, ArrowUpLeft, Globe, Clock } from "lucide-react";
+import { ArrowUpLeft, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import Magnetic from "../Magnetic";
+import SmoothScrollLink from "../SmoothScrollLink";
 import { Logo } from "../Layouts/Logo";
-import { navLinks } from "@/src/constants/navLinks";
-import { useCallback, useMemo, useEffect, useRef, memo, type ReactNode } from "react";
+import { navLinks } from "@/constants/navLinks";
+import { CONTACT_EMAIL } from "@/constants/site";
 
-interface SocialLinkData {
-  icon: ReactNode;
-  href: string;
-  label: string;
-}
+/** نفس رابط زر واتساب العائم — لم يُنشأ رقم جديد. */
+const WHATSAPP_URL = "https://wa.me/+971589915968";
 
-// مكون الروابط الاجتماعية — چيبس زجاجية أصغر بنفس لغة TechIcon/ProjectCard
-const SocialLink = memo(({ link }: { link: SocialLinkData }) => {
-  const isExternalHttp = typeof link.href === "string" && link.href.startsWith("http");
+const SOCIAL_LINKS = [
+  { name: "GitHub", href: "https://github.com/momhamedga" },
+  { name: "Facebook", href: "https://www.facebook.com/midoga20/" },
+  { name: "Instagram", href: "https://www.instagram.com/jimmy_mo98/" },
+];
 
-  const handleTouch = () => {
-    if (typeof window !== "undefined" && window.navigator.vibrate) {
-      window.navigator.vibrate(8);
-    }
-  };
-
-  return (
-    <Magnetic intensity={0.3}>
-      <motion.a
-        href={link.href}
-        target={isExternalHttp ? "_blank" : undefined}
-        rel={isExternalHttp ? "noopener noreferrer" : undefined}
-        onTouchStart={handleTouch}
-        whileTap={{ scale: 0.92 }}
-        aria-label={link.label}
-        className="group flex items-center justify-center w-11 h-11 rounded-2xl bg-surface/60 border border-border backdrop-blur-xl transition-all duration-300 md:hover:-translate-y-1 md:hover:border-primary/40"
-      >
-        <span className="text-foreground-dim md:group-hover:text-primary transition-colors duration-300">
-          {link.icon}
-        </span>
-      </motion.a>
-    </Magnetic>
-  );
-});
-
-SocialLink.displayName = "SocialLink";
-
+/**
+ * Server Component — القسم الختامي. صفر JavaScript عدا SmoothScrollLink.
+ *
+ * 5B.10 / 5B.10.1: حُذفت ساعة LocalTime وشارة التوفّر وسطر الموقع وغلاف
+ * Magnetic، وثُبّتت سنة الحقوق، وأُصلح تباين سطر الحقوق، وزال الزجاج والضبابية.
+ *
+ * 5B.10.2 — إعادة تركيب بصرية:
+ * - كان العنوان والنص في أقصى جهة والزر في الجهة المقابلة، فلم يُقرأ الثلاثة
+ *   كوحدة تحويل واحدة. الزر الآن أسفل النص مباشرة: عنوان ← وصف ← زر، مسار واحد.
+ * - المنطقة الخدمية كانت ثلاثة أعمدة مفرودة على كامل العرض بفراغ أفقي كبير.
+ *   بقت صفًا مرنًا متلاصقًا (flex-wrap بمسافات محددة) لا يتمدّد ليملأ العرض.
+ * - الروابط الستة كانت عمودًا رأسيًا طويلًا يشبه خريطة موقع. بقت شبكة 2×3 مضغوطة.
+ * - كتلة الهوية كانت شعارًا كبيرًا معزولًا. صارت عنقودًا صغيرًا: علامة + اسم + دور.
+ * - لمسة زخرفية واحدة فقط: خط تدرّج العلامة (أحمر→بنفسجي→أزرق) أعلى الفوتر.
+ *   بلا نقش ولا توهّج ولا خلفية متحركة.
+ * - خلفية هادئة (bg-surface/40) تفصل الفوتر عن الصفحة وتخلق إغلاقًا بصريًا،
+ *   بلا أي مادة كارت للبيان الختامي.
+ */
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
-  const timeRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const updateTime = () => {
-      const uaeTime = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Dubai',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      }).format(new Date());
-
-      if (timeRef.current) {
-        timeRef.current.textContent = uaeTime;
-      }
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const socialLinks = useMemo(() => [
-    { icon: <Github size={17} />, href: "https://github.com/momhamedga", label: "جيت هاب" },
-    { icon: <Facebook size={17} />, href: "https://www.facebook.com/midoga20/", label: "فيسبوك" },
-    { icon: <Instagram size={17} />, href: "https://www.instagram.com/jimmy_mo98/", label: "إنستجرام" },
-  ], []);
-
-  const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (typeof window !== "undefined" && window.navigator.vibrate) {
-      window.navigator.vibrate(15);
-    }
-  }, []);
-
   return (
-    <footer className="relative pt-20 md:pt-24 pb-10 overflow-hidden" id="footer" dir="rtl">
+    <footer id="footer" dir="rtl" className="relative bg-surface/40 pt-20 md:pt-24 pb-10">
+      {/* اللمسة الزخرفية الوحيدة — خط تدرّج العلامة */}
+      <div
+        aria-hidden="true"
+        className="absolute top-0 inset-x-0 h-px bg-linear-to-l from-accent/60 via-primary/60 to-transparent"
+      />
 
-      {/* توهّج خلفي هادئ */}
-      <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
-      <div className="absolute -bottom-40 right-0 w-125 h-125 bg-accent/5 blur-[150px] rounded-full pointer-events-none" />
-      <div className="absolute -bottom-40 left-0 w-125 h-125 bg-primary/5 blur-[150px] rounded-full pointer-events-none" />
+      <div className="max-w-6xl mx-auto px-6">
+        {/* ── منطقة أ: البيان الختامي ── */}
+        <div className="reveal grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 pb-14 md:pb-16">
+          {/* وحدة التحويل: عنوان + وصف + زر، مجمّعة ومتتابعة */}
+          <div className="lg:col-span-7">
+            <span className="text-primary font-cairo font-bold tracking-[0.4em] text-[10px] md:text-xs uppercase block mb-5">
+              Contact
+            </span>
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
-
-        {/* بطاقة الدعوة الختامية — زجاج + بورد + نقش زخرفي + توهّج ركني، بنفس لغة كروت الخدمات */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-10%" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="relative rounded-3xl border border-border bg-glass backdrop-blur-2xl overflow-hidden px-6 py-10 md:px-14 md:py-12 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 text-center md:text-right mb-16 md:mb-20"
-        >
-          {/* نقش النقاط الزخرفي */}
-          <div
-            className="absolute -top-8 -right-8 w-40 h-40 opacity-[0.1] pointer-events-none"
-            style={{
-              backgroundImage: "radial-gradient(var(--color-primary) 1.5px, transparent 1.5px)",
-              backgroundSize: "16px 16px",
-            }}
-          />
-          {/* توهّج ركني */}
-          <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-accent/20 blur-[80px] pointer-events-none" />
-
-          <div className="relative z-10">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black font-cairo text-foreground tracking-tight mb-2">
-              عندك فكرة مشروع؟
+            <h2 className="text-4xl md:text-5xl font-black font-cairo text-foreground tracking-tight leading-tight">
+              {/* المسافة بين السطرين مقصودة: بلا فاصل يُحسب الاسم المتاح للعنوان
+                  «عندك فكرة تستحقتتحول لمشروع؟» ملتصقًا في بعض قارئات الشاشة. */}
+              <span className="block">عندك فكرة تستحق</span>{" "}
+              <span className="block text-transparent bg-clip-text bg-linear-to-l from-primary to-accent">
+                تتحول لمشروع؟
+              </span>
             </h2>
-            <p className="text-foreground-dim text-sm md:text-base font-cairo">
-              لنحوّلها لواقع رقمي مذهل — نبدأ النهاردة.
+
+            <p className="mt-5 text-sm md:text-base text-foreground-dim font-cairo leading-relaxed max-w-md">
+              تواصل معي وخلينا نحدد أفضل طريقة لتحويل فكرتك إلى تجربة ويب واضحة وقابلة للتطوير.
             </p>
-          </div>
-          <Magnetic>
-            <button
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-              className="relative z-10 shrink-0 flex items-center gap-3 px-8 py-4 rounded-full bg-primary text-white font-cairo font-black text-base hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20"
+
+            <SmoothScrollLink
+              targetId="contact"
+              className="group mt-8 inline-flex items-center gap-3 min-h-12 px-8 py-4 rounded-full bg-primary-strong text-white font-cairo font-black text-base transition-opacity hover:opacity-90 active:scale-[0.98]"
             >
-              لنتعاون؟
-              <ArrowUpLeft size={20} />
-            </button>
-          </Magnetic>
-        </motion.div>
+              ابدأ مشروعك
+              <ArrowUpLeft
+                aria-hidden="true"
+                size={18}
+                className="transition-transform duration-300 group-hover:-translate-x-1"
+              />
+            </SmoothScrollLink>
+          </div>
 
-        {/* الشبكة الرئيسية — هوية الماركة | روابط سريعة | تواصل */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 pb-14 border-t border-border pt-14">
+          {/* التواصل المباشر — نص تحريري، بلا كارت ولا مربّعات أيقونات */}
+          <div className="lg:col-span-4 lg:col-start-9">
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-foreground-dim font-cairo mb-5">
+              تواصل مباشرة
+            </h2>
 
-          {/* هوية الماركة */}
-          <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-right">
-            <div className="scale-90 origin-center md:origin-right">
+            <p className="text-[11px] font-cairo font-bold text-foreground-dim">
+              البريد الإلكتروني
+            </p>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              dir="ltr"
+              className="mt-1 inline-block text-sm md:text-base font-bold text-foreground wrap-break-word text-right transition-colors md:hover:text-primary"
+            >
+              {CONTACT_EMAIL}
+            </a>
+
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="واتساب (يفتح في تبويب جديد)"
+              className="group mt-5 flex items-center gap-1.5 min-h-11 w-fit text-sm md:text-base font-cairo font-bold text-foreground transition-colors md:hover:text-primary"
+            >
+              واتساب
+              <ArrowUpLeft
+                aria-hidden="true"
+                size={14}
+                className="shrink-0 transition-transform duration-300 group-hover:-translate-x-0.5"
+              />
+            </a>
+          </div>
+        </div>
+
+        {/* ── منطقة ب: خدمية مضغوطة، بعد فاصل واحد ── */}
+        <div className="border-t border-border pt-10 pb-10 flex flex-wrap gap-x-16 gap-y-10">
+          {/* الهوية — عنقود صغير، الشعار غير مهيمن */}
+          <div className="flex items-center gap-3">
+            {/* الشعار مصغّر ومسحوب بخاصية منطقية (-me) لا بـ-ml، فيصح في الاتجاهين */}
+            <div className="scale-[0.6] origin-right -me-4">
               <Logo />
             </div>
-            <p className="text-foreground-dim text-sm font-cairo leading-relaxed max-w-56">
-              مطوّر واجهات وتجارب ويب تجمع بين الأداء والتصميم.
-            </p>
-            <div className="flex items-center gap-2.5 text-foreground-dim font-cairo text-xs">
-              <Globe size={14} className="text-primary" />
-              <span>أبوظبي، الإمارات</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-foreground font-bold font-cairo text-sm tracking-tight">
-              <Clock size={14} className="text-accent" />
-              <span ref={timeRef} suppressHydrationWarning className="tabular-nums">--:--:-- --</span>
+            <div>
+              <p className="text-sm font-black font-cairo text-foreground">محمد جمال</p>
+              <p className="text-xs font-cairo text-foreground-dim mt-0.5">مطوّر ويب</p>
             </div>
           </div>
 
-          {/* روابط سريعة */}
-          <div className="flex flex-col items-center md:items-start gap-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-foreground-dim/60 font-cairo mb-1">
+          {/* التنقّل — شبكة 2×3 مضغوطة بدل عمود طويل */}
+          <div>
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-foreground-dim font-cairo mb-3">
               روابط سريعة
-            </span>
-            <nav className="grid grid-cols-2 md:grid-cols-1 gap-x-6 gap-y-2.5 text-center md:text-right">
+            </h2>
+            <nav aria-label="روابط سريعة" className="grid grid-cols-2 gap-x-8 gap-y-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.id}
                   href={`#${link.href}`}
-                  className="text-sm font-cairo font-bold text-foreground-dim md:hover:text-foreground transition-colors"
+                  className="text-sm font-cairo font-bold text-foreground-dim transition-colors md:hover:text-foreground"
                 >
                   {link.name}
                 </Link>
@@ -168,44 +142,51 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* تواصل + حالة التوفّر */}
-          <div className="flex flex-col items-center md:items-end gap-5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-foreground-dim/60 font-cairo">
-              تواصل معايا
-            </span>
-            <div className="flex items-center gap-3">
-              {socialLinks.map((link) => (
-                <SocialLink key={link.label} link={link} />
+          {/* الروابط الخارجية — نص مضغوط */}
+          <div>
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-foreground-dim font-cairo mb-3">
+              تابعني
+            </h2>
+            <ul className="flex flex-wrap gap-x-6 gap-y-2">
+              {SOCIAL_LINKS.map((link) => (
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${link.name} (يفتح في تبويب جديد)`}
+                    className="group inline-flex items-center gap-1 text-sm font-bold text-foreground-dim transition-colors md:hover:text-foreground"
+                  >
+                    {link.name}
+                    <ArrowUpRight
+                      aria-hidden="true"
+                      size={13}
+                      className="shrink-0 transition-transform duration-300 group-hover:-translate-y-0.5"
+                    />
+                  </a>
+                </li>
               ))}
-            </div>
-            <div className="px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 flex items-center gap-2.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inset-0 rounded-full bg-green-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              <span className="text-[10px] text-green-400 font-black uppercase tracking-widest">متاح للمشاريع الكبرى</span>
-            </div>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom Bar & Scroll to Top */}
-        <div className="pt-8 border-t border-border flex flex-col items-center gap-8">
-          <Magnetic>
-            <button
-              onClick={scrollToTop}
-              aria-label="الرجوع لأعلى الصفحة"
-              className="flex flex-col items-center gap-3 text-foreground-dim md:hover:text-foreground transition-all group"
-            >
-              <div className="w-12 h-12 rounded-full border border-border flex items-center justify-center md:group-hover:bg-foreground md:group-hover:text-background transition-all">
-                 <ArrowUpLeft className="rotate-45 md:group-hover:-translate-y-0.5 transition-transform" size={18} />
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-[0.4em] font-cairo">العودة للقمة</span>
-            </button>
-          </Magnetic>
-
-          <p className="text-foreground-dim text-[11px] font-cairo uppercase tracking-[0.2em] opacity-60">
-            © {currentYear} مو جيمي — جميع الحقوق محفوظة
+        {/* ── منطقة ج: الشريط السفلي ── */}
+        <div className="border-t border-border pt-8 flex flex-col-reverse sm:flex-row items-center justify-between gap-5">
+          <p className="text-foreground-dim text-[11px] font-cairo uppercase tracking-[0.2em] text-center sm:text-right">
+            © 2026 محمد جمال — جميع الحقوق محفوظة
           </p>
+
+          <SmoothScrollLink
+            targetId="home"
+            className="group inline-flex items-center gap-2 min-h-11 text-[11px] font-black uppercase tracking-[0.2em] font-cairo text-foreground-dim transition-colors md:hover:text-foreground"
+          >
+            العودة للأعلى
+            <ArrowUpLeft
+              aria-hidden="true"
+              className="rotate-45 transition-transform duration-300 group-hover:-translate-y-0.5"
+              size={14}
+            />
+          </SmoothScrollLink>
         </div>
       </div>
     </footer>

@@ -1,24 +1,10 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  images: {
-    // 1. السماح للـ Optimizer بمعالجة الصور المحلية
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ['image/webp'],
-    
-    // 2. إذا كنت تستخدم روابط خارجية مثل Unsplash كـ fallback
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'flagcdn.com',
-      },
-    ],
-  },
-};
+/**
+ * لا إعداد صور خارجية: نطاق flagcdn.com كان موجودًا حصريًا لأعلام الدول داخل
+ * بطاقات "آراء العملاء" المحذوفة في 5B.8. لم يبقَ في المشروع أي استخدام
+ * لـnext/image ولا أي مصدر صورة خارجي.
+ */
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

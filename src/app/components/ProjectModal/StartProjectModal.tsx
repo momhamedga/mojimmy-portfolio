@@ -1,54 +1,96 @@
-"use client"
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+"use client";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { X, ChevronLeft, CheckCircle2, Rocket, Loader2, Sparkles } from "lucide-react";
 import { StepOption } from "./StepOption";
-import { submitContactForm } from "@/src/actions/contact";
+import { submitContactForm } from "@/actions/contact";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const TOTAL_STEPS = 3;
 
-// --- Types ---
-interface FormData {
+const SERVICES = ["تصميم موقع فريد", "متجر إلكتروني متكامل", "تطوير تطبيق ويب", "هوية بصرية كاملة"];
+const BUDGETS = ["2,000 - 5,000 AED", "5,000 - 10,000 AED", "10,000+ AED", "تحديد لاحقاً"];
+
+interface ProjectRequest {
   service: string;
   budget: string;
   email: string;
   message: string;
 }
 
-export default function StartProjectModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+/** اهتزاز خفيف — يتخطّى نفسه لو الـAPI غير موجود أو المستخدم طالب تقليل الحركة */
+function haptic(pattern: number | number[]) {
+  if (typeof window === "undefined" || !("vibrate" in navigator)) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  navigator.vibrate(pattern);
+}
+
+/**
+ * مودال طلب المشروع — مبني على عنصر <dialog> الأصلي.
+ *
+ * ليه <dialog> بدل تنفيذ يدوي؟ لأنه بيقدّم من المتصفح مباشرةً:
+ *   • حبس التركيز داخل الحوار (focus trap)
+ *   • تعطيل الخلفية بالكامل للكيبورد وقارئ الشاشة (inert)
+ *   • الإغلاق بـEscape (حدث cancel)
+ *   • إرجاع التركيز للعنصر اللي فتح الحوار
+ *   • ::backdrop
+ * كل ده بصفر dependency وبصفر focus-trap يدوي قد يكون خاطئًا (§53 · §54).
+ *
+ * ملاحظة: منطق الإرسال/التحقق لم يُمس — ملك Phase 6.
+ */
+export default function StartProjectModal({ onClose }: { onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [formData, setFormData] = useState<FormData>({ service: "", budget: "", email: "", message: "" });
+  const [data, setData] = useState<ProjectRequest>({
+    service: "",
+    budget: "",
+    email: "",
+    message: "",
+  });
 
-  const totalSteps = 3;
-
-  const handleNext = useCallback(() => {
-    if (typeof window !== "undefined" && window.navigator.vibrate) window.navigator.vibrate(10);
-    setStep((s) => Math.min(s + 1, totalSteps));
+  // فتح الحوار كـmodal + تنظيف عند الخروج (المتصفح بيرجّع التركيز تلقائيًا)
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    if (!el.open) el.showModal();
+    headingRef.current?.focus();
+    return () => {
+      if (el.open) el.close();
+    };
   }, []);
 
-  const handleBack = useCallback(() => {
-    if (typeof window !== "undefined" && window.navigator.vibrate) window.navigator.vibrate(5);
+  // Escape: المتصفح بيطلق cancel — نمنع الإغلاق الافتراضي ونمشي عبر onClose
+  const handleCancel = (e: React.SyntheticEvent<HTMLDialogElement>) => {
+    e.preventDefault();
+    onClose();
+  };
+
+  // النقر على الخلفية فقط — النقر داخل المحتوى لا يغلق
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === dialogRef.current) onClose();
+  };
+
+  const goNext = useCallback(() => {
+    haptic(10);
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+  }, []);
+
+  const goBack = useCallback(() => {
+    haptic(5);
     setStep((s) => Math.max(s - 1, 1));
   }, []);
 
+  // نقل التركيز لعنوان الخطوة الجديدة حتى يعرف مستخدم القارئ أين أصبح
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      setStep(1);
-      setSubmitError("");
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+    headingRef.current?.focus();
+  }, [step, isSuccess]);
 
   const handleSubmit = async () => {
-    if (!EMAIL_PATTERN.test(formData.email)) {
+    if (!EMAIL_PATTERN.test(data.email)) {
       setSubmitError("البريد الإلكتروني غير صحيح");
       return;
     }
@@ -58,218 +100,282 @@ export default function StartProjectModal({ isOpen, onClose }: { isOpen: boolean
     try {
       const fd = new FormData();
       fd.set("name", "طلب مشروع جديد");
-      fd.set("email", formData.email);
-      fd.set("message", `الخدمة: ${formData.service}\nالميزانية: ${formData.budget}\n\n${formData.message}`);
-      fd.set("subject", `New Project: ${formData.service}`);
+      fd.set("email", data.email);
+      fd.set("message", `الخدمة: ${data.service}\nالميزانية: ${data.budget}\n\n${data.message}`);
+      // الـsubject لم يعد يُرسل من العميل: الخادم يولّده ويعقّمه (Phase 6)
 
       const result = await submitContactForm(fd);
-      if (result.success) {
+      if (result.status === "success") {
         setIsSuccess(true);
-        if (typeof window !== "undefined" && window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]);
-        setTimeout(() => {
-          onClose();
-          setTimeout(() => setIsSuccess(false), 500);
-        }, 3500);
+        haptic([100, 50, 100]);
       } else {
-        setSubmitError(result.message || "حدث خطأ أثناء الإرسال، حاول مرة أخرى");
-        if (typeof window !== "undefined" && window.navigator.vibrate) window.navigator.vibrate(200);
+        // نصوص ثابتة في العميل — الخادم لا يمرّر أي رسالة من المزوّد
+        haptic(200);
+        if (result.status === "validation_error") {
+          setSubmitError(
+            result.fieldErrors.email ??
+              result.fieldErrors.message ??
+              "بيانات غير صحيحة، راجع الحقول",
+          );
+        } else if (result.status === "rate_limited") {
+          setSubmitError("محاولات كثيرة، حاول مرة أخرى بعد قليل.");
+        } else {
+          setSubmitError("تعذر إرسال الرسالة الآن. حاول مرة أخرى لاحقًا.");
+        }
       }
     } catch (error) {
-        console.error("Submission Error:", error);
-        setSubmitError("فشل الاتصال بالسيرفر، حاول مرة أخرى");
+      console.error("Submission Error:", error);
+      setSubmitError("فشل الاتصال بالسيرفر، حاول مرة أخرى");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const stepTitle = isSuccess
+    ? "تم استلام طلبك"
+    : step === 1
+      ? "ما هي الرؤية؟"
+      : step === 2
+        ? "حجم الاستثمار"
+        : "تأكيد الإطلاق";
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-1000 flex items-end md:items-center justify-center p-0 md:p-6" dir="rtl">
-          {/* Overlay مع Blur قوي لإبراز المودال */}
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-2xl transition-all duration-2000"
-          />
-
-          <motion.div 
-            layout
-            initial={{ y: "100%", scale: 0.9 }} 
-            animate={{ y: 0, scale: 1 }} 
-            exit={{ y: "100%", scale: 0.9 }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="relative bg-surface/90 border border-border w-full max-w-xl md:rounded-[3.5rem] rounded-t-[3rem] overflow-hidden shadow-2xl backdrop-blur-3xl"
+    <dialog
+      ref={dialogRef}
+      dir="rtl"
+      aria-labelledby="project-modal-title"
+      onCancel={handleCancel}
+      onClick={handleBackdropClick}
+      className="project-dialog bg-transparent p-0 m-0 max-w-none max-h-none w-full h-full backdrop:bg-black/60 backdrop:backdrop-blur-2xl"
+    >
+      <div className="min-h-full flex items-end md:items-center justify-center p-0 md:p-6">
+        <div className="relative bg-surface/95 border border-border w-full max-w-xl md:rounded-[3.5rem] rounded-t-[3rem] overflow-hidden shadow-2xl backdrop-blur-3xl">
+          {/* Progress */}
+          <div
+            className="absolute top-0 left-0 right-0 h-0.75 bg-foreground/5 overflow-hidden"
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={TOTAL_STEPS}
+            aria-valuenow={step}
+            aria-label="تقدّم الطلب"
           >
-            {/* Progress Bar - متفاعل مع متغيرات CSS */}
-            <div className="absolute top-0 left-0 right-0 h-0.75 bg-foreground/5 overflow-hidden">
-               <motion.div 
-                 initial={{ width: 0 }}
-                 animate={{ width: `${(step / totalSteps) * 100}%` }}
-                 className="h-full transition-colors duration-2000"
-                 style={{ backgroundColor: "var(--color-primary)", boxShadow: "0 0 20px var(--color-primary)" }}
-               />
-            </div>
+            <div
+              className="h-full transition-[width] duration-500"
+              style={{
+                width: `${(step / TOTAL_STEPS) * 100}%`,
+                backgroundColor: "var(--color-primary)",
+                boxShadow: "0 0 20px var(--color-primary)",
+              }}
+            />
+          </div>
 
-            <div className="px-8 pt-14 pb-10">
-              <div className="flex justify-between items-center mb-10">
-                 <button onClick={onClose} className="w-12 h-12 flex items-center justify-center bg-foreground/5 rounded-2xl hover:bg-foreground/10 transition-all text-foreground-dim group">
-                    <X size={20} className="group-hover:rotate-90 transition-transform duration-500" />
-                 </button>
-                 
-                 {step > 1 && !isSuccess && (
-                   <button onClick={handleBack} className="font-cairo text-[10px] font-black uppercase tracking-widest text-foreground-dim/40 flex items-center gap-2 hover:text-foreground transition-colors bg-foreground/5 px-5 py-2.5 rounded-full border border-border">
-                      <ChevronLeft size={14} className="rotate-0" /> عودة 
-                   </button>
-                 )}
-              </div>
+          <div className="px-8 pt-14 pb-10">
+            <div className="flex justify-between items-center mb-10">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="إغلاق نافذة طلب المشروع"
+                className="w-12 h-12 flex items-center justify-center bg-foreground/5 rounded-2xl hover:bg-foreground/10 transition-all text-foreground-dim group"
+              >
+                <X
+                  aria-hidden="true"
+                  size={20}
+                  className="group-hover:rotate-90 transition-transform duration-500"
+                />
+              </button>
 
-              <AnimatePresence mode="wait">
-                {isSuccess ? (
-                  <SuccessState key="success" primary="var(--color-primary)" />
-                ) : (
-                  <motion.div 
-                    key={step} 
-                    initial={{ x: -20, opacity: 0, filter: "blur(10px)" }} 
-                    animate={{ x: 0, opacity: 1, filter: "blur(0px)" }} 
-                    exit={{ x: 20, opacity: 0, filter: "blur(10px)" }}
-                    transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
-                  >
-                    {step === 1 && <ServiceStep formData={formData} setFormData={setFormData} onNext={handleNext} primary="var(--color-primary)" />}
-                    {step === 2 && <BudgetStep formData={formData} setFormData={setFormData} onNext={handleNext} primary="var(--color-primary)" />}
-                    {step === 3 && <ContactStep formData={formData} setFormData={setFormData} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitError={submitError} primary="var(--color-primary)" />}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {!isSuccess && (
-                <div className="mt-12 flex flex-col items-center gap-4">
-                    <div className="h-px w-full bg-linear-to-r from-transparent via-foreground/5 to-transparent" />
-                    <div className="flex items-center gap-2">
-                        <Sparkles size={10} style={{ color: "var(--color-primary)" }} />
-                        <span className="text-[8px] font-mono text-foreground-dim uppercase tracking-[0.4em]">  Mojimmy• Abu Dhabi 2026</span>
-                    </div>
-                </div>
+              {step > 1 && !isSuccess && (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="font-cairo text-[10px] font-black uppercase tracking-widest text-foreground-dim flex items-center gap-2 hover:text-foreground transition-colors bg-foreground/5 px-5 py-2.5 rounded-full border border-border min-h-11"
+                >
+                  <ChevronLeft aria-hidden="true" size={14} /> عودة
+                </button>
               )}
             </div>
-          </motion.div>
+
+            {/* عنوان الحوار — يستقبل التركيز عند كل تغيير خطوة */}
+            <h2
+              id="project-modal-title"
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-4xl font-black text-foreground font-cairo leading-tight tracking-tighter text-right"
+            >
+              {stepTitle}
+            </h2>
+
+            {isSuccess ? (
+              <div role="status" className="py-16 flex flex-col items-center text-center">
+                <div className="relative mb-10" aria-hidden="true">
+                  <div
+                    className="absolute inset-0 blur-3xl rounded-full opacity-20"
+                    style={{ backgroundColor: "var(--color-primary)" }}
+                  />
+                  <div
+                    className="w-28 h-28 rounded-[3rem] flex items-center justify-center relative z-10 shadow-2xl rotate-12"
+                    style={{ backgroundColor: "var(--color-primary-strong)" }}
+                  >
+                    <CheckCircle2 size={54} className="text-white -rotate-12" />
+                  </div>
+                </div>
+                <p className="text-foreground-dim font-cairo text-lg max-w-xs leading-relaxed">
+                  رسالتك وصلت. سأراجع التفاصيل وأرد عليك قريباً.
+                </p>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="mt-10 px-8 py-3 rounded-full border border-border-strong text-foreground font-cairo font-bold min-h-11"
+                >
+                  إغلاق
+                </button>
+              </div>
+            ) : (
+              <div className="mt-3">
+                {step === 1 && (
+                  <StepGroup
+                    hint="اختر نوع المشروع لنبدأ التخطيط المعماري"
+                    groupLabel="نوع المشروع"
+                    options={SERVICES}
+                    selected={data.service}
+                    onSelect={(opt) => {
+                      setData({ ...data, service: opt });
+                      setTimeout(goNext, 400);
+                    }}
+                  />
+                )}
+
+                {step === 2 && (
+                  <StepGroup
+                    hint="ساعدني في تقدير الموارد المطلوبة"
+                    groupLabel="حجم الميزانية"
+                    options={BUDGETS}
+                    selected={data.budget}
+                    onSelect={(opt) => {
+                      setData({ ...data, budget: opt });
+                      setTimeout(goNext, 400);
+                    }}
+                  />
+                )}
+
+                {step === 3 && (
+                  <div className="space-y-8 text-right">
+                    <p className="text-foreground-dim font-cairo mt-3 text-sm tracking-wide">
+                      كيف يمكنني الوصول إليك؟
+                    </p>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="modal-email" className="sr-only">
+                          بريدك الإلكتروني
+                        </label>
+                        <input
+                          id="modal-email"
+                          name="email"
+                          type="email"
+                          required
+                          autoComplete="email"
+                          aria-invalid={submitError ? true : undefined}
+                          aria-describedby={submitError ? "modal-error" : undefined}
+                          placeholder="البريد الإلكتروني"
+                          className="w-full p-6 bg-foreground/[0.02] border border-border-strong rounded-3xl text-foreground focus:border-primary transition-all text-right font-cairo placeholder:text-foreground-subtle"
+                          value={data.email}
+                          onChange={(e) => setData({ ...data, email: e.target.value })}
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="modal-message" className="sr-only">
+                          نبذة عن مشروعك
+                        </label>
+                        <textarea
+                          id="modal-message"
+                          name="message"
+                          placeholder="أخبرني باختصار عن طموحك.."
+                          className="w-full p-6 bg-foreground/[0.02] border border-border-strong rounded-3xl text-foreground focus:border-primary transition-all h-32 resize-none text-right font-cairo placeholder:text-foreground-subtle"
+                          value={data.message}
+                          onChange={(e) => setData({ ...data, message: e.target.value })}
+                        />
+                      </div>
+
+                      {submitError && (
+                        <p
+                          id="modal-error"
+                          role="alert"
+                          className="text-red-600 dark:text-red-400 font-cairo font-bold text-sm text-center"
+                        >
+                          {submitError}
+                        </p>
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={isSubmitting || !EMAIL_PATTERN.test(data.email)}
+                        aria-busy={isSubmitting}
+                        onClick={handleSubmit}
+                        className="w-full py-4 font-cairo font-black rounded-2xl flex items-center justify-center gap-2.5 transition-all text-base shadow-lg text-white disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+                        style={{ backgroundColor: "var(--color-primary-strong)" }}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 aria-hidden="true" className="animate-spin" /> جارٍ الإرسال…
+                          </>
+                        ) : (
+                          <>
+                            <Rocket aria-hidden="true" size={20} /> إطلاق الطلب
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!isSuccess && (
+              <div className="mt-12 flex flex-col items-center gap-4">
+                <div className="h-px w-full bg-linear-to-r from-transparent via-foreground/5 to-transparent" />
+                <div className="flex items-center gap-2">
+                  <Sparkles aria-hidden="true" size={10} className="text-primary" />
+                  <span className="text-[8px] font-mono text-foreground-dim uppercase tracking-[0.4em]">
+                    Mojimmy • Abu Dhabi 2026
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </AnimatePresence>
+      </div>
+    </dialog>
   );
 }
 
-// --- Sub-Components ---
-
-interface StepProps {
-  formData: FormData;
-  setFormData: (data: FormData) => void;
-  onNext: () => void;
-  primary: string;
-}
-
-interface ContactStepProps {
-  formData: FormData;
-  setFormData: (data: FormData) => void;
-  onSubmit: () => void;
-  isSubmitting: boolean;
-  submitError: string;
-  primary: string;
-}
-
-const ServiceStep = ({ formData, setFormData, onNext, primary }: StepProps) => (
-  <div className="space-y-8 text-right">
-    <div>
-      <h2 className="text-4xl font-black text-foreground font-cairo leading-tight tracking-tighter">
-        ما هي <span style={{ color: primary, transition: 'color 2s' }}>الرؤية؟</span>
-      </h2>
-      <p className="text-foreground-dim/30 font-cairo mt-3 text-sm tracking-wide">اختر نوع المشروع لنبدأ التخطيط المعماري</p>
-    </div>
-    <div className="grid gap-3">
-      {["تصميم موقع فريد", "متجر إلكتروني متكامل", "تطوير تطبيق ويب", "هوية بصرية كاملة"].map(opt => (
-        <StepOption 
-          key={opt} 
-          label={opt} 
-          selected={formData.service === opt} 
-          onClick={() => { setFormData({...formData, service: opt}); setTimeout(onNext, 400); }} 
-        />
-      ))}
-    </div>
-  </div>
-);
-
-const BudgetStep = ({ formData, setFormData, onNext, primary }: StepProps) => (
-  <div className="space-y-8 text-right">
-    <div>
-      <h2 className="text-4xl font-black text-foreground font-cairo leading-tight tracking-tighter">
-        حجم <span style={{ color: primary, transition: 'color 2s' }}>الاستثمار</span>
-      </h2>
-      <p className="text-foreground-dim/30 font-cairo mt-3 text-sm tracking-wide">ساعدني في تقدير الموارد المطلوبة</p>
-    </div>
-    <div className="grid gap-3">
-      {["2,000 - 5,000 AED", "5,000 - 10,000 AED", "10,000+ AED", "تحديد لاحقاً"].map(opt => (
-        <StepOption 
-          key={opt} 
-          label={opt} 
-          selected={formData.budget === opt} 
-          onClick={() => { setFormData({...formData, budget: opt}); setTimeout(onNext, 400); }} 
-        />
-      ))}
-    </div>
-  </div>
-);
-
-const ContactStep = ({ formData, setFormData, onSubmit, isSubmitting, submitError, primary }: ContactStepProps) => (
-  <div className="space-y-8 text-right">
-    <div>
-      <h2 className="text-4xl font-black text-foreground font-cairo leading-tight tracking-tighter">
-        تأكيد <span style={{ color: primary, transition: 'color 2s' }}>الإطلاق</span>
-      </h2>
-      <p className="text-foreground-dim/30 font-cairo mt-3 text-sm tracking-wide">كيف يمكننا الوصول إليك؟</p>
-    </div>
-    <div className="space-y-4">
-      <input
-        type="email" placeholder="البريد الإلكتروني"
-        className="w-full p-6 bg-foreground/[0.02] border border-border rounded-3xl text-foreground outline-none focus:border-primary/40 transition-all text-right font-cairo placeholder:text-foreground-dim"
-        value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
-      />
-      <textarea
-        placeholder="أخبرني باختصار عن طموحك.."
-        className="w-full p-6 bg-foreground/[0.02] border border-border rounded-3xl text-foreground outline-none focus:border-primary/40 transition-all h-32 resize-none text-right font-cairo placeholder:text-foreground-dim"
-        value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})}
-      />
-      {submitError && (
-        <p role="alert" className="text-red-400 font-cairo font-bold text-sm text-center">
-          {submitError}
-        </p>
-      )}
-      <motion.button
-        whileTap={{ scale: 0.97 }} disabled={isSubmitting || !formData.email.includes("@")}
-        onClick={onSubmit}
-        className="w-full py-4 font-cairo font-black rounded-2xl flex items-center justify-center gap-2.5 transition-all text-base shadow-lg disabled:opacity-20"
-        style={{ backgroundColor: "var(--color-primary)", color: "white" }}
-      >
-        {isSubmitting ? <Loader2 className="animate-spin" /> : <><Rocket size={20} /> إطلاق الطلب</>}
-      </motion.button>
-    </div>
-  </div>
-);
-
-const SuccessState = ({ primary }: { primary: string }) => (
-  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="py-16 flex flex-col items-center text-center">
-    <div className="relative mb-10">
-      <motion.div 
-        initial={{ opacity: 0 }} animate={{ opacity: [0.1, 0.3, 0.1] }} transition={{ repeat: Infinity, duration: 3 }} 
-        className="absolute inset-0 blur-3xl rounded-full" 
-        style={{ backgroundColor: primary }}
-      />
-      <div className="w-28 h-28 rounded-[3rem] flex items-center justify-center relative z-10 shadow-2xl rotate-12 transition-colors duration-2000"
-           style={{ backgroundColor: primary }}>
-        <CheckCircle2 size={54} className="text-white -rotate-12" />
+function StepGroup({
+  hint,
+  groupLabel,
+  options,
+  selected,
+  onSelect,
+}: {
+  hint: string;
+  groupLabel: string;
+  options: string[];
+  selected: string;
+  onSelect: (opt: string) => void;
+}) {
+  return (
+    <div className="space-y-8 text-right">
+      <p className="text-foreground-dim font-cairo mt-3 text-sm tracking-wide">{hint}</p>
+      <div className="grid gap-3" role="group" aria-label={groupLabel}>
+        {options.map((opt) => (
+          <StepOption
+            key={opt}
+            label={opt}
+            selected={selected === opt}
+            onClick={() => onSelect(opt)}
+          />
+        ))}
       </div>
     </div>
-    <h2 className="text-5xl font-black text-foreground font-cairo mb-4 tracking-tighter">تم الاستلام</h2>
-    <p className="text-foreground-dim/40 font-cairo text-lg max-w-xs leading-relaxed">
-      رسالتك الآن في دبي.. <br/> جيمي سيراجع التفاصيل قريباً.
-    </p>
-  </motion.div>
-);
+  );
+}

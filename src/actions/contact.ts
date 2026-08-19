@@ -1,68 +1,208 @@
-"use server"
+"use server";
 
-const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { headers } from "next/headers";
+import { render } from "@react-email/render";
+import { Resend } from "resend";
+import { CONTACT_EMAIL, CONTACT_FROM } from "@/constants/site";
+import { ContactNotificationEmail } from "@/emails/ContactNotificationEmail";
+import {
+  ContactSchema,
+  createIdempotencyKey,
+  fingerprintSubmission,
+  isDuplicateSubmission,
+  isHoneypotTripped,
+  isRateLimited,
+  normalizeContactInput,
+  sanitizeHeaderValue,
+  type ContactFieldErrors,
+} from "@/lib/contact-security";
 
-interface SubmitResult {
-  success: boolean;
-  message?: string;
+/** مهلة انتظار مزوّد البريد قبل إرجاع خطأ عام للمستخدم. */
+const PROVIDER_TIMEOUT_MS = 9000;
+
+/**
+ * عقد النتيجة — الوحيد الذي يراه العميل.
+ * لا يحتوي أي شيء من المزوّد: لا رسالة خطأ ولا رمز حالة ولا payload.
+ */
+export type ContactActionResult =
+  | { status: "success" }
+  | { status: "validation_error"; fieldErrors: ContactFieldErrors }
+  | { status: "rate_limited" }
+  | { status: "error" };
+
+/**
+ * إرسال نموذج التواصل — Server Action.
+ *
+ * Phase 6: استُبدل Web3Forms بـResend + React Email. المزوّد السابق كان يُرفض
+ * من طبقة Cloudflare أمام واجهته عند الاستدعاء من الخادم (403 challenge)،
+ * فلم يكن مسار Server Action صالحًا معه أصلًا.
+ *
+ * ترتيب الطبقات مقصود — الأرخص أولًا، ولا نصل للمزوّد إلا بعد اجتيازها كلها:
+ *   1. حقل الفخ        (لا يكشف نفسه للبوت)
+ *   2. حدّ المعدّل      (أفضل جهد داخل النسخة)
+ *   3. تطبيع + Zod      (مصدر الحقيقة الأمني، لا نثق بالمتصفح)
+ *   4. منع التكرار      (نقر مزدوج / إعادة إرسال فورية)
+ *   5. تعقيم الترويسة   (منع Header Injection في Subject)
+ *   6. الإرسال بمهلة    (+ مفتاح Idempotency)
+ *
+ * الحماية من الطلبات عبر المواقع تعتمد على فحص Origin/Host المدمج في
+ * Server Actions لدى Next.js — لم نُضِف طبقة مخصّصة حتى لا نكرّرها ولا نكسر
+ * نشرات المعاينة على Vercel بمضيفين مثبّتين يدويًا.
+ */
+export async function submitContactForm(formData: FormData): Promise<ContactActionResult> {
+  // 1. حقل الفخ — نرجع نجاحًا ظاهريًا حتى لا يتعلّم البوت أنه انكشف
+  if (isHoneypotTripped(formData)) {
+    console.warn("[contact] rejected: honeypot");
+    return { status: "success" };
+  }
+
+  // 2. حدّ المعدّل
+  const clientKey = await resolveClientKey();
+  if (isRateLimited(clientKey)) {
+    console.warn("[contact] rejected: rate limited");
+    return { status: "rate_limited" };
+  }
+
+  // 3. التطبيع ثم التحقق — لا نثق بتحقق المتصفح إطلاقًا
+  const normalized = normalizeContactInput(formData);
+  const parsed = ContactSchema.safeParse(normalized);
+  if (!parsed.success) {
+    const fieldErrors: ContactFieldErrors = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0];
+      if ((key === "name" || key === "email" || key === "message") && !fieldErrors[key]) {
+        fieldErrors[key] = issue.message;
+      }
+    }
+    console.warn("[contact] rejected: validation");
+    return { status: "validation_error", fieldErrors };
+  }
+
+  const input = parsed.data;
+
+  // 4. منع التكرار خلال نافذة قصيرة — نجاح ظاهري، فالرسالة الأولى وصلت فعلًا
+  if (isDuplicateSubmission(fingerprintSubmission(input))) {
+    console.warn("[contact] skipped: duplicate within window");
+    return { status: "success" };
+  }
+
+  // 5. تعقيم أي قيمة تدخل ترويسة
+  const subject = sanitizeHeaderValue(`طلب مشروع جديد — ${input.name}`);
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    // لا نكشف اسم المتغيّر ولا أي تفصيل إعداد للمستخدم
+    console.error("[contact] configuration missing: mail provider key");
+    return { status: "error" };
+  }
+
+  // 6. الإرسال
+  try {
+    const resend = new Resend(apiKey);
+    const receivedAt = new Intl.DateTimeFormat("ar-EG", {
+      dateStyle: "full",
+      timeStyle: "short",
+      timeZone: "Asia/Dubai",
+    }).format(new Date());
+
+    // نُصيّر القالب إلى HTML هنا بدل تمرير react: إلى الـSDK.
+    // السبب: Resend v6 يستورد @react-email/render ديناميكيًا وقت التشغيل،
+    // وهذا الاستيراد لا يُحَل داخل حزمة الخادم المبنية فيفشل التصيير.
+    // التصيير المسبق يزيل الاعتماد الديناميكي ويجعل الناتج حتميًا.
+    const html = await render(ContactNotificationEmail({ ...input, receivedAt }));
+
+    const send = resend.emails.send(
+      {
+        from: CONTACT_FROM,
+        to: CONTACT_EMAIL,
+        replyTo: input.email,
+        subject,
+        html,
+        text: buildTextFallback({ ...input, receivedAt }),
+      },
+      { idempotencyKey: createIdempotencyKey() },
+    );
+
+    const result = await withTimeout(send, PROVIDER_TIMEOUT_MS);
+
+    if (result === TIMED_OUT) {
+      console.error("[contact] provider timeout");
+      return { status: "error" };
+    }
+
+    if (result.error) {
+      // نسجّل الاسم/النوع فقط — لا payload ولا رسالة المزوّد الكاملة
+      console.error("[contact] provider rejected:", result.error.name);
+      return { status: "error" };
+    }
+
+    // console.info محظور في إعداد ESLint هنا — warn هو أدنى مستوى مسموح
+    console.warn("[contact] delivered: provider accepted");
+    return { status: "success" };
+  } catch (error) {
+    console.error("[contact] unexpected failure:", error instanceof Error ? error.name : "unknown");
+    return { status: "error" };
+  }
 }
 
-export async function submitContactForm(formData: FormData): Promise<SubmitResult> {
-  // حقل فخ للبوتات (honeypot) — مخفي عن المستخدم الحقيقي، أي قيمة فيه تعني إرسال آلي
-  const honeypot = formData.get("company");
-  if (typeof honeypot === "string" && honeypot.trim().length > 0) {
-    return { success: true };
-  }
+/* ------------------------------------------------------------------ */
 
-  const name = formData.get("name");
-  const email = formData.get("email");
-  const message = formData.get("message");
-  const subject = formData.get("subject");
+const TIMED_OUT = Symbol("timed-out");
 
-  if (
-    typeof name !== "string" || typeof email !== "string" || typeof message !== "string" ||
-    name.trim().length < 2 || name.length > 100 ||
-    !EMAIL_PATTERN.test(email) || email.length > 200 ||
-    message.trim().length < 10 || message.length > 3000
-  ) {
-    return { success: false, message: "بيانات غير صحيحة، من فضلك راجع الحقول" };
-  }
-
-  const accessKey = process.env.WEB3FORMS_ACCESS_KEY;
-  if (!accessKey) {
-    console.error("WEB3FORMS_ACCESS_KEY غير معرّف في environment variables");
-    return { success: false, message: "الخدمة غير متاحة حالياً، حاول لاحقاً" };
-  }
-
+/**
+ * يحدّ زمن انتظارنا للمزوّد.
+ *
+ * قيد معلن: Resend SDK (v6) لا يعرض خيار timeout ولا AbortSignal — خيارات
+ * المُنشئ هي baseUrl و userAgent فقط. لذلك هذا السباق يحدّ انتظارنا نحن
+ * ولا يُلغي الطلب الصاعد. لم نلجأ لأي تعديل غير موثّق داخل الـSDK.
+ */
+async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | typeof TIMED_OUT> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const response = await fetch(WEB3FORMS_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: JSON.stringify({
-        access_key: accessKey,
-        name,
-        email,
-        message,
-        from_name: "موقعك الشخصي",
-        subject: typeof subject === "string" && subject.length > 0 ? subject : "رسالة جديدة من نموذج الاتصال",
+    return await Promise.race([
+      promise,
+      new Promise<typeof TIMED_OUT>((resolve) => {
+        timer = setTimeout(() => resolve(TIMED_OUT), ms);
       }),
-    });
-
-    const text = await response.text();
-
-    try {
-      const result = JSON.parse(text);
-      return result;
-    } catch {
-      console.error("الرد ليس JSON:", text);
-      return { success: false, message: "الرد من السيرفر غير متوقع" };
-    }
-  } catch (error) {
-    console.error("Server Action Error:", error);
-    return { success: false, message: "فشل الاتصال بالسيرفر" };
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
+}
+
+/**
+ * مفتاح تعريف العميل لحدّ المعدّل.
+ *
+ * على Vercel، x-forwarded-for هو الترويسة الموثّقة لعنوان العميل العام
+ * وتُعاد كتابتها عند الحافة. نأخذ أول قيمة فيها فقط، ولا نخترع سلسلة
+ * ترويسات بديلة (لا cf-connecting-ip ولا x-real-ip) لأن المشروع ليس خلف
+ * Cloudflare. محليًا لا توجد ترويسة موثوقة فنستخدم مفتاحًا ثابتًا.
+ */
+async function resolveClientKey(): Promise<string> {
+  try {
+    const forwarded = (await headers()).get("x-forwarded-for");
+    const first = forwarded?.split(",")[0]?.trim();
+    return first && first.length > 0 ? first : "local";
+  } catch {
+    return "local";
+  }
+}
+
+function buildTextFallback(input: {
+  name: string;
+  email: string;
+  message: string;
+  receivedAt: string;
+}): string {
+  return [
+    "طلب مشروع جديد",
+    "",
+    `الاسم: ${input.name}`,
+    `البريد الإلكتروني: ${input.email}`,
+    "",
+    "تفاصيل المشروع:",
+    input.message,
+    "",
+    `وصلت في ${input.receivedAt} — من نموذج التواصل في mohamedjimmy.com`,
+  ].join("\n");
 }

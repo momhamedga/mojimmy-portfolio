@@ -14,22 +14,25 @@ export function useMagneticPointer(intensity: number, springConfig: SpringOption
   const x = useSpring(0, springConfig);
   const y = useSpring(0, springConfig);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    pointerRef.current = { x: e.clientX, y: e.clientY };
-    if (rafRef.current !== null) return;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      pointerRef.current = { x: e.clientX, y: e.clientY };
+      if (rafRef.current !== null) return;
 
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null;
-      const el = ref.current;
-      if (!el) return;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        const el = ref.current;
+        if (!el) return;
 
-      const { height, width, left, top } = el.getBoundingClientRect();
-      const middleX = pointerRef.current.x - (left + width / 2);
-      const middleY = pointerRef.current.y - (top + height / 2);
-      x.set(middleX * intensity);
-      y.set(middleY * intensity);
-    });
-  }, [intensity, x, y]);
+        const { height, width, left, top } = el.getBoundingClientRect();
+        const middleX = pointerRef.current.x - (left + width / 2);
+        const middleY = pointerRef.current.y - (top + height / 2);
+        x.set(middleX * intensity);
+        y.set(middleY * intensity);
+      });
+    },
+    [intensity, x, y],
+  );
 
   const reset = useCallback(() => {
     if (rafRef.current !== null) {

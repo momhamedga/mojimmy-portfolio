@@ -1,53 +1,57 @@
-"use client";
+import Projects from "./projects";
+import About from "./about/About";
+import Services from "./services";
+import ProcessSection from "./Process/ProcessSection";
+import WhyWorkWithMe from "./why/WhyWorkWithMe";
+import InteractiveFAQ from "./FAQ/InteractiveFAQ";
+import Contact from "./contact/Contact";
+import Footer from "./footer/Footer";
+import MobileScrollTop from "./MobileScrollTop";
 
-import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
-import MobileScrollTop from './MobileScrollTop';
-
-const SectionLoader = () => (
-  <div className="w-full h-[40vh] flex items-center justify-center animate-pulse">
-    <div className="w-12 h-px bg-foreground/10" />
-  </div>
-);
-
-// تحميل الأقسام ديناميكياً (code-splitting) مع الحفاظ على الـ SSR للمحتوى والـ SEO
-const Projects = dynamic(() => import("./projects"), { loading: SectionLoader });
-const TechStack = dynamic(() => import("./tech-stack"), { loading: SectionLoader });
-const About = dynamic(() => import("./about/About"), { loading: SectionLoader });
-const Services = dynamic(() => import("./services"), { loading: SectionLoader });
-const Testimonials = dynamic(() => import("./testimonials/Testimonials"), { loading: SectionLoader });
-const ProcessSection = dynamic(() => import("./Process/ProcessSection"), { loading: SectionLoader });
-const InteractiveFAQ = dynamic(() => import("./FAQ/InteractiveFAQ"), { loading: SectionLoader });
-const Contact = dynamic(() => import("./contact/Contact"), { loading: SectionLoader });
-const Footer = dynamic(() => import("./footer/Footer"));
-
+/**
+ * ترتيب أقسام الصفحة — Server Component.
+ *
+ * الترتيب المستهدف بعد اكتمال إعادة التصميم:
+ *   Hero · Projects · About · Services · Process · Why · FAQ · Contact · Footer
+ *
+ * الترتيب أعلاه هو الترتيب النهائي المطبَّق فعليًا.
+ *
+ * (TechStack اندمج داخل About في 5B.3 وحُذف قسمه المستقل.
+ *  Testimonials حُذف في 5B.8 لأن شهاداته لم تكن حقيقية، وحلّ محلّه "لماذا تعمل معي؟".)
+ *
+ * الغلاف `.reveal` وظيفته الكشف عند السكرول بـCSS خالص (بلا JavaScript).
+ */
 export default function SectionsWrapper() {
-  // المصفوفة هنا تبدأ بالـ Projects فقط (بدون الـ Hero تماماً)
-  const sections = [
-    { id: 'projects', Component: Projects },
-    { id: 'tech', Component: TechStack },
-    { id: 'about', Component: About },
-    { id: 'services', Component: Services },
-    { id: 'process', Component: ProcessSection },
-    { id: 'testimonials', Component: Testimonials },
-    { id: 'faq', Component: InteractiveFAQ },
-    { id: 'contact', Component: Contact },
-  ];
-
   return (
     <div className="flex flex-col w-full relative">
-      {sections.map(({ id, Component }, index) => (
-        <motion.div
-          key={id}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-8% 0px -8% 0px" }}
-          transition={{ duration: 0.7, delay: index * 0.03, ease: [0.21, 1, 0.36, 1] }}
-          className="relative w-full block"
-        >
-          <Component />
-        </motion.div>
-      ))}
+      <div className="reveal relative w-full">
+        <Projects />
+      </div>
+
+      <div className="reveal relative w-full">
+        <About />
+      </div>
+
+      <div className="reveal relative w-full">
+        <Services />
+      </div>
+
+      <div className="reveal relative w-full">
+        <ProcessSection />
+      </div>
+
+      <div className="reveal relative w-full">
+        <WhyWorkWithMe />
+      </div>
+
+      <div className="reveal relative w-full">
+        <InteractiveFAQ />
+      </div>
+
+      <div className="reveal relative w-full">
+        <Contact />
+      </div>
+
       <Footer />
       <MobileScrollTop />
     </div>

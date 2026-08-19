@@ -1,31 +1,38 @@
 "use client";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
-import { cn } from "@/src/lib/utils";
+import { cn } from "@/lib/utils";
 import { useHasMounted } from "../hooks/useHasMounted";
 
-interface ThemeToggleProps {
-  className?: string;
-}
-
-export function ThemeToggle({ className }: ThemeToggleProps) {
+/**
+ * إتاحة (Phase 4):
+ * - مساحة اللمس بقت 44×44 (كانت 36×36) — الأيقونة نفسها ما اتغيّرتش.
+ * - aria-label بيوصف **الإجراء** لا الحالة، وبيتغيّر حسب الوضع الحالي.
+ * - aria-pressed بيعلن حالة الوضع الداكن.
+ * - الحركة بتتوقف تحت prefers-reduced-motion.
+ * - الاهتزاز محروس بـ"vibrate" in navigator وبيتخطّى نفسه في reduced motion.
+ */
+export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
-  // منع أي Hydration Mismatch: next-themes بيحسم الوضع الفعلي على المتصفح بس
   const mounted = useHasMounted();
+  const reduceMotion = useReducedMotion();
 
   const isDark = resolvedTheme === "dark";
 
   const toggle = () => {
-    if (typeof window !== "undefined" && window.navigator.vibrate) window.navigator.vibrate(10);
+    if (typeof window !== "undefined" && "vibrate" in navigator && !reduceMotion) {
+      navigator.vibrate(10);
+    }
     setTheme(isDark ? "light" : "dark");
   };
 
+  // قبل الترطيب: عنصر نائب بنفس المقاس لمنع أي قفزة تخطيط
   if (!mounted) {
     return (
       <div
         aria-hidden="true"
-        className={cn("w-9 h-9 rounded-full bg-surface border border-border", className)}
+        className={cn("w-11 h-11 rounded-full bg-surface border border-border", className)}
       />
     );
   }
@@ -35,21 +42,22 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "التبديل للوضع الفاتح" : "التبديل للوضع الداكن"}
+      aria-pressed={isDark}
       className={cn(
-        "relative w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center overflow-hidden transition-colors hover:border-primary/40 active:scale-90 cursor-pointer",
-        className
+        "relative w-11 h-11 rounded-full bg-surface border border-border-strong/50 flex items-center justify-center overflow-hidden transition-colors hover:border-primary active:scale-90 cursor-pointer",
+        className,
       )}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={isDark ? "moon" : "sun"}
-          initial={{ opacity: 0, rotate: -90, scale: 0.4 }}
+          initial={reduceMotion ? false : { opacity: 0, rotate: -90, scale: 0.4 }}
           animate={{ opacity: 1, rotate: 0, scale: 1 }}
-          exit={{ opacity: 0, rotate: 90, scale: 0.4 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          exit={reduceMotion ? { opacity: 1 } : { opacity: 0, rotate: 90, scale: 0.4 }}
+          transition={{ duration: reduceMotion ? 0 : 0.35, ease: [0.16, 1, 0.3, 1] }}
           className="flex items-center justify-center text-primary"
         >
-          {isDark ? <Moon size={16} /> : <Sun size={16} />}
+          {isDark ? <Moon aria-hidden="true" size={16} /> : <Sun aria-hidden="true" size={16} />}
         </motion.span>
       </AnimatePresence>
     </button>

@@ -1,82 +1,102 @@
-"use client"
-import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, type LucideIcon } from "lucide-react";
-import { cn } from "@/src/lib/utils";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   icon: LucideIcon;
+  /** يُستخدم كـ name و id معًا — لازم يكون فريدًا داخل الصفحة */
   name: string;
+  /** التسمية الحقيقية للحقل — مرئية فوق الحقل، ومربوطة به بـ htmlFor. */
+  label: string;
   placeholder: string;
   type?: string;
   isTextArea?: boolean;
   error?: string;
+  autoComplete?: string;
+  required?: boolean;
+  /** اتجاه المحتوى — البريد يُكتب لاتينيًا فيحتاج ltr داخل قسم عربي. */
+  dir?: "ltr" | "rtl";
 }
 
-export default function ContactInput({ icon: Icon, name, placeholder, type = "text", isTextArea, error }: Props) {
-  const [isFocused, setIsFocused] = useState(false);
+/**
+ * Server Component — حقل إدخال بتسمية مرئية.
+ *
+ * قبل Phase 4: صفر <label> في الصفحة، والـplaceholder (بتباين 1.18:1) كان
+ * التسمية الوحيدة. Phase 4 أضاف <label> حقيقيًا لكن بـsr-only.
+ *
+ * 5B.9: التسمية بقت مرئية فوق الحقل. الـsr-only كان يخدم قارئ الشاشة وحده،
+ * بينما المستخدم المبصر يفقد التسمية لحظة ما يبدأ الكتابة (الـplaceholder يختفي).
+ * التسمية المرئية تخدم الاثنين، وهي أبسط من floating labels المتحركة.
+ *
+ * يبقى كما هو: aria-invalid و aria-describedby عند الخطأ، و autocomplete،
+ * والـplaceholder تلميح ثانوي لا بديل عن التسمية.
+ */
+export default function ContactInput({
+  icon: Icon,
+  name,
+  label,
+  placeholder,
+  type = "text",
+  isTextArea,
+  error,
+  autoComplete,
+  required,
+  dir,
+}: Props) {
+  const errorId = `${name}-error`;
+  const fieldClasses =
+    "w-full bg-transparent text-foreground text-base placeholder:text-foreground-subtle font-cairo";
+
+  const shared = {
+    id: name,
+    name,
+    placeholder,
+    required,
+    "aria-invalid": error ? (true as const) : undefined,
+    "aria-describedby": error ? errorId : undefined,
+    // React يُخرج هذه السمة كـautoComplete في الـHTML لا autocomplete.
+    // صحيح وظيفيًا: أسماء سمات HTML غير حسّاسة لحالة الأحرف، والمتصفح يقرأها
+    // كـautocomplete عاديًا. تمريرها بحروف صغيرة يُنتج تحذير prop غير معروف،
+    // فالشكل الـcamelCase هو الصحيح هنا رغم مظهره في المصدر المولَّد.
+    ...(autoComplete ? { autoComplete } : {}),
+    ...(dir ? { dir } : {}),
+  };
 
   return (
-    <div className="relative w-full flex flex-col gap-2 group/field"> 
-      <motion.div 
-        animate={isFocused ? { scale: 1.01 } : { scale: 1 }}
+    <div className="flex flex-col gap-2">
+      <label htmlFor={name} className="text-sm font-cairo font-bold text-foreground">
+        {label}
+      </label>
+
+      <div
         className={cn(
-          "relative flex items-start gap-4 p-6 rounded-[2rem] border transition-all duration-500 bg-foreground/[0.02] backdrop-blur-3xl",
-          isFocused
-            ? "border-primary bg-foreground/[0.05] shadow-[0_0_50px_var(--color-primary-transparent)]"
-            : "border-border hover:border-primary/30",
-          error ? "border-red-500/50" : ""
+          "flex items-start gap-3 rounded-2xl border bg-surface/40 px-4 py-3 transition-colors duration-300",
+          error
+            ? "border-red-600 dark:border-red-400"
+            : "border-border-strong focus-within:border-primary",
         )}
       >
-        <div className="flex-shrink-0 pt-1.5 transition-colors duration-500">
-          <Icon 
-            size={18} 
-            className={cn(
-              "transition-all duration-500",
-              isFocused ? "text-primary scale-110 rotate-[-10deg]" : "text-foreground-dim"
-            )} 
-          />
-        </div>
-        
+        <Icon
+          aria-hidden="true"
+          size={16}
+          className="mt-1.5 shrink-0 text-foreground-subtle transition-colors duration-300"
+        />
+
         {isTextArea ? (
-          <textarea
-            name={name}
-            rows={4}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="w-full bg-transparent text-foreground text-lg outline-none resize-none placeholder:text-foreground/10 font-cairo font-medium"
-            placeholder={placeholder}
-          />
+          <textarea {...shared} rows={5} className={cn(fieldClasses, "resize-none min-h-32")} />
         ) : (
-          <input
-            name={name}
-            type={type}
-            autoComplete="off"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="w-full bg-transparent text-foreground text-lg outline-none placeholder:text-foreground/10 font-cairo font-medium h-full"
-            placeholder={placeholder}
-          />
+          <input {...shared} type={type} className={cn(fieldClasses, "min-h-6 leading-6")} />
         )}
+      </div>
 
-        {/* Decorative Side Edge */}
-        <div className={cn(
-          "absolute right-0 top-1/2 -translate-y-1/2 w-0.75 bg-primary transition-all duration-500 rounded-l-full",
-          isFocused ? "h-1/2 opacity-100" : "h-0 opacity-0"
-        )} />
-      </motion.div>
-
-      <AnimatePresence mode="wait">
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-            className="flex items-center gap-2 text-red-400 font-cairo font-bold text-xs px-4"
-          >
-            <AlertCircle size={12} /> 
-            <span>{error}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {error && (
+        <p
+          id={errorId}
+          className="enter-rise flex items-center gap-2 text-red-700 dark:text-red-400 font-cairo font-bold text-xs"
+        >
+          <AlertCircle aria-hidden="true" size={12} className="shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
     </div>
-  ); 
+  );
 }

@@ -1,0 +1,17 @@
+# توحيد نهايات الأسطر على LF في المستودع وفي مجلد العمل على كل الأنظمة.
+# بدون هذا الملف، core.autocrlf=true على Windows بيحوّل الملفات لـ CRLF عند الـ checkout،
+# فيفشل `npm run format:check` (Prettier مضبوط على endOfLine: "lf") على Windows بينما ينجح على Linux/CI.
+* text=auto eol=lf
+
+# ملفات ثنائية — بلا أي تحويل.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# lockfile مولَّد — يُعامل كملف نصي لكن يُخفى من diff review.
+package-lock.json -diff

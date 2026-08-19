@@ -7,10 +7,10 @@ export default function Home() {
     <div id="page-root" className="relative w-full">
       <div className="relative z-10 flex flex-col w-full">
         <Navbar />
-        
+
         {/* الـ Hero */}
         <Hero />
-        
+
         {/* الـ SectionsWrapper الذي يحتوي على باقي سكاشن الصفحة */}
         <SectionsWrapper />
       </div>

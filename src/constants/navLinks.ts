@@ -1,71 +1,29 @@
-// src/constants/navLinks.ts
-
-export interface NavLink {
+interface NavLink {
+  /** مفتاح ثابت للعرض في القوائم */
   id: number;
+  /** التسمية العربية القصيرة الظاهرة للمستخدم */
   name: string;
+  /** معرّف القسم بدون "#" — لازم يقابل id موجودًا فعلًا في الصفحة */
   href: string;
-  number: string;
 }
 
+/**
+ * مصدر الحقيقة الوحيد لروابط التنقّل (شريط علوي + قائمة الجوال + روابط الفوتر).
+ *
+ * الشريط ليس فهرسًا للصفحة: كل قسم لا يحتاج رابطًا.
+ * - "الآراء" اتشال نهائيًا: القسم نفسه حُذف في 5B.8 لأن شهاداته لم تكن حقيقية.
+ *   بديله "لماذا تعمل معي؟" (#why) موجود في الصفحة بلا رابط هنا عن قصد: الشريط
+ *   ليس فهرسًا، والست روابط مقفولة منذ 5B.2 لحماية نقطة 1024px وإبقاء "لنبدأ"
+ *   هو الدعوة الأساسية. وجود id بلا رابط داخلي وضع سليم.
+ * - "تواصل معي" اتشال — زر الدعوة "لنبدأ" في الشريط نفسه يقود لنفس الوجهة،
+ *   ووجود الاثنين تكرار.
+ * - "tech-stack" ما كانش له رابط أصلًا: القسم اندمج داخل "عني" في 5B.3 وزال.
+ */
 export const navLinks: NavLink[] = [
-  { 
-    id: 1, 
-    name: "الرئيسية", 
-    href: "home", 
-    number: "01" 
-  },
-  { 
-    id: 2, 
-    name: "المشاريع", 
-    href: "projects", 
-    number: "02" 
-  },
-  { 
-    id: 3, 
-    name: "عني", 
-    href: "about", 
-    number: "03" 
-  },
-  { 
-    id: 4, 
-    name: "الخدمات", 
-    href: "services", 
-    number: "04" 
-  },
-
-  {
-    id: 5,
-    name: "رحلة العمل",
-    href: "process",
-    number: "05"
-  },
-  {
-    id: 6,
-    name: "الآراء",
-    href: "testimonials",
-    number: "06"
-  },
-  {
-    id: 7,
-    name: "الأسئلة",
-    href: "faq",
-    number: "07"
-  },
-  {
-    id: 8,
-    name: "تواصل معي",
-    href: "contact",
-    number: "08"
-  },
+  { id: 1, name: "الرئيسية", href: "home" },
+  { id: 2, name: "المشاريع", href: "projects" },
+  { id: 3, name: "عني", href: "about" },
+  { id: 4, name: "الخدمات", href: "services" },
+  { id: 5, name: "طريقة العمل", href: "process" },
+  { id: 6, name: "الأسئلة", href: "faq" },
 ];
-
-// معلومات الموقع (أبوظبي)
-export const siteConfig = {
-  location: "أبوظبي، الإمارات",
-  email: "hello@mojimmy.com",
-  vibrationIntensity: {
-    light: 8,
-    medium: 15,
-    strong: 25
-  }
-};

@@ -1,60 +1,51 @@
 "use client";
 
-import { useRef } from "react";
-import { ThemeProvider, useTheme } from "next-themes";
-import { Toaster } from "sonner";
-import AnimatedFavicon from "./AnimatedFavicon";
+import { ThemeProvider } from "next-themes";
 import CustomCursor from "./CustomCursor";
 import ScrollProgress from "./ScrollProgress";
 import SmoothScroll from "./SmoothScroll";
-import FloatingLaunch from "./Layouts/FloatingLaunch";
 import WhatsAppButton from "./WhatsAppButton";
 import { MobileDock } from "./Layouts/Native";
 
-// الـ Toaster بيتبع لون الوضع الفعلي (فاتح/داكن) بدل ما يفضل داكن ثابت
-function ThemedToaster() {
-  const { resolvedTheme } = useTheme();
-  return (
-    <Toaster
-      position="bottom-left"
-      theme={resolvedTheme === "light" ? "light" : "dark"}
-      richColors
-      closeButton
-    />
-  );
-}
-
+/**
+ * القشرة العميلة الوحيدة في التطبيق.
+ *
+ * مهم: `children` بتوصل هنا كـ React nodes **مرسومة على السيرفر** بالفعل.
+ * تمريرها جوّه Client Component لا يحوّلها لعميل — فشجرة الصفحة كلها
+ * (Hero, Projects, Services, About, Process, FAQ, Contact, Footer) تفضل Server Components.
+ *
+ * ThemeProvider لازم يفضل مغلّفًا لأن ThemeToggle (جوّه Navbar) بيستهلك الـ context.
+ * باقي العناصر جزر مستقلة، كل واحدة تحمّل الـ JS بتاعها فقط.
+ */
 export function ProvidersWrapper({ children }: { children: React.ReactNode }) {
-  const mainRef = useRef<HTMLElement>(null);
-
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <AnimatedFavicon />
-      <CustomCursor />
-      <ScrollProgress />
+      {/* أول عنصر قابل للتركيز في الصفحة — يظهر عند الوصول له بالكيبورد فقط */}
+      <a
+        href="#main-content"
+        className="skip-link glass-light rounded-full px-5 py-3 font-cairo font-bold text-sm text-foreground shadow-lg"
+      >
+        تخطي إلى المحتوى
+      </a>
 
-      {/* الـ Smooth Scroll بيغلف المحتوى بالكامل بشكل سليم */}
+      <ScrollProgress />
+      <CustomCursor />
+
       <SmoothScroll>
         <main
-          ref={mainRef}
+          id="main-content"
+          tabIndex={-1}
           className="relative min-h-screen flex flex-col z-10 pointer-events-auto pb-24 md:pb-0"
         >
           {children}
         </main>
 
-        {/* أزرار الكمبيوتر */}
-        <div className="fixed bottom-0 right-0 z-100 hidden md:flex flex-col gap-4 p-10 pointer-events-none">
-          <div className="pointer-events-auto flex flex-col gap-4">
-            <FloatingLaunch />
-            <WhatsAppButton />
-          </div>
-        </div>
+        {/* زر الواتساب — ديسكتوب فقط، الزر نفسه fixed ومسؤول عن مكانه */}
+        <WhatsAppButton />
       </SmoothScroll>
 
       {/* الـ Dock للموبايل بره الـ Scroll بس جوه الـ Provider */}
       <MobileDock />
-
-      <ThemedToaster />
     </ThemeProvider>
   );
 }

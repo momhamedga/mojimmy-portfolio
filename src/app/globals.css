@@ -4,10 +4,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* -------------------------------------------------------------------------- */
-/* 1. Next-Gen Design System (OKLCH & CSS Variables)                          */
+/* 1. Design System (OKLCH & CSS Variables)                                   */
 /* -------------------------------------------------------------------------- */
 @theme {
-  /* قيم افتراضية (تُستبدل فعليًا عبر :root / .dark أدناه — موجودة هنا فقط عشان Tailwind يولّد الـ utilities) */
+  /* قيم افتراضية (تُستبدل فعليًا عبر :root / .dark أدناه — موجودة هنا عشان Tailwind يولّد الـ utilities) */
   /* هوية الألوان: أزرق ملكي (Primary) + كريمسون (Accent) */
   --color-background: oklch(0.06 0.02 255);
   --color-surface: oklch(0.13 0.02 255);
@@ -18,36 +18,30 @@
   --color-border: oklch(1 0 0 / 0.08);
   --color-glass: oklch(1 0 0 / 0.03);
 
-  --color-mobile-card: oklch(0.12 0.01 250 / 0.8);
-  --color-ios-blur: rgba(255, 255, 255, 0.05);
+  /* --- توكنات إتاحة (Phase 4) ---
+     foreground-subtle : أخفت درجة نص مسموح بها — تعوّض كل استخدامات
+                         text-foreground/10..40 اللي كانت راسبة في التباين.
+     primary-strong    : خلفية الأزرار اللي نصها أبيض. مطابق لـprimary في
+                         الوضع الفاتح، وأغمق شوية في الداكن عشان الأبيض
+                         يعدّي 4.5:1 (كان 4.03:1).
+     border-strong     : حدود عناصر الإدخال — مكوّنات واجهة لازم تعدّي 3:1. */
+  --color-foreground-subtle: oklch(0.52 0.02 250);
+  --color-primary-strong: oklch(0.45 0.18 258);
+  --color-border-strong: oklch(0.55 0.02 250);
 
-  /* مشتقّات primary — كانت مُستخدمة في أماكن كتير بدون تعريف (متغيّر غير موجود = تأثير معطّل بصمت) */
+  /* مشتقّات primary — مستخدمة في shadows/gradients عبر المكوّنات */
   --color-primary-transparent: color-mix(in oklch, var(--color-primary) 18%, transparent);
   --color-primary-faded: color-mix(in oklch, var(--color-primary) 8%, transparent);
 
   --font-cairo: var(--font-cairo);
-  --font-almarai: var(--font-almarai);
-  --font-inter: var(--font-inter);
-
-  /* breakpoint إضافي كان مستخدم في الكود (xs:) بدون ما يكون معرّف أصلاً */
-  --breakpoint-xs: 30rem;
-
-  --animate-float: floating 6s ease-in-out infinite;
-  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-
-  @keyframes floating {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-15px) rotate(1deg); }
-  }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. Base Reinforcement (Lenis Friendly & Performance Focused)               */
+/* 2. Base Reinforcement (Lenis Friendly)                                     */
 /* -------------------------------------------------------------------------- */
 @layer base {
   :root {
     color-scheme: light;
-    --scroll-padding: 5rem;
 
     --color-background: oklch(0.985 0.004 255);
     --color-surface: oklch(0.965 0.008 255);
@@ -57,6 +51,10 @@
     --color-accent: oklch(0.5 0.19 20);
     --color-border: oklch(0 0 0 / 0.08);
     --color-glass: oklch(0 0 0 / 0.03);
+
+    --color-foreground-subtle: oklch(0.52 0.02 250);
+    --color-primary-strong: oklch(0.45 0.18 258);
+    --color-border-strong: oklch(0.62 0.02 250);
   }
 
   .dark {
@@ -70,6 +68,10 @@
     --color-accent: oklch(0.58 0.21 20);
     --color-border: oklch(1 0 0 / 0.08);
     --color-glass: oklch(1 0 0 / 0.03);
+
+    --color-foreground-subtle: oklch(0.6 0.02 255);
+    --color-primary-strong: oklch(0.54 0.19 258);
+    --color-border-strong: oklch(0.5 0.02 255);
   }
 
   html {
@@ -79,7 +81,8 @@
   }
 
   /* تهيئة الـ Lenis على الـ html بشكل رسمي ومعتمد */
-  html.lenis, html.lenis body {
+  html.lenis,
+  html.lenis body {
     height: auto;
   }
 
@@ -94,7 +97,9 @@
   body {
     position: relative;
     background-color: var(--color-background);
-    transition: background-color 0.4s ease, color 0.4s ease;
+    transition:
+      background-color 0.4s ease,
+      color 0.4s ease;
     @apply text-foreground selection:bg-primary/20 selection:text-primary overflow-x-hidden;
   }
 
@@ -102,7 +107,7 @@
     content: "";
     position: fixed;
     inset: 0;
-    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAXCAMAAABY9N0VAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRF////zMzMzMzM79mSbwAAAAJ0Uk5T/wD/zzU8AAAAP0lEQVR42mJgYGRiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmICDABz7gD/8DkF2QAAAABJRU5ErkJggg==");
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAXCAMAAABY9N0VAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRF////zMzMzMzM79mSbwAAAAJ0Uk5T/wD/zzU8AAAAP0lEQVR42mJgYGRiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmICDABz7gD/8DkF2QAAAABJRU5ErkJggg==");
     opacity: 0.015;
     pointer-events: none;
     z-index: 9999;
@@ -110,50 +115,323 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* 3. High-End Cinematic Utilities                                            */
+/* 3. Shared Utilities                                                        */
 /* -------------------------------------------------------------------------- */
 @layer utilities {
-  .glass-card {
-    @apply bg-glass border border-border backdrop-blur-xl;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  }
-
-  .text-gradient-reveal {
-    @apply bg-clip-text text-transparent bg-linear-to-b from-foreground via-foreground/80 to-foreground/20;
-    will-change: transform, opacity;
-  }
-
-  .neon-glow-primary {
-    filter: drop-shadow(0 0 15px color-mix(in oklch, var(--color-primary) 40%, transparent));
-  }
-
   /* زجاجية خفيفة موحّدة — تُستخدم فوق أي خلفية فاتحة أو داكنة */
   .glass-light {
     @apply bg-surface/60 backdrop-blur-xl border border-border;
   }
 
-  /* 💡 تشغيل السكرول بار الداخلي للمنيو (المسؤول عن الصورة) */
-  .custom-nav-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-primary) transparent;
+  /* مرئي لقارئ الشاشة فقط — نسخة واحدة معتمدة في المشروع كله */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
   }
 
-  /* الـ Webkit Scrollbar الأساسي للصفحة واللوحات */
-  ::-webkit-scrollbar {
-    width: 6px;
-    background: transparent;
+  /* رابط التخطي — مخفي حتى يستقبل التركيز */
+  .skip-link {
+    position: absolute;
+    inset-inline-start: 1rem;
+    top: 0.5rem;
+    z-index: 100000;
+    transform: translateY(-200%);
+    transition: transform 0.15s ease-out;
+  }
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3a. Focus System — مؤشّر تركيز واحد واضح لكل العناصر التفاعلية             */
+/* -------------------------------------------------------------------------- */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 0.35rem;
+}
+
+/* عناصر تستقبل تركيزًا برمجيًا فقط (عنوان الحوار، هدف رابط التخطي):
+   ما ينفعش تعرض حلقة تركيز لأنها مش عناصر تفاعلية للمستخدم. */
+:where([tabindex="-1"]):focus,
+:where([tabindex="-1"]):focus-visible {
+  outline: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3b. Motion System — CSS خالص، صفر JavaScript                               */
+/*                                                                            */
+/* مبدأ حاكم: الحالة الأساسية لأي عنصر هي "مرئي".                             */
+/* الأنيميشن تحسين فوقها (progressive enhancement)، مش شرط لظهور المحتوى.      */
+/* لو الأنيميشن مش مدعومة أو المستخدم طالب تقليل الحركة → المحتوى يظهر عادي.  */
+/* -------------------------------------------------------------------------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* رفعة بالـ transform فقط — بدون لمس opacity إطلاقًا.
+   مخصّصة لعنصر الـ LCP: يُرسم بكامل وضوحه من أول frame. */
+@keyframes rise-in-opaque {
+  from {
+    transform: translateY(1rem);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* دخول عند تحميل الصفحة — للمحتوى فوق الطيّة.
+     بلا fill-mode افتراضيًا، فالحالة الأساسية (مرئي) هي المرجع دائمًا. */
+  .enter-rise {
+    animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, transparent, var(--color-primary), transparent);
-    border-radius: 20px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    transition: background 0.3s ease;
+  /* عنصر الـ LCP: transform فقط، صفر تأخير، opacity ثابتة عند 1 */
+  .enter-lcp {
+    animation: rise-in-opaque 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-primary);
-    box-shadow: 0 0 10px var(--color-primary);
+  .enter-delay-2 {
+    animation-delay: 0.16s;
+  }
+  .enter-delay-3 {
+    animation-delay: 0.24s;
+  }
+  .enter-delay-4 {
+    animation-delay: 0.32s;
+  }
+
+  /* كشف عند الوصول للعنصر أثناء السكرول — مربوط بـ scroll timeline لا بـ JS.
+     المتصفحات اللي لا تدعم animation-timeline تتجاهل البلوك كله
+     فيظهر المحتوى مرئيًا بشكل طبيعي (لا يختفي أبدًا). */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 15%;
+    }
+  }
+
+  /* تدرّج لوني متحرّك على نص العنوان — كان framer-motion loop أبدي، بقى CSS */
+  .hero-gradient-text {
+    animation: gradient-pan 8s linear infinite;
+  }
+
+  /* الشعار — كان framer-motion variants + حلقتين أبديتين */
+  .logo-glow {
+    animation: logo-glow 4s ease-in-out infinite;
+  }
+  .logo-dot {
+    animation: logo-dot 3s ease-in-out infinite;
+  }
+
+  /* كتل الأورورا خلف الـ Hero — كانت 3 حلقات framer-motion أبدية */
+  .aurora-a {
+    animation: aurora-a 22s ease-in-out infinite;
+  }
+  .aurora-b {
+    animation: aurora-b 26s ease-in-out infinite 2s;
+  }
+  .aurora-c {
+    animation: aurora-c 30s ease-in-out infinite 4s;
+  }
+}
+
+/* النقطة القائدة لشريط التقدّم — تتحرّك بالـ transform فقط، بلا أي layout */
+.scroll-leader {
+  --progress: 0;
+  transform: translateX(calc(var(--progress) * 100vw)) translateX(-50%);
+}
+
+/* --- الشعار: تفاعل hover بـ CSS بحت --- */
+.logo-halo {
+  opacity: 0;
+  transform: scale(1);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+.logo-ring {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.logo-sheen {
+  transform: translateX(-150%) skewX(-12deg);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.logo-root:hover .logo-halo {
+  opacity: 1;
+  transform: scale(1.4);
+}
+.logo-root:hover .logo-ring {
+  transform: scale(1.08);
+}
+.logo-root:hover .logo-sheen {
+  transform: translateX(150%) skewX(-12deg);
+}
+.logo-root:active .logo-ring {
+  transform: scale(0.92);
+}
+
+@keyframes logo-glow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes logo-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.4;
+  }
+}
+
+@keyframes gradient-pan {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes aurora-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(60px, -40px, 0) scale(1.15);
+  }
+  66% {
+    transform: translate3d(-30px, 20px, 0) scale(0.95);
+  }
+}
+
+@keyframes aurora-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-50px, 30px, 0) scale(0.9);
+  }
+  66% {
+    transform: translate3d(30px, -20px, 0) scale(1.1);
+  }
+}
+
+@keyframes aurora-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  33% {
+    transform: translate3d(30px, -20px, 0);
+  }
+  66% {
+    transform: translate3d(-40px, 30px, 0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4. Scrollbar — مصدر حقيقة واحد، متوافق مع الثيم (فاتح/داكن)                */
+/* -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, transparent, var(--color-primary), transparent);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary);
+}
+
+/* -------------------------------------------------------------------------- */
+/* 5. Reduced Motion — كنس شامل (WCAG 2.3.3)                                  */
+/*                                                                            */
+/* كل الحركات في المشروع مبنية على transform/opacity، فإلغاؤها هنا يغطي:      */
+/* أنيميشن CSS · الحلقات الأبدية · الكشف بالسكرول · انتقالات الثيم ·          */
+/* حركات Framer Motion (بتحترم prefers-reduced-motion من طبقة الـCSS دي        */
+/* لما تكون transitions، والباقي متحكوم فيه من داخل المكوّنات).               */
+/*                                                                            */
+/* مستثنى عمدًا: تغيّرات اللون والحدود والظل — دي تغذية راجعة للتفاعل         */
+/* (hover/focus/active) ولازم تفضل شغالة، ومش حركة بالمعنى اللي يسبب دوار.    */
+/* -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* الحركات الزخرفية المستمرة تتوقف تمامًا وتستقر على حالتها النهائية */
+  .aurora-a,
+  .aurora-b,
+  .aurora-c,
+  .hero-gradient-text,
+  .logo-glow,
+  .logo-dot,
+  .reveal,
+  .enter-rise,
+  .enter-lcp {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* نبضات زخرفية مستمرة عبر utilities من Tailwind.
+     ملاحظة: .animate-spin مستثنى عمدًا — هو مؤشّر تحميل زر الإرسال،
+     أي تغذية راجعة ضرورية للحالة، مش زخرفة.
+     أي utility حركة مستمرة جديدة لازم تتضاف هنا وقت استخدامها. */
+  .animate-ping,
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
   }
 }

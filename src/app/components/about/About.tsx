@@ -1,88 +1,85 @@
-"use client"
-import { useRef } from "react";
-import { useScroll, useTransform, motion, useSpring } from "framer-motion";
-import { Word } from "./Word";
-import { AboutStats } from "./AboutStats";
+import { EXPERTISE } from "@/constants/expertise";
+import { ExpertiseBlock } from "./ExpertiseBlock";
 
-const ABOUT_TEXT = "أنا مطور واجهات أمامية متخصص في تحويل الأفكار المعقدة إلى تجارب رقمية بسيطة ومبهرة. أؤمن بأن التفاصيل الصغيرة هي التي تصنع الفارق الكبير، ولذلك أهتم بكل بكسل وبكل حركة داخل الموقع لضمان تقديم أعلى جودة ممكنة للعملاء.";
-
+/**
+ * قسم "عني" — Server Component بالكامل، صفر JavaScript.
+ *
+ * أُعيد بناؤه في 5B.3 ودُمج داخله قسم التقنيات المستقل:
+ * - كان "use client" بسبب useScroll + useSpring اللي كانا يغذّيان الكشف
+ *   كلمة-بكلمة و شريط "Execution Level". الاثنان أُزيلا.
+ * - النص العملاق (text-5xl مقسّم 40 كلمة) صار مقدمة قصيرة مقروءة فورًا.
+ * - "Story Mode" و "Execution Level" و الـspotlight المتحرك أُزيلوا.
+ * - الحشو الرأسي من py-20 md:py-72 إلى py-24 md:py-32.
+ * - جدار شعارات التقنيات صار ثلاث مجموعات خبرة تدعم المقدمة.
+ *
+ * الحركة: الكشف عند السكرول بـ.reveal (CSS خالص، يحترم prefers-reduced-motion،
+ * والحالة الأساسية مرئية فلا يعتمد المحتوى على JavaScript).
+ */
 export default function About() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"] 
-  });
-
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 80,
-    damping: 25,
-    restDelta: 0.001
-  });
-
-  const words = ABOUT_TEXT.split(" ");
-  // Spotlight خفيف جداً للموبايل عشان مياكلش الـ FPS
-  const spotlightY = useTransform(smoothProgress, [0, 1], ["-10%", "110%"]);
-
   return (
-    <motion.section 
-      ref={containerRef} 
-      dir="rtl" 
-      className="relative py-20 md:py-72 overflow-hidden bg-transparent"
+    <section
+      dir="rtl"
+      className="relative py-24 md:py-32 overflow-hidden bg-transparent"
       id="about"
     >
-      {/* Ambient Spotlight - Hidden on very small screens for performance */}
-      <motion.div 
-        style={{ top: spotlightY }}
-        className="absolute left-1/2 -translate-x-1/2 w-[100vw] md:w-[60vw] h-[100vw] md:h-[60vw] bg-primary/8 blur-[80px] md:blur-[150px] rounded-full -z-10 pointer-events-none"
+      {/* توهّج خلفي هادئ وثابت — بلا حركة مربوطة بالسكرول */}
+      <div
+        aria-hidden="true"
+        className="absolute top-1/4 right-0 w-[70vw] md:w-125 h-[70vw] md:h-125 bg-primary/5 blur-[120px] rounded-full -z-10 pointer-events-none"
       />
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-16 md:gap-32">
-          
-          {/* الجانب الأيمن: Branding & Stats */}
-          <div className="lg:col-span-4 lg:sticky lg:top-48 h-fit flex flex-col gap-10 md:gap-12">
-            <div className="space-y-6 text-right">
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-border bg-foreground/[0.02] backdrop-blur-md"
-              >
-                <span className="w-2 h-2 bg-primary rounded-full animate-ping" />
-                <span className="text-foreground/50 font-cairo text-[10px] md:text-xs uppercase tracking-[0.3em] font-bold">
-                  Story Mode
-                </span>
-              </motion.div>
-              
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-cairo font-black text-foreground leading-[1.1] md:leading-[0.95] tracking-tight">
-                كود <br className="hidden md:block"/>
-                <span className="text-transparent bg-clip-text bg-linear-to-l from-primary to-accent">
-                  بلمسة فن.
-                </span>
-              </h2>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+          {/* المحتوى: التعريف والقيمة */}
+          <div className="reveal lg:col-span-5 text-right">
+            <span className="text-primary font-cairo font-bold tracking-[0.3em] text-[10px] md:text-xs uppercase block mb-5">
+              About
+            </span>
 
-            {/* الإحصائيات تظهر هنا في الموبايل وتكون sticky في الديسكتوب */}
-            <AboutStats progress={smoothProgress} />
-          </div>
+            <h2 className="text-3xl md:text-4xl font-cairo font-black text-foreground leading-[1.35] tracking-tight">
+              أبني تجارب ويب سريعة، واضحة،{" "}
+              <span className="text-transparent bg-clip-text bg-linear-to-l from-primary to-accent">
+                وقابلة للتوسّع.
+              </span>
+            </h2>
 
-          {/* الجانب الأيسر: الكتابة المتفاعلة */}
-          <div className="lg:col-span-8 mt-10 md:mt-0">
-            <div className="flex flex-wrap content-start text-2xl sm:text-3xl md:text-5xl font-cairo font-bold leading-[1.4] md:leading-[1.2] tracking-tight text-right text-foreground/10">
-              {words.map((word, i) => {
-                const start = i / words.length;
-                const end = start + (1 / words.length);
-                return (
-                  <Word key={i} range={[start, end]} progress={smoothProgress}>
-                    {word}
-                  </Word>
-                );
-              })}
+            <p className="mt-6 text-foreground-dim text-sm md:text-base font-cairo leading-relaxed">
+              أنا <span className="text-foreground font-bold">محمد جمال</span>، مطوّر ويب أعمل على
+              بناء المواقع والتطبيقات والأنظمة الحديثة، من الواجهة إلى الـBackend، مع اهتمام بالأداء
+              وسهولة الاستخدام وجودة الكود.
+            </p>
+
+            <p className="mt-4 text-foreground-dim text-sm md:text-base font-cairo leading-relaxed">
+              أستخدم تقنيات حديثة لبناء حلول عملية قابلة للصيانة والتطوير، وأستفيد من تكاملات الذكاء
+              الاصطناعي عندما تضيف قيمة حقيقية للمشروع.
+            </p>
+
+            {/* دليل الخبرة — عنصر مساند صغير، ليس شريط إحصائيات */}
+            <div className="mt-8 inline-flex items-center gap-4 rounded-2xl border border-border bg-surface/60 backdrop-blur-md px-5 py-3">
+              <span className="text-2xl font-black font-cairo text-primary tabular-nums leading-none">
+                +5
+              </span>
+              <span className="text-xs font-cairo font-bold text-foreground-dim leading-snug">
+                سنوات خبرة
+                <br />
+                في تطوير الويب
+              </span>
             </div>
           </div>
 
+          {/* مجموعات الخبرة — مكدّسة رأسيًا لسهولة المسح البصري في RTL */}
+          <div className="reveal lg:col-span-7 flex flex-col gap-4 md:gap-5">
+            {EXPERTISE.map((group) => (
+              <ExpertiseBlock
+                key={group.id}
+                id={group.id}
+                title={group.title}
+                items={group.items}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
