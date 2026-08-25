@@ -42,7 +42,6 @@ export const SITE_NAME_EN = "Mohamed Gamal";
 
 /** المسمّى المهني — فرد لا شركة ولا استوديو. */
 export const JOB_TITLE = "مطوّر ويب";
-export const JOB_TITLE_EN = "Web Developer";
 
 export const SITE_TITLE = `${SITE_NAME} | ${JOB_TITLE}`;
 

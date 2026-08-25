@@ -40,4 +40,16 @@ export const PROJECTS: Project[] = [
     tags: ["Next", "Motion Graphics", "React", "TypeScript"],
     link: "https://josour-international.vercel.app",
   },
+  {
+    id: "05",
+    title: "JAWHARAT AL DANAT",
+    category: "موقع أعمال وفعاليات",
+    // الوصف يصف الموقع لا يروّج للشركة: القطاعان والثنائية اللغوية ولوحة
+    // التحكم كلها متحقَّقة من مصدر المشروع ومن الصفحة المنشورة.
+    description:
+      "موقع ثنائي اللغة لقطاعَي العناية بالسيارات وتنظيم الفعاليات، مع مدونة ولوحة تحكم إدارية.",
+    color: "oklch(0.68 0.16 165)", // أخضر زمردي — درجة غير مستخدمة في البطاقات الأربع
+    tags: ["Next.js 16", "React 19", "Prisma", "Tailwind v4"],
+    link: "https://jawharat-al-danat.vercel.app/",
+  },
 ];
