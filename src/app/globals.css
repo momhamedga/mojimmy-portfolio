@@ -102,16 +102,6 @@
       color 0.4s ease;
     @apply text-foreground selection:bg-primary/20 selection:text-primary overflow-x-hidden;
   }
-
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAXCAMAAABY9N0VAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRF////zMzMzMzM79mSbwAAAAJ0Uk5T/wD/zzU8AAAAP0lEQVR42mJgYGRiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmICDABz7gD/8DkF2QAAAABJRU5ErkJggg==");
-    opacity: 0.015;
-    pointer-events: none;
-    z-index: 9999;
-  }
 }
 
 /* -------------------------------------------------------------------------- */
