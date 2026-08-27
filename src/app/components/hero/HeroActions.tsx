@@ -1,25 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
-import dynamic from "next/dynamic";
+import { useRef } from "react";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 
-// المودال يُحمّل عند أول فتح فقط — كود splitting له قيمة مثبتة هنا
-// (274 سطر + framer-motion لا يلزم أي زائر لا يضغط الزر).
-const StartProjectModal = dynamic(() => import("../ProjectModal/StartProjectModal"), {
-  ssr: false,
-});
-
 /**
- * جزيرة عميل: أزرار الـ Hero + ملكية حالة المودال.
- * نُقلت حالة المودال من Hero لهنا، فبقى Hero (ومعاه العنوان والنصوص) Server Component.
+ * جزيرة عميل: أزرار الـ Hero.
+ *
+ * الدعوة الأساسية كانت تفتح مودال طلب مشروع من ثلاث خطوات (خدمة، ميزانية،
+ * بريد ورسالة) ثم تُرسل عبر نفس `submitContactForm`. أُزيل المودال: الرحلة
+ * بقت الدعوة ← قسم التواصل مباشرةً، بخطوة واحدة بدل أربع.
+ *
+ * العنصر بقى `<a href="#contact">` لا `<button>`: الوجهة صفحة لا إجراء، فالرابط
+ * يعمل بلا JavaScript، ويحترم فتح تبويب جديد، ويظهر في تنقّل الروابط.
+ *
+ * أثر التمرير (`--x`/`--y`) باقٍ كما هو — مظهر الزر لم يتغيّر بأي بكسل.
  */
 export const HeroActions = () => {
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const ctaRef = useRef<HTMLAnchorElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    const el = btnRef.current;
+    const el = ctaRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     el.style.setProperty("--x", `${e.clientX - rect.left}px`);
@@ -32,10 +32,10 @@ export const HeroActions = () => {
 
   return (
     <div className="enter-rise enter-delay-4 flex flex-col sm:flex-row items-center justify-center gap-3 mt-9 w-full">
-      <button
-        ref={btnRef}
+      <a
+        ref={ctaRef}
+        href="#contact"
         onMouseMove={handleMouseMove}
-        onClick={() => setIsModalOpen(true)}
         className="group relative px-8 py-3.5 rounded-2xl bg-primary-strong text-white font-black font-cairo overflow-hidden transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 cursor-pointer"
       >
         <span className="relative z-10 flex items-center gap-3 text-sm md:text-base tracking-wide">
@@ -55,7 +55,7 @@ export const HeroActions = () => {
               "radial-gradient(circle at var(--x) var(--y), color-mix(in oklch, white 30%, transparent) 0%, transparent 50%)",
           }}
         />
-      </button>
+      </a>
 
       <button
         onClick={scrollToProjects}
@@ -68,8 +68,6 @@ export const HeroActions = () => {
           className="transition-transform duration-300 group-hover:translate-y-0.5"
         />
       </button>
-
-      {isModalOpen && <StartProjectModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };

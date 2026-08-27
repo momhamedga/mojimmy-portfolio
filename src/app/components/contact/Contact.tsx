@@ -25,7 +25,14 @@ const WHATSAPP_URL = "https://wa.me/+971589915968";
  */
 export default function Contact() {
   return (
-    <section id="contact" dir="rtl" className="relative py-24 md:py-32 overflow-hidden">
+    <section
+      id="contact"
+      dir="rtl"
+      /* scroll-mt: هامش تمرير فقط — لا يؤثّر في التخطيط إطلاقًا. بدونه يهبط
+         عنوان القسم خلف شريط التنقّل الثابت عند القفز بالمرساة (‎-24px‎ مقابل
+         أسفل الشريط عند ‎90px‎). */
+      className="relative scroll-mt-24 py-24 md:py-32 overflow-hidden"
+    >
       <div
         aria-hidden="true"
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] bg-primary/5 blur-[140px] rounded-full -z-10 pointer-events-none"

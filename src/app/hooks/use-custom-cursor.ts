@@ -26,12 +26,12 @@ const CURSOR_QUERY =
 export const useCustomCursor = () => {
   const [enabled, setEnabled] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [hoverState, setHoverState] = useState({ active: false, text: "" });
+  const [hoverState, setHoverState] = useState({ active: false });
 
   const rafId = useRef<number | null>(null);
   const pointer = useRef({ x: 0, y: 0 });
   const isVisibleRef = useRef(false);
-  const hoverRef = useRef({ active: false, text: "" });
+  const hoverRef = useRef({ active: false });
 
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
@@ -73,13 +73,12 @@ export const useCustomCursor = () => {
 
     const handleInteraction = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
-      const interactive = target?.closest("a, button, .project-card, .group");
+      const interactive = target?.closest("a, button, .group");
       const active = Boolean(interactive);
-      const text = interactive?.classList.contains("project-card") ? "VIEW" : "";
 
-      if (hoverRef.current.active === active && hoverRef.current.text === text) return;
-      hoverRef.current = { active, text };
-      setHoverState({ active, text });
+      if (hoverRef.current.active === active) return;
+      hoverRef.current = { active };
+      setHoverState({ active });
     };
 
     window.addEventListener("mousemove", handleMove, { passive: true });

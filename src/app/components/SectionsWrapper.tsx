@@ -24,7 +24,7 @@ import MobileScrollTop from "./MobileScrollTop";
 export default function SectionsWrapper() {
   return (
     <div className="flex flex-col w-full relative">
-      <div className="reveal relative w-full">
+      <div className="relative w-full">
         <Projects />
       </div>
 

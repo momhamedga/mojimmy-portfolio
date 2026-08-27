@@ -14,9 +14,14 @@ import { memo, useEffect, useState, type ReactNode } from "react";
  * الحركة بياخد السكرول الأصلي للمتصفح (Lenis مش بيتركّب أصلًا)، فبيتوفّر
  * كمان الـ rAF loop بتاعه بالكامل.
  */
+/**
+ * ملاحظة أداء مقيسة: Lenis يفاضل بين duration و lerp داخل Animate.advance —
+ * الشرط `if (this.duration && this.easing)` يسبق فرع الـ lerp، وواضع duration
+ * رقمًا يجعل easing يُضبط تلقائيًا. فوجود duration كان يُلغي lerp تمامًا.
+ * أُزيل duration ليعمل فرع الـ lerp فعليًا ويقلّ الذيل بعد توقّف العجلة.
+ */
 const LENIS_OPTIONS = {
-  duration: 1.2,
-  lerp: 0.1,
+  lerp: 0.15,
   wheelMultiplier: 1.0,
   touchMultiplier: 1.5,
   smoothWheel: true,

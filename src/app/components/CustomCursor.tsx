@@ -18,16 +18,28 @@ export default function CustomCursor() {
         style={{ x: trailX, y: trailY, translateX: "-50%", translateY: "-50%" }}
         className="fixed top-0 left-0 flex items-center justify-center"
       >
+        {/*
+         * الحلقة تكبر بـ outline-offset لا بـ width/height.
+         *
+         * السبب مقيس لا تجميلي: تحريك العرض والارتفاع خاصيّتا تخطيط، فكان كل
+         * إطار من انتقال المرور يفرض layout — 245 عملية تخطيط في تمريرة سكرول
+         * مع حركة مؤشّر، مقابل 31 عند تجميدهما وحدهما.
+         *
+         * الهندسة محفوظة بالضبط: الصندوق 43px والحدّ 1px بإزاحة صفر يرسم حلقة
+         * قطرها الخارجي 45px (43 + 2×1)، وبإزاحة 17.5px يرسم 80px
+         * (43 + 2×17.5 + 2×1) — أي نفس مقاسَي الحالة السابقة تمامًا، وبسُمك
+         * حدّ ثابت 1px في الحالتين لأن الـoutline لا يتأثّر بأي تحجيم.
+         */}
         <motion.div
           animate={{
-            width: hoverState.active ? 80 : 45,
-            height: hoverState.active ? 80 : 45,
+            outlineOffset: hoverState.active ? "17.5px" : "0px",
             rotate: hoverState.active ? 180 : 0,
-            borderColor: hoverState.active
+            outlineColor: hoverState.active
               ? "color-mix(in oklch, var(--color-primary) 50%, transparent)"
               : "color-mix(in oklch, var(--color-foreground) 20%, transparent)",
           }}
-          className="rounded-full border border-dashed"
+          style={{ width: 43, height: 43, outlineStyle: "dashed", outlineWidth: 1 }}
+          className="rounded-full"
         />
       </motion.div>
 
@@ -39,13 +51,7 @@ export default function CustomCursor() {
         <motion.div
           animate={{ scale: hoverState.active ? 2.5 : 1 }}
           className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)] flex items-center justify-center"
-        >
-          {hoverState.active && hoverState.text && (
-            <span className="text-[3px] font-black text-black tracking-widest">
-              {hoverState.text}
-            </span>
-          )}
-        </motion.div>
+        />
       </motion.div>
 
       {/* 3. تأثير الـ Glow الجانبي (Subtle Glow) */}
