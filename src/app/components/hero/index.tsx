@@ -1,12 +1,16 @@
 import { HeroContent } from "./HeroContent";
 import { HeroActions } from "./HeroActions";
+import { HeroMotionGate } from "./HeroMotionGate";
 
 /**
  * Hero — Server Component.
  *
- * الأورورا الخلفية بقت CSS keyframes بدل 3 حلقات framer-motion أبدية.
- * الـ IntersectionObserver اللي كان بيطفّيها خارج الشاشة اتشال: المتصفحات بتوقف
- * أنيميشن CSS للعناصر خارج الـ viewport تلقائيًا، فالمراقب كان تكلفة بلا مقابل.
+ * الأورورا الخلفية CSS keyframes بدل 3 حلقات framer-motion أبدية.
+ *
+ * تصحيح Phase 2B: كان هنا أن المتصفح يوقف أنيميشن CSS خارج الشاشة تلقائيًا،
+ * فأُزيل المراقب. القياس أثبت أن ذلك غير صحيح — الأورورا والتدرّج يظلّان
+ * `running` والـHero على بُعد ‎8702px‎، بلا أي فرق في عدد إعادة حساب الأنماط.
+ * لذلك عاد مراقب واحد عبر HeroMotionGate، ويوقف الحركة بـplay-state لا بحذفها.
  */
 export default function Hero() {
   return (
@@ -14,6 +18,8 @@ export default function Hero() {
       id="home"
       className="relative min-h-[85vh] flex flex-col items-center justify-center pt-32 md:pt-36 pb-16 overflow-hidden"
     >
+      <HeroMotionGate />
+
       {/* أورورا متحركة: 3 كتل ضوئية بلون العلامة التجارية بتتحرك ببطء وعضوية */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="aurora-a absolute top-[-10%] right-[15%] w-105 h-105 bg-primary/20 blur-[110px] rounded-full" />

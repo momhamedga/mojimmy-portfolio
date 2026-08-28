@@ -224,12 +224,21 @@
     animation: gradient-pan 8s linear infinite;
   }
 
-  /* الشعار — كان framer-motion variants + حلقتين أبديتين */
+  /* الشعار — كان framer-motion variants + حلقتين أبديتين.
+     *
+     * الشريط ثابت، فالشعار لا يغادر الشاشة أبدًا ولا تنفع معه بوابة الرؤية.
+     * وقياس Phase 2B حمّله وحده ‎142ms‎ من إعادة حساب الأنماط و‎592ms‎ من زمن
+     * المهام لكل خمس ثوانٍ سكون — وهي أكبر كلفة سكون مفردة في الصفحة.
+     *
+     * صار عددًا محدودًا من الدورات بدل اللانهاية: نبضة ترحيب عند الوصول ثم
+     * سكون. `forwards` ضروري لا تجميلي — لا يوجد نمط أساسي لهذين العنصرين،
+     * فبدونه يقفز التوهّج إلى opacity:1 والنقطة إلى opacity:1 عند الانتهاء.
+     * القيم النهائية هي إطار 100% نفسه، فالسكون يطابق أدنى نقطة في النبض. */
   .logo-glow {
-    animation: logo-glow 4s ease-in-out infinite;
+    animation: logo-glow 4s ease-in-out 3 forwards;
   }
   .logo-dot {
-    animation: logo-dot 3s ease-in-out infinite;
+    animation: logo-dot 3s ease-in-out 3 forwards;
   }
 
   /* كتل الأورورا خلف الـ Hero — كانت 3 حلقات framer-motion أبدية */
@@ -241,6 +250,18 @@
   }
   .aurora-c {
     animation: aurora-c 30s ease-in-out infinite 4s;
+  }
+
+  /* بوابة حركة الـHero.
+     *
+     * HeroMotionGate يضع data-motion="paused" على #home عند خروجه من الشاشة.
+     * الإيقاف بـplay-state يحفظ طور الحركة، فالعودة إلى الأعلى تستأنف من
+     * حيث توقّفت بلا قفزة ولا إعادة تشغيل. */
+  #home[data-motion="paused"] .aurora-a,
+  #home[data-motion="paused"] .aurora-b,
+  #home[data-motion="paused"] .aurora-c,
+  #home[data-motion="paused"] .hero-gradient-text {
+    animation-play-state: paused;
   }
 }
 
