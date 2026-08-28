@@ -1,8 +1,8 @@
 "use client";
 import { motion } from "framer-motion";
 import { Home, LayoutGrid, Wrench, MessageSquare } from "lucide-react";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useActiveSection } from "@/app/hooks/use-active-section";
 
 const navItems = [
   { id: "home", label: "الرئيسية", icon: Home },
@@ -19,33 +19,26 @@ const navItems = [
  * لأربع عناصر → forced layout متكرر أثناء كل سكرول على الموبايل،
  * وهو أسوأ مكان ممكن للتكلفة دي.
  *
- * دلوقتي IntersectionObserver واحد بيراقب الأقسام الأربعة: المتصفح بيحسبها
- * خارج الـ main thread، وصفر قراءات layout، وصفر scroll listeners.
+ * Phase 1.2 — كان لهذا الشريط مراقبه الخاص لأربعة أقسام فقط من ثمانية، فأي
+ * قسم غير مرصود (عني، طريقة العمل، لماذا، الأسئلة) يترك آخر قيمة عالقة؛
+ * وهو سبب ظهور "أعمالي" بينما المعروض "عني". الآن يستهلك نفس مصدر الحقيقة
+ * الذي يستهلكه الشريط العلوي، فلا يوجد نظامان متنافسان ولا مراقب ثانٍ.
+ *
+ * الأقسام غير الممثَّلة في هذا الشريط تُنسب إلى أقرب عنصر سابق لها بترتيب
+ * المستند — وهو نفس ما كان يظهر فعليًا، لكن بشكل حتمي لا بالمصادفة.
  */
+const SECTION_TO_DOCK: Record<string, string> = {
+  home: "home",
+  projects: "projects",
+  about: "projects",
+  services: "services",
+  process: "services",
+  faq: "services",
+  contact: "contact",
+};
 export const MobileDock = () => {
-  const [activeSection, setActiveSection] = useState("home");
-
-  useEffect(() => {
-    const sections = navItems
-      .map((item) => document.getElementById(item.id))
-      .filter((el): el is HTMLElement => el !== null);
-
-    if (!sections.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // أكتر قسم ظاهر في الثلث العلوي هو النشط
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) setActiveSection(visible.target.id);
-      },
-      { rootMargin: "-33% 0px -50% 0px", threshold: [0, 0.25, 0.5, 1] },
-    );
-
-    sections.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+  const section = useActiveSection();
+  const activeSection = SECTION_TO_DOCK[section] ?? "home";
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);

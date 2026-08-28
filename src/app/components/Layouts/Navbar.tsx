@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useLenis } from "lenis/react";
 import { ThemeToggle } from "../ThemeToggle";
 import { cn } from "@/lib/utils";
+import { useActiveSection, pushSectionHash } from "@/app/hooks/use-active-section";
 
 const SOCIAL_LINKS = [
   { name: "Facebook", href: "https://www.facebook.com/midoga20/" },
@@ -19,6 +20,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isFloating, setIsFloating] = useState(false);
   const lenis = useLenis();
+  const activeSection = useActiveSection();
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const floatingRef = useRef(false);
@@ -65,6 +67,8 @@ export default function Navbar() {
 
       e.preventDefault();
       setIsOpen(false);
+      // preventDefault يمنع Next من تحديث العنوان، فنكتب الهاش صراحةً.
+      pushSectionHash(targetId.slice(1));
 
       if (lenis) {
         lenis.scrollTo(targetId, {
@@ -103,16 +107,25 @@ export default function Navbar() {
             aria-label="التنقل الرئيسي"
             className="hidden lg:flex items-center gap-0.5 rounded-full border border-border/60 bg-foreground/3 p-1"
           >
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={`#${link.href}`}
-                onClick={(e) => handleScroll(e, link.href)}
-                className="px-3 py-1.5 rounded-full text-[13px] font-cairo font-bold text-foreground-dim transition-colors hover:text-foreground hover:bg-foreground/8"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = activeSection === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={`#${link.href}`}
+                  onClick={(e) => handleScroll(e, link.href)}
+                  aria-current={isActive ? "true" : undefined}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-[13px] font-cairo font-bold transition-colors",
+                    isActive
+                      ? "text-foreground bg-foreground/8"
+                      : "text-foreground-dim hover:text-foreground hover:bg-foreground/8",
+                  )}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -168,16 +181,25 @@ export default function Navbar() {
           )}
         >
           <nav aria-label="قائمة التنقل للجوال" className="flex flex-col divide-y divide-border/60">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={`#${link.href}`}
-                onClick={(e) => handleScroll(e, link.href)}
-                className="px-4 py-3.5 min-h-12 flex items-center justify-end rounded-xl text-[15px] font-cairo font-bold text-foreground-dim transition-colors hover:text-foreground hover:bg-foreground/5 text-right"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = activeSection === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={`#${link.href}`}
+                  onClick={(e) => handleScroll(e, link.href)}
+                  aria-current={isActive ? "true" : undefined}
+                  className={cn(
+                    "px-4 py-3.5 min-h-12 flex items-center justify-end rounded-xl text-[15px] font-cairo font-bold transition-colors text-right",
+                    isActive
+                      ? "text-foreground bg-foreground/5"
+                      : "text-foreground-dim hover:text-foreground hover:bg-foreground/5",
+                  )}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* الدعوة أولًا وبعرض كامل، والروابط الخارجية نص هادئ تحتها */}
