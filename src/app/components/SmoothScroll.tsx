@@ -43,7 +43,15 @@ const SmoothScroll = ({ children }: { children: ReactNode }) => {
     return () => mql.removeEventListener("change", apply);
   }, []);
 
-  const content = <div className="transition-colors duration-2000 ease-in-out">{children}</div>;
+  /*
+   * الغلاف بلا `transition-colors duration-2000`.
+   *
+   * ألوان هذا العنصر لا تتغيّر إلا عند قلب الثيم، فالانتقال كان يخدم التلاشي
+   * الطويل وحده — وقياس Phase 2 حمّله ثلث كلفة التبديل. ومع
+   * `disableTransitionOnChange` صار معطَّلًا في لحظة التبديل أصلًا، أي انتقال
+   * لا يعمل في الحالة الوحيدة التي وُجد لأجلها.
+   */
+  const content = <div>{children}</div>;
 
   if (reduceMotion) return content;
 

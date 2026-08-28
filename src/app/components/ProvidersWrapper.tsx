@@ -17,9 +17,18 @@ import { MobileDock } from "./Layouts/Native";
  * ThemeProvider لازم يفضل مغلّفًا لأن ThemeToggle (جوّه Navbar) بيستهلك الـ context.
  * باقي العناصر جزر مستقلة، كل واحدة تحمّل الـ JS بتاعها فقط.
  */
+/*
+ * disableTransitionOnChange: قياس Phase 2 أثبت أن قلب صنف الثيم يشعل كل
+ * انتقالات اللون في المستند دفعةً واحدة — ‎3328ms‎ من إعادة حساب الأنماط
+ * و‎29‎ مهمة طويلة عبر ست تبديلات، أي نحو نصف ثانية تجمّد لكل ضغطة.
+ *
+ * الخيار مبني في next-themes نفسها: تحقن ورقة أنماط تُعطّل الانتقالات،
+ * تقلب الصنف، ثم تزيلها فورًا. فالانتقالات تبقى كاملة للتحويم والتركيز،
+ * ولا تُعطَّل إلا في لحظة التبديل وحدها.
+ */
 export function ProvidersWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
       {/* أول عنصر قابل للتركيز في الصفحة — يظهر عند الوصول له بالكيبورد فقط */}
       <a
         href="#main-content"
