@@ -75,14 +75,35 @@ const CONTROL_CHARS = new RegExp(
 );
 
 /**
+ * محارف التوجيه ثنائي الاتجاه الصريحة — تُبنى برمجيًا مثل سابقتها.
+ *
+ * U+200E/200F علامتا اتجاه، وU+202A–U+202E تضمين وتجاوز، وU+2066–U+2069 عزل.
+ * هذه وحدها تُزال: ليست محارف تحكّم C0 فلم يكن المرشّح أعلاه يمسّها، وقياس
+ * Phase 3 أظهر أن `ali‮gnp.exe` كان يصل إلى الـSubject سليمًا فيُعرض
+ * مقلوبًا في عميل البريد (خدعة تمويه امتداد الملف المعروفة).
+ *
+ * مقصود ألّا يشمل النطاق U+200C/U+200D (ZWNJ/ZWJ): الأول ضروري للعربية
+ * والفارسية، والثاني يربط متتاليات الإيموجي. الموقع عربي بالأساس، والحروف
+ * والتشكيل وعلامات الترقيم العربية كلها خارج النطاق ولا تُمسّ إطلاقًا.
+ */
+const BIDI_CONTROLS = new RegExp(
+  `[${String.fromCharCode(0x200e)}${String.fromCharCode(0x200f)}` +
+    `${String.fromCharCode(0x202a)}-${String.fromCharCode(0x202e)}` +
+    `${String.fromCharCode(0x2066)}-${String.fromCharCode(0x2069)}]`,
+  "g",
+);
+
+/**
  * تعقيم أي قيمة تدخل ترويسة بريد (Subject خصوصًا).
- * إزالة CR/LF وبقية محارف التحكّم تمنع Header Injection.
- * علامات الترقيم المطبوعة تبقى كما هي.
+ * إزالة CR/LF وبقية محارف التحكّم تمنع Header Injection،
+ * وإزالة محارف الاتجاه الصريحة تمنع تمويه العرض في عميل البريد.
+ * علامات الترقيم المطبوعة والنص العربي والإيموجي تبقى كما هي.
  */
 export function sanitizeHeaderValue(value: string, maxLength = 120): string {
   return value
     .replace(/[\r\n]+/g, " ")
     .replace(CONTROL_CHARS, "")
+    .replace(BIDI_CONTROLS, "")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, maxLength);

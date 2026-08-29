@@ -173,16 +173,26 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | type
 /**
  * مفتاح تعريف العميل لحدّ المعدّل.
  *
- * على Vercel، x-forwarded-for هو الترويسة الموثّقة لعنوان العميل العام
- * وتُعاد كتابتها عند الحافة. نأخذ أول قيمة فيها فقط، ولا نخترع سلسلة
- * ترويسات بديلة (لا cf-connecting-ip ولا x-real-ip) لأن المشروع ليس خلف
- * Cloudflare. محليًا لا توجد ترويسة موثوقة فنستخدم مفتاحًا ثابتًا.
+ * توثيق Vercel (Phase 3A) ينصّ صراحةً على أنه يعيد كتابة x-forwarded-for
+ * ولا يمرّر عناوين خارجية، «لمنع انتحال الـIP». فالمفتاح غير قابل للتزوير
+ * في الإنتاج، وما رُصد من تزوير في Phase 3 كان محليًا بلا حافة Vercel أمامه.
+ *
+ * x-vercel-forwarded-for موثّقة بأنها مطابقة لـx-forwarded-for لكنها تصمد
+ * لو وُضع وكيل فوق Vercel، فتُقرأ أولًا ثم يُرجع للأخرى. لم نُضِف
+ * cf-connecting-ip ولا x-real-ip: المشروع ليس خلف Cloudflare، وإضافة
+ * ترويسات يقبلها الخادم بلا حاجة توسّع سطح الثقة بلا مقابل.
+ *
+ * نأخذ أول مقطع فقط تحسّبًا لأي سلسلة، ولا نخزّن العنوان ولا نسجّله.
+ * محليًا لا توجد ترويسة موثوقة فنستخدم مفتاحًا ثابتًا.
  */
 async function resolveClientKey(): Promise<string> {
   try {
-    const forwarded = (await headers()).get("x-forwarded-for");
-    const first = forwarded?.split(",")[0]?.trim();
-    return first && first.length > 0 ? first : "local";
+    const headerList = await headers();
+    for (const name of ["x-vercel-forwarded-for", "x-forwarded-for"]) {
+      const first = headerList.get(name)?.split(",")[0]?.trim();
+      if (first) return first;
+    }
+    return "local";
   } catch {
     return "local";
   }

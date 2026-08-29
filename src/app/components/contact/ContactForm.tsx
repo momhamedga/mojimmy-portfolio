@@ -35,6 +35,22 @@ export default function ContactForm({ children }: { children: ReactNode }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
+  /**
+   * حارس «قيد الإرسال» متزامن.
+   *
+   * `isPending` القادم من useTransition لا يصير true إلا بعد أن يُثبّت React
+   * التصيير، فثلاث نقرات داخل نفس الـtick تعبر جميعها الشرط. قياس Phase 3
+   * أثبت ذلك: ثلاث نقرات متتالية أنتجت ثلاثة استدعاءات للـServer Action.
+   * الرسائل المكرّرة كان يبتلعها فلتر التكرار في الخادم، لكن الطلبات الثلاثة
+   * كانت تستهلك ميزانية حدّ المعدّل (٣ في الدقيقة) فتُحرم المستخدم من إعادة
+   * محاولة مشروعة بعد لحظات.
+   *
+   * الـref يتغيّر فورًا وبشكل متزامن، فيحسم السباق قبل أي إعادة تصيير.
+   * هذا تحسين تجربة فقط — الخادم يبقى المرجع: فلتر التكرار وحدّ المعدّل
+   * وحقل الفخ كلها في مكانها ولم يُمسّ أيٌّ منها.
+   */
+  const inFlight = useRef(false);
+
   const triggerHaptic = useCallback((pattern: number | number[]) => {
     if (typeof window === "undefined" || !("vibrate" in navigator)) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -66,28 +82,38 @@ export default function ContactForm({ children }: { children: ReactNode }) {
       return;
     }
 
+    // نقرة ثانية داخل نفس الـtick تجد الحارس مرفوعًا فتنسحب بلا استدعاء
+    if (inFlight.current) return;
+    inFlight.current = true;
+
     setErrors({});
 
     startTransition(async () => {
-      const result = await submitContactForm(formData);
+      // finally لا try/catch: عقد الأخطاء لم يتغيّر، لكن الحارس يُخفض مهما
+      // انتهى الاستدعاء — نجاحًا أو خطأ أو رفضًا غير متوقّع — فلا يعلق أبدًا
+      try {
+        const result = await submitContactForm(formData);
 
-      if (result.status === "success") {
-        setIsSuccess(true);
-        triggerHaptic([50, 30, 50]);
-        formRef.current?.reset();
-        return;
-      }
+        if (result.status === "success") {
+          setIsSuccess(true);
+          triggerHaptic([50, 30, 50]);
+          formRef.current?.reset();
+          return;
+        }
 
-      triggerHaptic(200);
+        triggerHaptic(200);
 
-      // الرسائل هنا ثابتة في العميل — الخادم لا يمرّر أي نص من المزوّد
-      if (result.status === "validation_error") {
-        setErrors(result.fieldErrors);
-        focusFirstError(result.fieldErrors);
-      } else if (result.status === "rate_limited") {
-        setErrors({ form: "محاولات كثيرة، حاول مرة أخرى بعد قليل." });
-      } else {
-        setErrors({ form: "تعذر إرسال الرسالة الآن. حاول مرة أخرى لاحقًا." });
+        // الرسائل هنا ثابتة في العميل — الخادم لا يمرّر أي نص من المزوّد
+        if (result.status === "validation_error") {
+          setErrors(result.fieldErrors);
+          focusFirstError(result.fieldErrors);
+        } else if (result.status === "rate_limited") {
+          setErrors({ form: "محاولات كثيرة، حاول مرة أخرى بعد قليل." });
+        } else {
+          setErrors({ form: "تعذر إرسال الرسالة الآن. حاول مرة أخرى لاحقًا." });
+        }
+      } finally {
+        inFlight.current = false;
       }
     });
   };
