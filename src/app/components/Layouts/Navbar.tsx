@@ -8,7 +8,11 @@ import Link from "next/link";
 import { useLenis } from "lenis/react";
 import { ThemeToggle } from "../ThemeToggle";
 import { cn } from "@/lib/utils";
-import { useActiveSection, pushSectionHash } from "@/app/hooks/use-active-section";
+import {
+  useActiveSection,
+  pushSectionHash,
+  setSectionScroller,
+} from "@/app/hooks/use-active-section";
 
 const SOCIAL_LINKS = [
   { name: "Facebook", href: "https://www.facebook.com/midoga20/" },
@@ -24,6 +28,45 @@ export default function Navbar() {
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const floatingRef = useRef(false);
+
+  /**
+   * جسر Lenis لاستعادة التاريخ.
+   *
+   * الشريط هو المالك الحالي لتمرير التنقّل (`lenis.scrollTo` عند النقر)،
+   * ووحدة القسم النشط وحدة عادية لا تصل إلى سياق React. فيسجّل الشريط دالة
+   * واحدة تُمرَّر إليها، فيبقى مسار التمرير البرمجي واحدًا ونسخة Lenis واحدة.
+   *
+   * الأهمية ليست تنظيمية: بلا هذا الجسر كانت الاستعادة تُمرّر تمريرًا أصليًا
+   * بينما حركة نقرة سابقة ما زالت جارية، فتُكمل الحركة القديمة بعدها وتسحب
+   * العرض إلى قسم عفا عليه الزمن — العنوان يقول شيئًا والعرض يقول غيره.
+   * استدعاء `scrollTo` جديد على النسخة نفسها يستبدل الحركة الجارية.
+   */
+  useEffect(() => {
+    if (!lenis) {
+      setSectionScroller(null);
+      return;
+    }
+
+    setSectionScroller((target, { immediate }) => {
+      const isTop = typeof target === "number";
+
+      // `scrollTo` وحده لا يكفي لإلغاء حركة جارية: فيه خروج مبكر عند
+      // `target === targetScroll`، ولو وصل الرجوع قبل أول تحديث للحركة
+      // الجديدة كان `targetScroll` ما زال يساوي هدف القسم السابق، فيعود
+      // الاستدعاء بلا أن يوقف شيئًا وتُكمل الحركة القديمة. `stop()` يمرّ على
+      // `reset()` فيوقف الحركة فعلًا ويعيد الهدف إلى الموضع الحالي، ثم
+      // `force` يسمح بالقفز رغم التوقّف، و`start()` يعيد التمرير الطبيعي.
+      lenis.stop();
+      lenis.scrollTo(isTop ? target : `#${target}`, {
+        offset: isTop ? 0 : -80,
+        immediate,
+        force: true,
+      });
+      lenis.start();
+    });
+
+    return () => setSectionScroller(null);
+  }, [lenis]);
 
   // كان بينادي setIsFloating مع **كل frame سكرول**. دلوقتي حارس بـ ref:
   // الاستدعاء بيحصل بس لما القيمة المنطقية تتغيّر فعلًا (مرتين في العمر الطبيعي للصفحة).
