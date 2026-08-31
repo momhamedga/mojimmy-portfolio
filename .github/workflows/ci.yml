@@ -10,6 +10,10 @@ on:
         description: "Run the read-only production smoke (Chromium + WebKit)"
         type: boolean
         default: false
+      generate_visual_baselines:
+        description: "Generate Linux visual baselines and check repeatability (artifact only)"
+        type: boolean
+        default: false
 
 # القراءة تكفي: لا وظيفة هنا تكتب في المستودع.
 permissions:
@@ -94,6 +98,56 @@ jobs:
         with:
           name: playwright-firefox-report
           path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  generate-visual-baselines:
+    name: Generate Linux visual baselines (manual)
+    runs-on: ubuntu-latest
+    # يدويًا فقط، ولا يفرض شيئًا.
+    #
+    # هذه الوظيفة تُنتج المراجع ولا تحرسها: لا تعمل على طلبات الدمج ولا عند
+    # الدفع إلى main، ولا تكتب في المستودع (الأذونات قراءة فقط). المراجع
+    # تنزل كأثر، تُراجَع بعين بشرية، ثم تُلتزم في التزام منفصل. حراسة
+    # الانحدار البصري في CI ليست جزءًا من هذه المرحلة.
+    if: github.event_name == 'workflow_dispatch' && inputs.generate_visual_baselines
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # التوليد بعامل واحد: التوازي متغيّر لا داعي له وقت صنع المرجع نفسه.
+      - name: Generate baselines
+        run: npx playwright test --project=visual --update-snapshots --workers=1
+
+      # تكرارية المرجع على لينكس — الحكم الفصل.
+      #
+      # القياس على ويندوز أظهر أن لقطة القائمة الزجاجية تنزاح ٨–٢٧ بكسل بين
+      # تشغيل وآخر (ترقيم `backdrop-filter`). ويندوز لا سلطة له، فالسؤال
+      # الحقيقي هو: هل يتكرّر ذلك هنا؟ هذه الخطوات تجيب بالقياس لا بالتخمين.
+      # `continue-on-error` مقصود: الفشل هنا معلومة تُراجَع، لا سبب لإسقاط
+      # الوظيفة قبل رفع الأثر.
+      - name: Repeatability 1/3
+        continue-on-error: true
+        run: npx playwright test --project=visual --workers=1
+      - name: Repeatability 2/3
+        continue-on-error: true
+        run: npx playwright test --project=visual --workers=1
+      - name: Repeatability 3/3 (parallel, as enforcement would run)
+        continue-on-error: true
+        run: npx playwright test --project=visual
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines-linux
+          path: |
+            tests/e2e/visual.spec.ts-snapshots/
             playwright-report/
             test-results/
           retention-days: 7

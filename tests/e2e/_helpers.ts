@@ -218,6 +218,43 @@ export async function waitForScrollSettled(page: Page): Promise<void> {
 }
 
 /**
+ * بوّابة الخطوط قبل أي لقطة.
+ *
+ * Cairo مستضاف ذاتيًا عبر next/font بـ`display: swap`، فالتبديل ممكن نظريًا
+ * ولو كان القياس يُظهر جهوزية فورية. اللقطة قبل الجهوزية تُثبّت خطًا احتياطيًا
+ * في المرجع فتفشل كل مقارنة لاحقة.
+ */
+export async function waitForFonts(page: Page): Promise<void> {
+  await page.evaluate(() => document.fonts.ready);
+  const status = await page.evaluate(() => document.fonts.status);
+  expect(status).toBe("loaded");
+}
+
+/**
+ * كل صور المشاريع داخل نطاق اللقطة فُكَّت شفرتها فعلًا.
+ *
+ * الصور كسولة، ولقطة قبل فكّ الشفرة تُثبّت فراغًا مكان الصورة في المرجع.
+ */
+export async function ensureProjectImagesDecoded(page: Page, expected = 5): Promise<void> {
+  const images = page.locator("#projects figure img");
+  await expect(images).toHaveCount(expected);
+  for (let i = 0; i < expected; i++) {
+    const image = images.nth(i);
+    await image.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() => image.evaluate((el: HTMLImageElement) => el.naturalWidth), { timeout: 20_000 })
+      .toBeGreaterThan(0);
+  }
+  await expect
+    .poll(() =>
+      images.evaluateAll((els) =>
+        (els as HTMLImageElement[]).every((el) => el.complete && el.naturalWidth > 0),
+      ),
+    )
+    .toBe(true);
+}
+
+/**
  * القسم مستقرّ عند إزاحة التنقّل، لا "ظاهر جزئيًا" فحسب.
  *
  * قسم المشاريع وحده ٣١٤٠px، فيبقى جزء منه مرئيًا بلا أي تمرير — لذلك تُقاس
