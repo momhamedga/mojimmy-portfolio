@@ -19,8 +19,22 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = 3100;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
+/** الموقع المنشور — للفحص السطحي للقراءة فقط. */
+const PRODUCTION_URL = "https://www.mohamedjimmy.com";
+
 /** مفتاح مزوّد غير صالح عمدًا: يعبر فحص «المفتاح موجود» ثم يرفضه المزوّد. */
 const INVALID_RESEND_KEY = "re_e2eINVALID_donotuse_0000";
+
+/**
+ * تشغيل الإنتاج لا يبني خادمًا محليًا.
+ *
+ * إعداد `webServer` في Playwright عام لا لكل مشروع، فبلا هذا الحارس كان فحص
+ * الإنتاج يبني الموقع ويشغّله محليًا بلا داعٍ. نستدلّ على المشروع المطلوب من
+ * سطر الأوامر مباشرةً — بلا سكربت وسيط ولا متغيّر بيئة يجب تذكّره — مع قبول
+ * متغيّر صريح أيضًا لمن يفضّله.
+ */
+const IS_PRODUCTION_RUN =
+  !!process.env.PW_PRODUCTION || process.argv.some((arg) => arg.includes("production-smoke"));
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -53,21 +67,65 @@ export default defineConfig({
 
   projects: [
     {
+      // السويت الوظيفية الكاملة محليًا. تستبعد وسمَي الإنتاج والتوافق:
+      // الأول لئلا يلمس الموقع المنشور إطلاقًا، والثاني لأنه تكرار لما
+      // تغطّيه هذه السويت أصلًا بتفصيل أكبر.
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      grepInvert: /@production|@webkit-production|@cross-browser/,
+    },
+    {
+      // فحص توافق مضغوط فقط — لا السويت الكاملة على كل محرّك
+      name: "firefox-smoke",
+      use: { ...devices["Desktop Firefox"] },
+      grep: /@cross-browser/,
+    },
+    {
+      /**
+       * فحص الإنتاج — قراءة فقط.
+       *
+       * `grep` على الوسم وحده: الصفحة الرئيسية تحمل نموذج Server Action،
+       * فلا يجوز أن تتسرّب إليها اختبارات التواصل بأي حال.
+       */
+      name: "chromium-production-smoke",
+      use: { ...devices["Desktop Chrome"], baseURL: PRODUCTION_URL },
+      grep: /@production/,
+    },
+    {
+      /**
+       * WebKit يعمل على الإنتاج فقط، لا على الخادم المحلي.
+       *
+       * سياسة الأمان تحوي `upgrade-insecure-requests`، والخادم المحلي يقدّم
+       * HTTP على 127.0.0.1. يطبّق WebKit الترقية على الحلقة المحلية — بخلاف
+       * Chromium وFirefox — فتُطلب حزم الجافاسكربت عبر HTTPS وتفشل بخطأ SSL
+       * فلا تُرطَّب الصفحة. قياس Phase 4C أثبت الطرفين: محليًا لا يعمل، وعلى
+       * الإنتاج (HTTPS) يعمل بلا خطأ واحد. القيد بيئة اختبار لا عيب توافق،
+       * ولا يبرّر تعديل السياسة ولا إضافة HTTPS محلي.
+       *
+       * الوسم لا يتقاطع نصًّا مع `@production`: لا يوجد فيه «@» يسبق
+       * «production» مباشرةً، فلا يلتقط أحد المشروعين اختبارات الآخر.
+       */
+      name: "webkit-production-smoke",
+      use: { ...devices["Desktop Safari"], baseURL: PRODUCTION_URL },
+      grep: /@webkit-production/,
     },
   ],
 
-  webServer: {
-    command: "npm run build && npm run start",
-    url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-    stdout: "pipe",
-    stderr: "pipe",
-    env: {
-      PORT: String(PORT),
-      RESEND_API_KEY: INVALID_RESEND_KEY,
-    },
-  },
+  // لا خادم محلي في تشغيل الإنتاج — الموقع المنشور هو الهدف
+  ...(IS_PRODUCTION_RUN
+    ? {}
+    : {
+        webServer: {
+          command: "npm run build && npm run start",
+          url: BASE_URL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 180_000,
+          stdout: "pipe" as const,
+          stderr: "pipe" as const,
+          env: {
+            PORT: String(PORT),
+            RESEND_API_KEY: INVALID_RESEND_KEY,
+          },
+        },
+      }),
 });

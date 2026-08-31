@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      production_smoke:
+        description: "Run the read-only production smoke (Chromium + WebKit)"
+        type: boolean
+        default: false
+
+# القراءة تكفي: لا وظيفة هنا تكتب في المستودع.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+      - run: npm audit
+
+  e2e-chromium:
+    name: E2E Chromium (local)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # استبعاد @provider صريح لا ضمني: هو الاختبار الوحيد الذي يبلغ مزوّد
+      # البريد، وميزانيته اُستهلكت محليًا. الخادم يعمل بمفتاح غير صالح عمدًا
+      # (يضبطه playwright.config.ts) فلا إرسال ممكن أصلًا — طبقتا حماية.
+      - name: Run provider-free suite
+        run: npx playwright test --project=chromium --grep-invert "@provider"
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-chromium-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  e2e-firefox:
+    name: E2E Firefox smoke (local)
+    runs-on: ubuntu-latest
+    # توافق المحرّكات لا يلزم كل طلب دمج — يكفي عند الدخول إلى main
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps firefox
+      - run: npx playwright test --project=firefox-smoke --workers=2
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-firefox-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  production-smoke:
+    name: Production smoke (read-only, manual)
+    runs-on: ubuntu-latest
+    # يدويًا فقط.
+    #
+    # النشر على Vercel يبدأ مع الدفع ولا ينتهي بترتيب مضمون قبل تشغيل
+    # GitHub Actions، فربط الفحص بالدفع يسابق النشر ويعطي نتائج كاذبة.
+    # التشغيل اليدوي يجعل المشغِّل هو من يقرّر أن النشر اكتمل.
+    if: github.event_name == 'workflow_dispatch' && inputs.production_smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # WebKit يُنزَّل هنا وحده — لا في الوظائف الأخرى
+      - run: npx playwright install --with-deps chromium webkit
+
+      # قراءة فقط: الاختبارات نفسها تؤكّد صفر طلبات كتابة وصفر نداءات مزوّد.
+      # لا أسرار مطلوبة — الموقع عام على HTTPS.
+      - run: npx playwright test --project=chromium-production-smoke --workers=1
+      - run: npx playwright test --project=webkit-production-smoke --workers=1
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-production-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

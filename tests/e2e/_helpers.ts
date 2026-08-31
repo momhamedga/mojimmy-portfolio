@@ -62,7 +62,12 @@ export function clientIdentity(testInfo: TestInfo, suffix = ""): string {
  * جافاسكربت العميل عملت — إشارة حتمية بلا مهلة ثابتة.
  */
 export async function waitForHydration(page: Page): Promise<void> {
-  await expect(page.locator("#home")).toHaveAttribute("data-motion", /^(running|paused)$/);
+  // مهلة صريحة سخية: القياس أظهر أن الترطيب في Firefox يستغرق نحو ٩٠٠ms
+  // منفردًا، ويتجاوز المهلة الافتراضية (خمس ثوانٍ) تحت التوازي. الانتظار
+  // مشروط بالحالة لا بالمدّة، فالمهلة سقف أمان لا وسيلة لإخفاء بطء.
+  await expect(page.locator("#home")).toHaveAttribute("data-motion", /^(running|paused)$/, {
+    timeout: 30_000,
+  });
 }
 
 export interface ContactPayload {
@@ -167,3 +172,60 @@ export function isProviderRequest(url: string): boolean {
 
 /** هل في الصفحة نص يشبه مفتاح مزوّد؟ يُستخدم للتأكيد لا للطباعة. */
 export const API_KEY_SHAPE = /re_[A-Za-z0-9]{16,}/;
+
+/** الطرق التي تُغيّر حالة الخادم — ممنوعة تمامًا على الإنتاج. */
+const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+/**
+ * حارس القراءة فقط.
+ *
+ * الصفحة الرئيسية تحمل نموذج Server Action، فأي طلب كتابة نحو الإنتاج يعني
+ * أننا لمسنا مسار التواصل الحقيقي. الحارس يسجّل كل طريقة كتابة ليؤكَّد أنها
+ * صفر، بدل الاكتفاء بنيّة عدم الإرسال.
+ */
+export function collectWriteRequests(page: Page): string[] {
+  const writes: string[] = [];
+  page.on("request", (req) => {
+    if (WRITE_METHODS.has(req.method())) writes.push(`${req.method()} ${req.url().slice(0, 120)}`);
+  });
+  return writes;
+}
+
+/**
+ * انتظار سكون التمرير — قائم على الإطارات لا على الزمن.
+ *
+ * نقر التنقّل يبدأ حركة Lenis، والقياس قبل اكتمالها يلتقط موضعًا عابرًا.
+ */
+export async function waitForScrollSettled(page: Page): Promise<void> {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        let last = window.scrollY;
+        let stable = 0;
+        const tick = () => {
+          const y = window.scrollY;
+          if (y === last) {
+            if (++stable >= 4) return resolve();
+          } else {
+            stable = 0;
+            last = y;
+          }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
+}
+
+/**
+ * القسم مستقرّ عند إزاحة التنقّل، لا "ظاهر جزئيًا" فحسب.
+ *
+ * قسم المشاريع وحده ٣١٤٠px، فيبقى جزء منه مرئيًا بلا أي تمرير — لذلك تُقاس
+ * المسافة من أعلى النافذة بدل الاكتفاء بالظهور.
+ */
+export async function expectSectionAnchored(page: Page, id: string): Promise<void> {
+  const top = () =>
+    page.locator(`#${id}`).evaluate((el) => Math.round(el.getBoundingClientRect().top));
+  await expect.poll(top, { timeout: 15_000 }).toBeLessThan(140);
+  await expect.poll(top).toBeGreaterThan(-140);
+}
