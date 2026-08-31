@@ -33,10 +33,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
+
+      # البناء أولًا لا تجميلًا في الترتيب.
+      #
+      # `next-env.d.ts` يولّده Next وهو متجاهَل في git، وفيه مرجع
+      # `next/image-types/global` الذي تُشتقّ منه أنواع استيراد الصور. بلا
+      # بناء سابق يسقط `tsc` على استيرادات ‎.webp‎ الخمسة في previews.ts —
+      # وهو بالضبط ما فشل به أول تشغيل لهذا الملف. محليًا لا يظهر العطب لأن
+      # الملف مولَّد من قبل.
+      - run: npm run build
       - run: npm run type-check
       - run: npm run lint
       - run: npm run format:check
-      - run: npm run build
       - run: npm audit
 
   e2e-chromium:
