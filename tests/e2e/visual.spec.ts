@@ -203,7 +203,16 @@ test.describe("visual regression @visual", () => {
       await expect(closeButton).toHaveAttribute("aria-expanded", "true");
       await expect(page.getByRole("navigation", { name: "قائمة التنقل للجوال" })).toBeVisible();
 
-      await expect(page).toHaveScreenshot("mobile-menu-open-390-dark.png", SHOT);
+      // الاستثناء الوحيد في السويت كلها.
+      //
+      // أسطح `backdrop-filter` على Ubuntu المستضاف في GitHub تُظهر أحيانًا
+      // بكسلًا واحدًا مختلفًا بين مُشغِّلات مستقلة — ضجيج ترقيم لا تغيّر
+      // تصميم. الميزانية بكسل واحد فقط، والعتبة اللونية صفر كبقية اللقطات.
+      // للمقارنة: إزاحة عنصر واحد ١px تُنتج ١٦٤ بكسلًا مختلفًا، فالكشف باقٍ.
+      await expect(page).toHaveScreenshot("mobile-menu-open-390-dark.png", {
+        ...SHOT,
+        maxDiffPixels: 1,
+      });
     } finally {
       await close();
     }

@@ -10,12 +10,8 @@ on:
         description: "Run the read-only production smoke (Chromium + WebKit)"
         type: boolean
         default: false
-      generate_visual_baselines:
-        description: "Generate Linux visual baselines and check repeatability (artifact only)"
-        type: boolean
-        default: false
-      calibrate_visual_threshold:
-        description: "Calibrate the visual threshold across three independent Ubuntu runners"
+      certify_visual_baselines:
+        description: "Generate Linux visual baselines and certify them on 5 independent runners"
         type: boolean
         default: false
 
@@ -106,61 +102,11 @@ jobs:
             test-results/
           retention-days: 7
 
-  generate-visual-baselines:
-    name: Generate Linux visual baselines (manual)
-    runs-on: ubuntu-latest
-    # يدويًا فقط، ولا يفرض شيئًا.
-    #
-    # هذه الوظيفة تُنتج المراجع ولا تحرسها: لا تعمل على طلبات الدمج ولا عند
-    # الدفع إلى main، ولا تكتب في المستودع (الأذونات قراءة فقط). المراجع
-    # تنزل كأثر، تُراجَع بعين بشرية، ثم تُلتزم في التزام منفصل. حراسة
-    # الانحدار البصري في CI ليست جزءًا من هذه المرحلة.
-    if: github.event_name == 'workflow_dispatch' && inputs.generate_visual_baselines
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-
-      # التوليد بعامل واحد: التوازي متغيّر لا داعي له وقت صنع المرجع نفسه.
-      - name: Generate baselines
-        run: npx playwright test --project=visual --update-snapshots --workers=1
-
-      # تكرارية المرجع على لينكس — الحكم الفصل.
-      #
-      # القياس على ويندوز أظهر أن لقطة القائمة الزجاجية تنزاح ٨–٢٧ بكسل بين
-      # تشغيل وآخر (ترقيم `backdrop-filter`). ويندوز لا سلطة له، فالسؤال
-      # الحقيقي هو: هل يتكرّر ذلك هنا؟ هذه الخطوات تجيب بالقياس لا بالتخمين.
-      # `continue-on-error` مقصود: الفشل هنا معلومة تُراجَع، لا سبب لإسقاط
-      # الوظيفة قبل رفع الأثر.
-      - name: Repeatability 1/3
-        continue-on-error: true
-        run: npx playwright test --project=visual --workers=1
-      - name: Repeatability 2/3
-        continue-on-error: true
-        run: npx playwright test --project=visual --workers=1
-      - name: Repeatability 3/3 (parallel, as enforcement would run)
-        continue-on-error: true
-        run: npx playwright test --project=visual
-
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-baselines-linux
-          path: |
-            tests/e2e/visual.spec.ts-snapshots/
-            playwright-report/
-            test-results/
-          retention-days: 7
-
   visual-candidate:
-    name: Visual candidate baselines (calibration)
+    name: Visual candidate baselines
     runs-on: ubuntu-latest
     # يدويًا فقط — لا يعمل على طلبات الدمج ولا عند الدفع.
-    if: github.event_name == 'workflow_dispatch' && inputs.calibrate_visual_threshold
+    if: github.event_name == 'workflow_dispatch' && inputs.certify_visual_baselines
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -176,9 +122,15 @@ jobs:
           npx playwright --version
           node -p "require('@playwright/test/package.json').version"
 
-      # مرجّح واحد فقط، تُقارن به المُشغِّلات الثلاثة جميعًا.
+      # مرجع واحد فقط، تُقارن به كل مُشغِّلات الشهادة.
       - name: Generate candidate baselines
         run: npx playwright test --project=visual --update-snapshots --workers=1
+
+      - name: Manifest
+        run: |
+          cd tests/e2e/visual.spec.ts-snapshots
+          ls *.png | wc -l
+          sha256sum *.png | tee SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -186,15 +138,16 @@ jobs:
           path: tests/e2e/visual.spec.ts-snapshots/
           retention-days: 7
 
-  visual-crossrunner:
-    name: Cross-runner threshold sweep ${{ matrix.runner }}
+  visual-certify:
+    name: Certify baselines ${{ matrix.runner }}
     needs: visual-candidate
     runs-on: ubuntu-latest
-    # ثلاث وظائف متوازية = ثلاثة مُشغِّلات مستقلة، لا ثلاث إعادات على جهاز واحد.
+    # خمسة مُشغِّلات مستقلة لا ثلاثة: البكسل الشارد عشوائي ولم يظهر على كل
+    # مُشغِّل في 5B.3، فالعيّنة الأوسع هي ما يجعل الشهادة ذات معنى.
     strategy:
       fail-fast: false
       matrix:
-        runner: [B, C, D]
+        runner: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -205,63 +158,32 @@ jobs:
       - run: npx playwright install --with-deps chromium
 
       - name: Runner identity
-        run: echo "runner=$RUNNER_NAME os=$ImageOS image=$ImageVersion"
+        run: |
+          echo "runner=$RUNNER_NAME os=$ImageOS image=$ImageVersion"
+          node -p "require('@playwright/test/package.json').version"
 
-      # المرجع الوحيد يُنزَّل كما هو — لا يولّد أي مُشغِّل مرجعه الخاص،
-      # وإلا قِسنا تكرارية الجهاز الواحد بدل الفروق بين الأجهزة.
+      # المرجع الوحيد يُنزَّل كما هو — لا مُشغِّل يولّد مرجعه الخاص، وإلا
+      # قِسنا تكرارية الجهاز بدل الفروق بين الأجهزة.
       - uses: actions/download-artifact@v4
         with:
           name: visual-candidate
           path: tests/e2e/visual.spec.ts-snapshots/
 
-      - name: Confirm candidate baselines in place
+      - name: Verify candidate integrity
         run: |
-          count=$(ls tests/e2e/visual.spec.ts-snapshots/*.png | wc -l)
-          echo "goldens present: $count"
-          test "$count" -eq 18
-          sha256sum tests/e2e/visual.spec.ts-snapshots/*.png | sort -k2 | head -20
+          cd tests/e2e/visual.spec.ts-snapshots
+          test "$(ls *.png | wc -l)" -eq 18
+          sha256sum -c SHA256SUMS.txt
+          rm SHA256SUMS.txt
 
-      # مسح تصاعدي بلا --update-snapshots: كل خطوة عتبة مرشّحة واحدة.
-      # continue-on-error مقصود — الفشل هنا قياس لا عطب.
-      - name: threshold 0
-        continue-on-error: true
-        env: { PW_VISUAL_THRESHOLD: "0" }
-        run: npx playwright test --project=visual --workers=1
-      - name: threshold 0.005
-        continue-on-error: true
-        env: { PW_VISUAL_THRESHOLD: "0.005" }
-        run: npx playwright test --project=visual --workers=1
-      - name: threshold 0.01
-        continue-on-error: true
-        env: { PW_VISUAL_THRESHOLD: "0.01" }
-        run: npx playwright test --project=visual --workers=1
-      - name: threshold 0.015
-        continue-on-error: true
-        env: { PW_VISUAL_THRESHOLD: "0.015" }
-        run: npx playwright test --project=visual --workers=1
-      - name: threshold 0.02
-        continue-on-error: true
-        env: { PW_VISUAL_THRESHOLD: "0.02" }
-        run: npx playwright test --project=visual --workers=1
-      - name: threshold 0.025
-        continue-on-error: true
-        env: { PW_VISUAL_THRESHOLD: "0.025" }
-        run: npx playwright test --project=visual --workers=1
-      - name: threshold 0.03
-        continue-on-error: true
-        env: { PW_VISUAL_THRESHOLD: "0.03" }
-        run: npx playwright test --project=visual --workers=1
-
-      # الشهادة النهائية: بلا تجاوز بيئي إطلاقًا، أي بالعتبة الملتزمة في
-      # الإعداد نفسه. هذه الخطوة وحدها ليست continue-on-error — فشلها يجب أن
-      # يُسقط الوظيفة لأنه يعني أن الإعداد المعتمد لا يصمد عبر المُشغِّلات.
-      - name: FINAL — committed config (no override)
+      # بلا --update-snapshots وبلا إعادة محاولة: السياسة الملتزمة نفسها.
+      - name: Certify (strict, committed policy)
         run: npx playwright test --project=visual --workers=1
 
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: visual-sweep-${{ matrix.runner }}
+          name: visual-certify-${{ matrix.runner }}
           path: |
             playwright-report/
             test-results/
