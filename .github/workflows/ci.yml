@@ -252,6 +252,12 @@ jobs:
         env: { PW_VISUAL_THRESHOLD: "0.03" }
         run: npx playwright test --project=visual --workers=1
 
+      # الشهادة النهائية: بلا تجاوز بيئي إطلاقًا، أي بالعتبة الملتزمة في
+      # الإعداد نفسه. هذه الخطوة وحدها ليست continue-on-error — فشلها يجب أن
+      # يُسقط الوظيفة لأنه يعني أن الإعداد المعتمد لا يصمد عبر المُشغِّلات.
+      - name: FINAL — committed config (no override)
+        run: npx playwright test --project=visual --workers=1
+
       - if: always()
         uses: actions/upload-artifact@v4
         with:
