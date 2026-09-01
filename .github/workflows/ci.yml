@@ -14,6 +14,10 @@ on:
         description: "Generate Linux visual baselines and check repeatability (artifact only)"
         type: boolean
         default: false
+      calibrate_visual_threshold:
+        description: "Calibrate the visual threshold across three independent Ubuntu runners"
+        type: boolean
+        default: false
 
 # القراءة تكفي: لا وظيفة هنا تكتب في المستودع.
 permissions:
@@ -148,6 +152,111 @@ jobs:
           name: visual-baselines-linux
           path: |
             tests/e2e/visual.spec.ts-snapshots/
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  visual-candidate:
+    name: Visual candidate baselines (calibration)
+    runs-on: ubuntu-latest
+    # يدويًا فقط — لا يعمل على طلبات الدمج ولا عند الدفع.
+    if: github.event_name == 'workflow_dispatch' && inputs.calibrate_visual_threshold
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Environment authority
+        run: |
+          echo "runner=$RUNNER_NAME os=$ImageOS image=$ImageVersion"
+          npx playwright --version
+          node -p "require('@playwright/test/package.json').version"
+
+      # مرجّح واحد فقط، تُقارن به المُشغِّلات الثلاثة جميعًا.
+      - name: Generate candidate baselines
+        run: npx playwright test --project=visual --update-snapshots --workers=1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-candidate
+          path: tests/e2e/visual.spec.ts-snapshots/
+          retention-days: 7
+
+  visual-crossrunner:
+    name: Cross-runner threshold sweep ${{ matrix.runner }}
+    needs: visual-candidate
+    runs-on: ubuntu-latest
+    # ثلاث وظائف متوازية = ثلاثة مُشغِّلات مستقلة، لا ثلاث إعادات على جهاز واحد.
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [B, C, D]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Runner identity
+        run: echo "runner=$RUNNER_NAME os=$ImageOS image=$ImageVersion"
+
+      # المرجع الوحيد يُنزَّل كما هو — لا يولّد أي مُشغِّل مرجعه الخاص،
+      # وإلا قِسنا تكرارية الجهاز الواحد بدل الفروق بين الأجهزة.
+      - uses: actions/download-artifact@v4
+        with:
+          name: visual-candidate
+          path: tests/e2e/visual.spec.ts-snapshots/
+
+      - name: Confirm candidate baselines in place
+        run: |
+          count=$(ls tests/e2e/visual.spec.ts-snapshots/*.png | wc -l)
+          echo "goldens present: $count"
+          test "$count" -eq 18
+          sha256sum tests/e2e/visual.spec.ts-snapshots/*.png | sort -k2 | head -20
+
+      # مسح تصاعدي بلا --update-snapshots: كل خطوة عتبة مرشّحة واحدة.
+      # continue-on-error مقصود — الفشل هنا قياس لا عطب.
+      - name: threshold 0
+        continue-on-error: true
+        env: { PW_VISUAL_THRESHOLD: "0" }
+        run: npx playwright test --project=visual --workers=1
+      - name: threshold 0.005
+        continue-on-error: true
+        env: { PW_VISUAL_THRESHOLD: "0.005" }
+        run: npx playwright test --project=visual --workers=1
+      - name: threshold 0.01
+        continue-on-error: true
+        env: { PW_VISUAL_THRESHOLD: "0.01" }
+        run: npx playwright test --project=visual --workers=1
+      - name: threshold 0.015
+        continue-on-error: true
+        env: { PW_VISUAL_THRESHOLD: "0.015" }
+        run: npx playwright test --project=visual --workers=1
+      - name: threshold 0.02
+        continue-on-error: true
+        env: { PW_VISUAL_THRESHOLD: "0.02" }
+        run: npx playwright test --project=visual --workers=1
+      - name: threshold 0.025
+        continue-on-error: true
+        env: { PW_VISUAL_THRESHOLD: "0.025" }
+        run: npx playwright test --project=visual --workers=1
+      - name: threshold 0.03
+        continue-on-error: true
+        env: { PW_VISUAL_THRESHOLD: "0.03" }
+        run: npx playwright test --project=visual --workers=1
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-sweep-${{ matrix.runner }}
+          path: |
             playwright-report/
             test-results/
           retention-days: 7

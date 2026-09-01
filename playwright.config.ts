@@ -26,6 +26,31 @@ const PRODUCTION_URL = "https://www.mohamedjimmy.com";
 const INVALID_RESEND_KEY = "re_e2eINVALID_donotuse_0000";
 
 /**
+ * عتبة المقارنة البصرية — صفر افتراضًا، ولا رجوع صامت لافتراضي Playwright.
+ *
+ * `PW_VISUAL_THRESHOLD` موجود لأجل المعايرة وحدها: القياس أثبت أن صور
+ * ubuntu-latest متطابقة بايتيًا على نفس المُشغِّل (١٨/١٨ × ٣ عند صفر) لكنها
+ * تنزاح انزياحًا دقيقًا بين مُشغِّلين مستقلين — ٦٤ بكسل بفارق قناة أقصاه ٧
+ * في القائمة الزجاجية، وبكسلان بفارق ١ في المشاريع الفاتحة. المعايرة تبحث عن
+ * أصغر عتبة تحتمل ضجيج البيئة وتظل تسقط أي تغيّر بصري حقيقي.
+ *
+ * القيمة تُتحقَّق صراحةً: قيمة غير رقمية أو خارج [0,1] توقف التشغيل بدل أن
+ * تنزلق إلى ٠٫٢ الافتراضية بلا أن ينتبه أحد.
+ */
+function resolveVisualThreshold(): number {
+  const raw = process.env.PW_VISUAL_THRESHOLD;
+  if (raw === undefined || raw === "") return 0;
+
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new Error(`PW_VISUAL_THRESHOLD غير صالحة: "${raw}". المتوقع عدد بين 0 و 1 (مثلًا 0.01).`);
+  }
+  return value;
+}
+
+const VISUAL_THRESHOLD = resolveVisualThreshold();
+
+/**
  * تشغيل الإنتاج لا يبني خادمًا محليًا.
  *
  * إعداد `webServer` في Playwright عام لا لكل مشروع، فبلا هذا الحارس كان فحص
@@ -67,12 +92,13 @@ export default defineConfig({
    * الالتقاط حتى تتطابق لقطتان متتاليتان **قبل** المقارنة، فيستهلك هذا
    * التذبذب في مصدره. ثلاث مقارنات متتالية على صفر تسامح نجحت ١٨/١٨.
    *
-   * لذلك لا نرفع العتبة: الرفع كان سيخفي انحدارًا حقيقيًا بدل أن يعالج سببًا
-   * مفهومًا. إن فشلت مقارنة لاحقًا فهي فرق حقيقي يستحق النظر، لا ضجيج.
+   * لذلك لا نرفع عدد البكسلات المسموح: `maxDiffPixels` و`maxDiffPixelRatio`
+   * يبقيان صفرًا مهما جرى — لا مسامحة بالعدد إطلاقًا. المتغيّر الوحيد قيد
+   * المعايرة هو عتبة الفرق اللوني لكل بكسل، وهي صفر افتراضًا.
    */
   expect: {
     toHaveScreenshot: {
-      threshold: 0,
+      threshold: VISUAL_THRESHOLD,
       maxDiffPixels: 0,
       maxDiffPixelRatio: 0,
     },
