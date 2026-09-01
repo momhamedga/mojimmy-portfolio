@@ -191,7 +191,20 @@ test.describe("visual regression @visual", () => {
     }
   });
 
-  test("mobile menu open 390 dark @visual", async ({ browser }) => {
+  /**
+   * لوحة القائمة وحدها، لا إطار العرض كاملًا.
+   *
+   * لقطة إطار العرض كانت تضمّ الشريط السفلي الثابت فوق اللوحة المفتوحة،
+   * فيقع زجاج على زجاج: `backdrop-filter` الخاص بزرّ الشريط النشط يعيد أخذ
+   * عيّنة من لوحة القائمة الزجاجية خلفه. شهادة على خمسة مُشغِّلات مستقلة
+   * أعطت ١٣ و١٣ و١٥ و٢٤ و٣٧ بكسلًا مختلفًا، محصورة كلها في مربّع ٢٣×٨١ عند
+   * موضع ذلك الزرّ بالضبط — بينما نجحت السبع عشرة الأخرى بصفر على الخمسة.
+   *
+   * الحدّ من نطاق اللقطة يزيل السبب بدل أن يغطّيه: لا قناع ولا تسامح.
+   * والتغطية لا تنقص — `mobile-nav-390-dark` يوثّق الشريط السفلي وحالته
+   * النشطة أصلًا، وهو مستقرّ بصفر لأن خلفه محتوى الصفحة لا زجاج آخر.
+   */
+  test("mobile menu panel open 390 dark @visual", async ({ browser }) => {
     const { page, close } = await openPage(browser, { width: 390, height: 844, theme: "dark" });
     try {
       await page.goto("/");
@@ -203,18 +216,14 @@ test.describe("visual regression @visual", () => {
       await expect(closeButton).toHaveAttribute("aria-expanded", "true");
       await expect(page.getByRole("navigation", { name: "قائمة التنقل للجوال" })).toBeVisible();
 
-      // لا استثناء هنا بعد — السياسة الصارمة نفسها كبقية اللقطات.
-      //
-      // هذه اللقطة وحدها غير حتمية عبر المُشغِّلات: شهادة على خمسة مُشغِّلات
-      // مستقلة أعطت ١٣ و١٣ و١٥ و٢٤ و٣٧ بكسلًا مختلفًا (بينما نجحت السبع عشرة
-      // الأخرى بصفر على الخمسة جميعًا). الضجيج محصور في مربّع ٢٣×٨١ عند
-      // y=730..810 و x=340..362 — زرّ الشريط السفلي النشط، إذ يعيد
-      // `backdrop-filter` أخذ عيّنة من لوحة القائمة الزجاجية خلفه.
-      //
-      // ميزانية بكسل واحد جُرّبت وأسقطتها الشهادة، والمقاس يتجاوز سقف
-      // الثلاثة المسموح، فلا تُرفع. القرار (إخفاء المنطقة أم استبدال اللقطة)
-      // مؤجَّل لصاحب المشروع.
-      await expect(page).toHaveScreenshot("mobile-menu-open-390-dark.png", SHOT);
+      // محدّد قاطع: المعرّف الذي يشير إليه الزر بـaria-controls، فلا لبس فيه.
+      // التأكيد على العدد قبل الالتقاط لأن المحدّد المطابق لأكثر من عنصر
+      // يسقط في toHaveScreenshot بخطأ مضلّل — وهو عطب رُصد في 5B.1.
+      const panel = page.locator("#mobile-menu");
+      await expect(panel).toHaveCount(1);
+      await expect(panel).toBeVisible();
+
+      await expect(panel).toHaveScreenshot("mobile-menu-panel-open-390-dark.png", SHOT);
     } finally {
       await close();
     }
