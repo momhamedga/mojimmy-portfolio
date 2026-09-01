@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useTransition, useCallback, useRef, type ReactNode } from "react";
+import {
+  useState,
+  useTransition,
+  useCallback,
+  useRef,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Send, CheckCircle2, User, Mail, MessageSquare } from "lucide-react";
 import ContactInput from "./ContactInput";
 import { submitContactForm } from "@/actions/contact";
@@ -63,7 +70,13 @@ export default function ContactForm({ children }: { children: ReactNode }) {
     formRef.current?.querySelector<HTMLElement>(`#${first}`)?.focus();
   }, []);
 
-  const handleAction = async (formData: FormData) => {
+  /**
+   * قواعد التحقق في العميل — مصدر واحد، بلا نسخة ثانية.
+   *
+   * القواعد نفسها التي كانت داخل دالة الـaction حرفيًا: لا قيد أُضيف ولا
+   * قيد خُفّف. الخادم يبقى المرجع النهائي؛ هذا تحسين تجربة فقط.
+   */
+  const validate = useCallback((formData: FormData) => {
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const message = formData.get("message") as string;
@@ -74,14 +87,36 @@ export default function ContactForm({ children }: { children: ReactNode }) {
       newErrors.email = "البريد الإلكتروني غير دقيق";
     if (!message || message.length < 10)
       newErrors.message = "مساحة الرسالة قصيرة جداً، أخبرني بالمزيد..";
+    return newErrors;
+  }, []);
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      triggerHaptic(200);
-      focusFirstError(newErrors);
-      return;
-    }
+  /**
+   * حارس الإرسال — يسبق مسار `action` ويلغيه عند الخطأ.
+   *
+   * التحقق كان يجري **داخل** دالة الـaction ويكتفي بـ`return` عند الخطأ.
+   * لكن React 19 يعيد تعيين النموذج غير المتحكَّم فيه بعد اكتمال دالة
+   * الـaction مهما كانت نتيجتها، فالخروج المبكر لم يكن يمنع شيئًا: كانت
+   * الحقول الثلاثة تُمسح وتضيع كتابة المستخدم عند كل محاولة فاشلة — وقياس
+   * 5B.1 أثبتها (A / nope / قصير → ثلاثة حقول فارغة، بصفر طلبات).
+   *
+   * `preventDefault` في حدث الإرسال هو المخرج الذي يقرّه React: مع
+   * `defaultPrevented` لا يعمل مسار الـaction أصلًا، فلا استدعاء ولا إعادة
+   * تعيين. الحقول تبقى كما كتبها صاحبها، ويصحّح ما أخطأ فيه ويعيد المحاولة.
+   *
+   * الترتيب مقصود: التحقق هنا قبل حارس الـtick الواحد، لأن المحاولة الفاشلة
+   * يجب ألّا تلمس حالة «قيد الإرسال» إطلاقًا.
+   */
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const fieldErrors = validate(new FormData(event.currentTarget));
+    if (Object.keys(fieldErrors).length === 0) return;
 
+    event.preventDefault();
+    setErrors(fieldErrors);
+    triggerHaptic(200);
+    focusFirstError(fieldErrors);
+  };
+
+  const handleAction = async (formData: FormData) => {
     // نقرة ثانية داخل نفس الـtick تجد الحارس مرفوعًا فتنسحب بلا استدعاء
     if (inFlight.current) return;
     inFlight.current = true;
@@ -155,6 +190,7 @@ export default function ContactForm({ children }: { children: ReactNode }) {
         <form
           ref={formRef}
           action={handleAction}
+          onSubmit={handleSubmit}
           noValidate
           aria-labelledby="contact-heading"
           className="rounded-3xl border border-border bg-surface/60 backdrop-blur-md p-6 md:p-8 flex flex-col gap-5"

@@ -302,6 +302,13 @@ test.describe("visual regression @visual", () => {
       await expect(page.getByText("البريد الإلكتروني غير دقيق")).toBeVisible();
       await expect(page.getByText("مساحة الرسالة قصيرة جداً، أخبرني بالمزيد..")).toBeVisible();
 
+      // المرجع يجب أن يوثّق حقولًا محتفظة بما كُتب فيها، لا حقولًا فارغة.
+      // المرجع الأول وثّق الفراغ لأن React كان يمسح النموذج بعد كل محاولة
+      // فاشلة؛ التأكيد هنا يمنع تجميد ذلك العطب في صورة معتمدة مرة أخرى.
+      await expect(page.getByLabel("الاسم")).toHaveValue("A");
+      await expect(page.getByLabel("البريد الإلكتروني")).toHaveValue("nope");
+      await expect(page.getByLabel("تفاصيل المشروع")).toHaveValue("قصير");
+
       // الحارس: تحقّق المتصفح أوقف الإرسال، فلا طلب غادر الصفحة
       expect(health.actionPosts).toHaveLength(0);
       expect(health.allPosts).toHaveLength(0);

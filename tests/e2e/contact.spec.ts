@@ -107,6 +107,52 @@ test.describe("E12 — client validation blocks submission", () => {
     // الجوهر: تحقّق المتصفح أوقف الإرسال، فلا طلب غادر الصفحة أصلًا
     expect(health.actionPosts).toHaveLength(0);
     expect(health.consoleErrors).toEqual([]);
+
+    // ما كتبه المستخدم يبقى كما هو.
+    //
+    // كان React 19 يعيد تعيين النموذج بعد اكتمال دالة الـaction مهما كانت
+    // نتيجتها، فالخروج المبكر عند الخطأ كان يمسح الحقول الثلاثة. التأكيد
+    // على القيم — لا على الرسائل وحدها — هو ما يمنع عودة العطب.
+    await expect(page.getByLabel("الاسم")).toHaveValue("A");
+    await expect(page.getByLabel("البريد الإلكتروني")).toHaveValue("nope");
+    await expect(page.getByLabel("تفاصيل المشروع")).toHaveValue("قصير");
+  });
+
+  test("keyboard submission preserves values too, and one correction at a time", async ({
+    page,
+  }) => {
+    const health = collectHealth(page);
+    await page.goto("/");
+    await expect(page.locator("form")).toBeVisible();
+    await waitForHydration(page);
+
+    await fillForm(page, { name: "A", email: "nope", message: "قصير" });
+
+    // إرسال بلوحة المفاتيح لا بالنقر: مسار ثانٍ للحدث نفسه، ولو حُرس النقر
+    // وحده لظلّ العطب حيًّا هنا.
+    await page.getByLabel("الاسم").press("Enter");
+
+    await expect(page.getByText("أخبرني ما اسمك الكريم؟")).toBeVisible();
+    await expect(page.getByLabel("الاسم")).toHaveValue("A");
+    await expect(page.getByLabel("البريد الإلكتروني")).toHaveValue("nope");
+    await expect(page.getByLabel("تفاصيل المشروع")).toHaveValue("قصير");
+    expect(health.allPosts).toHaveLength(0);
+
+    // تصحيح حقل واحد: خطؤه يزول، وأخطاء البقية وقيمهم كما هي
+    await page.getByLabel("الاسم").fill("مستخدم اختبار");
+    await page.getByRole("button", { name: SUBMIT }).click();
+
+    await expect(page.getByText("أخبرني ما اسمك الكريم؟")).toHaveCount(0);
+    await expect(page.getByText("البريد الإلكتروني غير دقيق")).toBeVisible();
+    await expect(page.getByText("مساحة الرسالة قصيرة جداً، أخبرني بالمزيد..")).toBeVisible();
+    await expect(page.getByLabel("الاسم")).toHaveValue("مستخدم اختبار");
+    await expect(page.getByLabel("البريد الإلكتروني")).toHaveValue("nope");
+    await expect(page.getByLabel("تفاصيل المشروع")).toHaveValue("قصير");
+
+    // ما دام التحقق في العميل راسبًا، لا طلب واحد يغادر الصفحة
+    expect(health.allPosts).toHaveLength(0);
+    expect(health.actionPosts).toHaveLength(0);
+    expect(health.consoleErrors).toEqual([]);
   });
 });
 
