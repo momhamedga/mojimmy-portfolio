@@ -27,6 +27,27 @@ const SHOT = {
 type Theme = "dark" | "light";
 
 /**
+ * ميزانية ضجيج التصيير — استثناءان اثنان فقط، وكلاهما مقيس لا مقدَّر.
+ *
+ * السياسة العامة صفر (عتبة وبكسل ونسبة) وتبقى كذلك لستّ عشرة لقطة نجحت
+ * ٢٠/٢٠ على مُشغِّلات مستقلة. الاستثناءان هنا للقطتَي الهيرو اللتين أظهر
+ * القياس فيهما ضجيج تركيب زجاجي:
+ *
+ * hero-390-dark  — سقطت على ١٨/٢٠ بـ١١ بكسل ثابتة، محصورة في صندوق ٢٨×٤٤
+ *   عند x=44..71 و y=31..74 (زرّ القائمة داخل الترويسة الزجاجية)، أقصى
+ *   فارق قناة ٨. النسبة ٠٫٠١٩٦٪ من مساحة الصورة.
+ * hero-768-dark  — سقطت على ١/٢٠ بـ٩ بكسل. النسبة ٠٫٠٠١٣٪.
+ *
+ * الميزانية = أقصى ضجيج مرصود بلا هامش إضافي. والحساسية محفوظة بفارق واسع:
+ * إزاحة العنوان ١px تُنتج ٤٬٣٤٥ بكسل عند ٣٩٠ و١٠٬٠١٠ عند ٧٦٨ — أي ٣٩٥×
+ * و١٬١١٢× فوق الميزانية.
+ */
+const RASTER_NOISE_BUDGET: Record<string, number> = {
+  "hero-390-dark.png": 11,
+  "hero-768-dark.png": 9,
+};
+
+/**
  * الثيم يُضبط قبل التنقّل لا بالنقر على الزر.
  *
  * النقر يشغّل حركة أيقونة framer وانتقال الثيم، فتصبح اللحظة التي تُلتقط فيها
@@ -134,10 +155,11 @@ test.describe("visual regression @visual", () => {
         await page.goto("/");
         await settle(page, vp.theme);
 
-        await expect(page.locator("#home")).toHaveScreenshot(
-          `hero-${vp.label}-${vp.theme}.png`,
-          SHOT,
-        );
+        const name = `hero-${vp.label}-${vp.theme}.png`;
+        await expect(page.locator("#home")).toHaveScreenshot(name, {
+          ...SHOT,
+          maxDiffPixels: RASTER_NOISE_BUDGET[name] ?? 0,
+        });
         expect(health.actionPosts).toHaveLength(0);
       } finally {
         await close();
