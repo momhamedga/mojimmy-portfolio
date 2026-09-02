@@ -10,10 +10,6 @@ on:
         description: "Run the read-only production smoke (Chromium + WebKit)"
         type: boolean
         default: false
-      verify_committed_baselines:
-        description: "Verify committed baselines in the pinned container"
-        type: boolean
-        default: false
       certify_visual_baselines:
         description: "Generate Linux visual baselines and certify them on 5 independent runners"
         type: boolean
@@ -111,8 +107,8 @@ jobs:
   visual-image:
     name: Visual image (pinned)
     runs-on: ubuntu-24.04
-    # يدويًا فقط — لا يعمل على طلبات الدمج ولا عند الدفع.
-    if: github.event_name == 'workflow_dispatch' && (inputs.certify_visual_baselines || inputs.verify_committed_baselines)
+    # تعمل على كل حدث لأن حراسة الانحدار البصري صارت تلقائية، وهي تقرأ مرجع
+    # الصورة من مُخرَج هذه الوظيفة (`container.image` لا يقرأ سياق env).
     outputs:
       image: ${{ steps.pin.outputs.image }}
     steps:
@@ -123,7 +119,9 @@ jobs:
 
       # إثبات أن الوسم والبصمة يشيران إلى الشيء نفسه، وطباعة البصمة كي
       # تُثبَّت في الملف بدل الاعتماد على وسم متحرّك.
+      # كشف انحراف الوسم — للتشغيل اليدوي وحده، فلا يبطّئ كل طلب دمج.
       - name: Resolve digest
+        if: github.event_name == 'workflow_dispatch'
         env:
           VISUAL_TAG: mcr.microsoft.com/playwright:v1.62.1-noble
         run: |
@@ -131,35 +129,44 @@ jobs:
           echo "resolved digest:"
           docker inspect --format='{{index .RepoDigests 0}}' "$VISUAL_TAG"
 
-  visual-verify-committed:
-    name: Verify committed baselines
-    needs: visual-image
+  visual-regression:
+    name: Visual regression
+    # بعد الجودة: لا معنى لمقارنة صور مبنى لا يبنى أصلًا.
+    needs: [visual-image, quality]
     runs-on: ubuntu-24.04
     container:
       image: ${{ needs.visual-image.outputs.image }}
-    # يقارن بالمراجع الملتزمة في المستودع لا بأثر مولَّد — وهو الفحص الذي
-    # سيصير لاحقًا حارس الانحدار في المرحلة التالية.
-    if: inputs.verify_committed_baselines
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
       - run: npm ci
-      - name: Fingerprint
+      # حارس المراجع: لا تشغيل صامت بمراجع ناقصة أو باسم لقطة قديم.
+      - name: Baseline and inventory guard
         run: |
-          echo "runner=$RUNNER_NAME"
-          echo "goldens=$(ls tests/e2e/visual.spec.ts-snapshots/*.png | wc -l)"
-          node --version
+          echo "runner=$RUNNER_NAME node=$(node --version)"
+          goldens=$(ls tests/e2e/visual.spec.ts-snapshots/*-visual-linux.png | wc -l)
+          tests=$(npx playwright test --project=visual --list | grep -c "@visual")
+          echo "goldens=$goldens tests=$tests"
+          test "$goldens" -eq 18
+          test "$tests" -eq 18
+          test -f tests/e2e/visual.spec.ts-snapshots/mobile-menu-panel-open-390-dark-visual-linux.png
+          test ! -e tests/e2e/visual.spec.ts-snapshots/mobile-menu-open-390-dark-visual-linux.png
+
+      # مقارنة بالمراجع الملتزمة وحدها: بلا --update-snapshots وبلا إعادة
+      # محاولة، وبعامل واحد كما شُهدت السياسة.
       - name: Compare against committed baselines
         run: npx playwright test --project=visual --workers=1
-      - if: always()
+      # عند الفشل وحده: المتوقَّع والفعلي والفرق وتقرير Playwright، فيقرأ
+      # المراجِع سبب السقوط من الأثر بلا إعادة تشغيل محلية.
+      - if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: visual-verify-committed
+          name: visual-regression-diff
           path: |
-            playwright-report/
             test-results/
+            playwright-report/
           retention-days: 7
 
   visual-candidate:
