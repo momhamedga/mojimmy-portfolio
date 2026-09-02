@@ -25,6 +25,8 @@ concurrency:
 
 env:
   NODE_VERSION: "22"
+  # صورة التصيير المرجعية — تُثبَّت ببصمة غير قابلة للتغيّر بعد حلّها.
+  VISUAL_IMAGE: "mcr.microsoft.com/playwright:v1.62.1-noble"
 
 jobs:
   quality:
@@ -102,27 +104,50 @@ jobs:
             test-results/
           retention-days: 7
 
-  visual-candidate:
-    name: Visual candidate baselines
-    runs-on: ubuntu-latest
+  visual-image:
+    name: Visual image (pinned)
+    runs-on: ubuntu-24.04
     # يدويًا فقط — لا يعمل على طلبات الدمج ولا عند الدفع.
     if: github.event_name == 'workflow_dispatch' && inputs.certify_visual_baselines
+    outputs:
+      image: ${{ steps.pin.outputs.image }}
+    steps:
+      # مرجع الصورة في مكان واحد، وتستهلكه كل وظائف البصريات عبر needs.
+      # `container.image` لا يقرأ سياق env، لذلك يمرّ عبر مُخرَج وظيفة.
+      - id: pin
+        run: echo "image=${{ env.VISUAL_IMAGE }}" >> "$GITHUB_OUTPUT"
+
+      # إثبات أن الوسم والبصمة يشيران إلى الشيء نفسه، وطباعة البصمة كي
+      # تُثبَّت في الملف بدل الاعتماد على وسم متحرّك.
+      - name: Resolve digest
+        env:
+          VISUAL_TAG: mcr.microsoft.com/playwright:v1.62.1-noble
+        run: |
+          docker pull "$VISUAL_TAG"
+          echo "resolved digest:"
+          docker inspect --format='{{index .RepoDigests 0}}' "$VISUAL_TAG"
+
+  visual-candidate:
+    name: Visual candidate baselines (pinned container)
+    needs: visual-image
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.visual-image.outputs.image }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
 
-      - name: Environment authority
+      - name: Environment fingerprint
         run: |
-          echo "runner=$RUNNER_NAME os=$ImageOS image=$ImageVersion"
+          echo "runner=$RUNNER_NAME label=ubuntu-24.04"
+          echo "container=${{ needs.visual-image.outputs.image }}"
+          head -3 /etc/os-release
+          uname -a
+          echo "node=$(node --version) npm=$(npm --version)"
           npx playwright --version
-          node -p "require('@playwright/test/package.json').version"
+          echo "TZ=$TZ LANG=$LANG"
 
-      # مرجع واحد فقط، تُقارن به كل مُشغِّلات الشهادة.
+      # الحاوية الرسمية تحمل المتصفحات أصلًا — لا تنزيل ثانٍ.
       - name: Generate candidate baselines
         run: npx playwright test --project=visual --update-snapshots --workers=1
 
@@ -139,31 +164,32 @@ jobs:
           retention-days: 7
 
   visual-certify:
-    name: Certify baselines ${{ matrix.runner }}
-    needs: visual-candidate
-    runs-on: ubuntu-latest
-    # خمسة مُشغِّلات مستقلة لا ثلاثة: البكسل الشارد عشوائي ولم يظهر على كل
-    # مُشغِّل في 5B.3، فالعيّنة الأوسع هي ما يجعل الشهادة ذات معنى.
+    name: Certify ${{ matrix.wave }}-${{ matrix.runner }}
+    needs: [visual-image, visual-candidate]
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.visual-image.outputs.image }}
+    # موجتان × خمسة = عشرة مُشغِّلات مستقلة على مرجع واحد. الضجيج السابق كان
+    # متقطّعًا، فعيّنة واحدة من خمسة لا تكفي دليلًا.
     strategy:
       fail-fast: false
       matrix:
+        wave: [w1, w2]
         runner: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
 
-      - name: Runner identity
+      - name: Environment fingerprint
         run: |
-          echo "runner=$RUNNER_NAME os=$ImageOS image=$ImageVersion"
-          node -p "require('@playwright/test/package.json').version"
+          echo "runner=$RUNNER_NAME wave=${{ matrix.wave }} n=${{ matrix.runner }}"
+          echo "container=${{ needs.visual-image.outputs.image }}"
+          head -3 /etc/os-release
+          uname -a
+          echo "node=$(node --version) npm=$(npm --version)"
+          npx playwright --version
+          echo "TZ=$TZ LANG=$LANG"
 
-      # المرجع الوحيد يُنزَّل كما هو — لا مُشغِّل يولّد مرجعه الخاص، وإلا
-      # قِسنا تكرارية الجهاز بدل الفروق بين الأجهزة.
       - uses: actions/download-artifact@v4
         with:
           name: visual-candidate
@@ -177,13 +203,13 @@ jobs:
           rm SHA256SUMS.txt
 
       # بلا --update-snapshots وبلا إعادة محاولة: السياسة الملتزمة نفسها.
-      - name: Certify (strict, committed policy)
+      - name: Certify (zero tolerance)
         run: npx playwright test --project=visual --workers=1
 
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: visual-certify-${{ matrix.runner }}
+          name: visual-certify-${{ matrix.wave }}-${{ matrix.runner }}
           path: |
             playwright-report/
             test-results/
