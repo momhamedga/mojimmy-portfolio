@@ -10,6 +10,10 @@ on:
         description: "Run the read-only production smoke (Chromium + WebKit)"
         type: boolean
         default: false
+      verify_committed_baselines:
+        description: "Verify committed baselines in the pinned container"
+        type: boolean
+        default: false
       certify_visual_baselines:
         description: "Generate Linux visual baselines and certify them on 5 independent runners"
         type: boolean
@@ -108,7 +112,7 @@ jobs:
     name: Visual image (pinned)
     runs-on: ubuntu-24.04
     # يدويًا فقط — لا يعمل على طلبات الدمج ولا عند الدفع.
-    if: github.event_name == 'workflow_dispatch' && inputs.certify_visual_baselines
+    if: github.event_name == 'workflow_dispatch' && (inputs.certify_visual_baselines || inputs.verify_committed_baselines)
     outputs:
       image: ${{ steps.pin.outputs.image }}
     steps:
@@ -127,9 +131,41 @@ jobs:
           echo "resolved digest:"
           docker inspect --format='{{index .RepoDigests 0}}' "$VISUAL_TAG"
 
+  visual-verify-committed:
+    name: Verify committed baselines
+    needs: visual-image
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.visual-image.outputs.image }}
+    # يقارن بالمراجع الملتزمة في المستودع لا بأثر مولَّد — وهو الفحص الذي
+    # سيصير لاحقًا حارس الانحدار في المرحلة التالية.
+    if: inputs.verify_committed_baselines
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+      - name: Fingerprint
+        run: |
+          echo "runner=$RUNNER_NAME"
+          echo "goldens=$(ls tests/e2e/visual.spec.ts-snapshots/*.png | wc -l)"
+          node --version
+      - name: Compare against committed baselines
+        run: npx playwright test --project=visual --workers=1
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-verify-committed
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   visual-candidate:
     name: Visual candidate baselines (pinned container)
     needs: visual-image
+    if: inputs.certify_visual_baselines
     runs-on: ubuntu-24.04
     container:
       image: ${{ needs.visual-image.outputs.image }}
