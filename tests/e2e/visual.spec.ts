@@ -1,7 +1,5 @@
 import type { Browser, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
 import {
   collectHealth,
   ensureProjectImagesDecoded,
@@ -27,67 +25,6 @@ const SHOT = {
 } as const;
 
 type Theme = "dark" | "light";
-
-/**
- * المقارنة والتأليف مسارَان منفصلان يمرّان من هنا.
- *
- * المقارنة تبقى أصلية بالكامل: `toHaveScreenshot` بسياستها الصارمة.
- * التأليف وحده مخصَّص، ولا يعمل إلا بـ`PW_AUTHOR`.
- *
- * لماذا مسار تأليف خاص: القياس أثبت أن التوليد نفسه غير حتمي. خمس محاولات
- * توليد مستقلة داخل بيئة السلطة الواحدة أنتجت حالتين مختلفتين لثلاث لقطات
- * (contact-1440-dark، projects-1440-light، services-1440-dark). والسبب في
- * آلية Playwright: التوليد يتوقّف عند أول لقطتين متتاليتين متطابقتين، وللمُصيِّر
- * أكثر من حالة مستقرّة — فقد يُثبَّت في المرجع حالة أقلّية يرفضها كل مقارِن
- * لاحقًا، وهو ما رُصد فعلًا بسقوط عشرة مُشغِّلات على بكسلين اثنين.
- *
- * لذلك يُكتب المرجع بعد **ثلاث** لقطات متتالية متطابقة لا لقطتين: نحن نؤلّف
- * مرجعًا طويل العمر لا نجري مقارنة عابرة.
- *
- * المقارنة بالبايت مقصودة: تطابق البايت يستلزم تطابق البكسل — فهو معيار
- * أشدّ لا أضعف — ويتفادى تشغيل عمل canvas داخل الصفحة الملتقَطة بين
- * اللقطات، وهو ما قد يزعج التركيب الذي نقيسه أصلًا. وإن تعذّر الاستقرار
- * خلال السقف، لا يُكتب مرجع: الفشل الصريح خير من تثبيت حالة عابرة.
- *
- * بلا أي مهلة ثابتة: `screenshot` يتقدّم بإطارات العرض داخليًا.
- */
-const AUTHORING = !!process.env.PW_AUTHOR;
-const AUTHOR_ATTEMPTS = 10;
-const AUTHOR_STABLE_FRAMES = 3;
-
-type Shootable = { screenshot(options: typeof SHOT): Promise<Buffer> };
-
-async function capture(
-  target: Shootable,
-  name: string,
-  testInfo: import("@playwright/test").TestInfo,
-): Promise<void> {
-  if (!AUTHORING) {
-    await expect(target as unknown as Page).toHaveScreenshot(name, SHOT);
-    return;
-  }
-
-  let previous: Buffer | null = null;
-  let identical = 1;
-
-  for (let attempt = 1; attempt <= AUTHOR_ATTEMPTS; attempt++) {
-    const shot = await target.screenshot(SHOT);
-    identical = previous?.equals(shot) ? identical + 1 : 1;
-    previous = shot;
-
-    if (identical >= AUTHOR_STABLE_FRAMES) {
-      const goldenPath = testInfo.snapshotPath(name);
-      mkdirSync(dirname(goldenPath), { recursive: true });
-      writeFileSync(goldenPath, shot);
-      console.warn(`[author] ${name}: stable at attempt ${attempt}`);
-      return;
-    }
-  }
-
-  throw new Error(
-    `[author] ${name}: لم يستقرّ خلال ${AUTHOR_ATTEMPTS} محاولات — لا يُكتب مرجع غير مستقرّ.`,
-  );
-}
 
 /**
  * الثيم يُضبط قبل التنقّل لا بالنقر على الزر.
@@ -190,14 +127,17 @@ test.describe("visual regression @visual", () => {
     { label: "1440", width: 1440, height: 900, theme: "dark" as const },
     { label: "1440", width: 1440, height: 900, theme: "light" as const },
   ]) {
-    test(`hero ${vp.label} ${vp.theme} @visual`, async ({ browser }, testInfo) => {
+    test(`hero ${vp.label} ${vp.theme} @visual`, async ({ browser }) => {
       const { page, close } = await openPage(browser, vp);
       try {
         const health = collectHealth(page);
         await page.goto("/");
         await settle(page, vp.theme);
 
-        await capture(page.locator("#home"), `hero-${vp.label}-${vp.theme}.png`, testInfo);
+        await expect(page.locator("#home")).toHaveScreenshot(
+          `hero-${vp.label}-${vp.theme}.png`,
+          SHOT,
+        );
         expect(health.actionPosts).toHaveLength(0);
       } finally {
         await close();
@@ -207,7 +147,7 @@ test.describe("visual regression @visual", () => {
 
   // ── Navbar ───────────────────────────────────────────────────────────
   for (const theme of ["dark", "light"] as const) {
-    test(`navbar 1440 ${theme} @visual`, async ({ browser }, testInfo) => {
+    test(`navbar 1440 ${theme} @visual`, async ({ browser }) => {
       const { page, close } = await openPage(browser, { width: 1440, height: 900, theme });
       try {
         await page.goto("/");
@@ -225,7 +165,7 @@ test.describe("visual regression @visual", () => {
           page.getByRole("navigation", { name: "التنقل الرئيسي" }).locator('a[href="#projects"]'),
         ).toHaveAttribute("aria-current", "true");
 
-        await capture(mainHeader(page), `navbar-1440-${theme}.png`, testInfo);
+        await expect(mainHeader(page)).toHaveScreenshot(`navbar-1440-${theme}.png`, SHOT);
       } finally {
         await close();
       }
@@ -233,7 +173,7 @@ test.describe("visual regression @visual", () => {
   }
 
   // ── Mobile navigation ────────────────────────────────────────────────
-  test("mobile nav 390 dark @visual", async ({ browser }, testInfo) => {
+  test("mobile nav 390 dark @visual", async ({ browser }) => {
     const { page, close } = await openPage(browser, { width: 390, height: 844, theme: "dark" });
     try {
       await page.goto("/");
@@ -245,7 +185,7 @@ test.describe("visual regression @visual", () => {
         page.getByRole("navigation", { name: "تنقّل سريع" }).locator("[aria-current='true']"),
       ).toHaveCount(1);
 
-      await capture(page, "mobile-nav-390-dark.png", testInfo);
+      await expect(page).toHaveScreenshot("mobile-nav-390-dark.png", SHOT);
     } finally {
       await close();
     }
@@ -264,7 +204,7 @@ test.describe("visual regression @visual", () => {
    * والتغطية لا تنقص — `mobile-nav-390-dark` يوثّق الشريط السفلي وحالته
    * النشطة أصلًا، وهو مستقرّ بصفر لأن خلفه محتوى الصفحة لا زجاج آخر.
    */
-  test("mobile menu panel open 390 dark @visual", async ({ browser }, testInfo) => {
+  test("mobile menu panel open 390 dark @visual", async ({ browser }) => {
     const { page, close } = await openPage(browser, { width: 390, height: 844, theme: "dark" });
     try {
       await page.goto("/");
@@ -283,7 +223,7 @@ test.describe("visual regression @visual", () => {
       await expect(panel).toHaveCount(1);
       await expect(panel).toBeVisible();
 
-      await capture(panel, "mobile-menu-panel-open-390-dark.png", testInfo);
+      await expect(panel).toHaveScreenshot("mobile-menu-panel-open-390-dark.png", SHOT);
     } finally {
       await close();
     }
@@ -296,7 +236,7 @@ test.describe("visual regression @visual", () => {
     { label: "1440", width: 1440, theme: "dark" as const },
     { label: "1440", width: 1440, theme: "light" as const },
   ]) {
-    test(`projects ${vp.label} ${vp.theme} @visual`, async ({ browser }, testInfo) => {
+    test(`projects ${vp.label} ${vp.theme} @visual`, async ({ browser }) => {
       const { page, close } = await openSectionPage(browser, vp);
       try {
         await page.goto("/");
@@ -307,7 +247,10 @@ test.describe("visual regression @visual", () => {
         await scrollToSection(page, "projects");
         await expectSinglePass(page, "projects");
 
-        await capture(page.locator("#projects"), `projects-${vp.label}-${vp.theme}.png`, testInfo);
+        await expect(page.locator("#projects")).toHaveScreenshot(
+          `projects-${vp.label}-${vp.theme}.png`,
+          SHOT,
+        );
       } finally {
         await close();
       }
@@ -316,7 +259,7 @@ test.describe("visual regression @visual", () => {
 
   // ── About / Services ─────────────────────────────────────────────────
   for (const id of ["about", "services"] as const) {
-    test(`${id} 1440 dark @visual`, async ({ browser }, testInfo) => {
+    test(`${id} 1440 dark @visual`, async ({ browser }) => {
       const { page, close } = await openSectionPage(browser, { width: 1440, theme: "dark" });
       try {
         await page.goto("/");
@@ -324,7 +267,7 @@ test.describe("visual regression @visual", () => {
         await scrollToSection(page, id);
         await expectSinglePass(page, id);
 
-        await capture(page.locator(`#${id}`), `${id}-1440-dark.png`, testInfo);
+        await expect(page.locator(`#${id}`)).toHaveScreenshot(`${id}-1440-dark.png`, SHOT);
       } finally {
         await close();
       }
@@ -336,7 +279,7 @@ test.describe("visual regression @visual", () => {
     { label: "1440", width: 1440 },
     { label: "390", width: 390 },
   ]) {
-    test(`contact ${vp.label} dark @visual`, async ({ browser }, testInfo) => {
+    test(`contact ${vp.label} dark @visual`, async ({ browser }) => {
       const { page, close } = await openSectionPage(browser, { ...vp, theme: "dark" });
       try {
         const health = collectHealth(page);
@@ -346,7 +289,10 @@ test.describe("visual regression @visual", () => {
         await expectSinglePass(page, "contact");
 
         await expect(page.locator("form")).toBeVisible();
-        await capture(page.locator("#contact"), `contact-${vp.label}-dark.png`, testInfo);
+        await expect(page.locator("#contact")).toHaveScreenshot(
+          `contact-${vp.label}-dark.png`,
+          SHOT,
+        );
 
         // نموذج فارغ لا يُرسَل: صفر طلبات
         expect(health.actionPosts).toHaveLength(0);
@@ -357,7 +303,7 @@ test.describe("visual regression @visual", () => {
     });
   }
 
-  test("contact validation 390 dark @visual", async ({ browser }, testInfo) => {
+  test("contact validation 390 dark @visual", async ({ browser }) => {
     const { page, close } = await openSectionPage(browser, { width: 390, theme: "dark" });
     try {
       const health = collectHealth(page);
@@ -389,14 +335,17 @@ test.describe("visual regression @visual", () => {
 
       await waitForScrollSettled(page);
       await expectSinglePass(page, "contact");
-      await capture(page.locator("#contact"), "contact-validation-390-dark.png", testInfo);
+      await expect(page.locator("#contact")).toHaveScreenshot(
+        "contact-validation-390-dark.png",
+        SHOT,
+      );
     } finally {
       await close();
     }
   });
 
   // ── Footer ───────────────────────────────────────────────────────────
-  test("footer 1440 dark @visual", async ({ browser }, testInfo) => {
+  test("footer 1440 dark @visual", async ({ browser }) => {
     const { page, close } = await openSectionPage(browser, { width: 1440, theme: "dark" });
     try {
       await page.goto("/");
@@ -404,7 +353,7 @@ test.describe("visual regression @visual", () => {
       await scrollToSection(page, "footer");
       await expectSinglePass(page, "footer");
 
-      await capture(page.locator("#footer"), "footer-1440-dark.png", testInfo);
+      await expect(page.locator("#footer")).toHaveScreenshot("footer-1440-dark.png", SHOT);
     } finally {
       await close();
     }

@@ -10,6 +10,10 @@ on:
         description: "Run the read-only production smoke (Chromium + WebKit)"
         type: boolean
         default: false
+      study_visual_generation:
+        description: "Study visual generation variability (5 generations x 5 verifiers)"
+        type: boolean
+        default: false
       certify_visual_baselines:
         description: "Generate Linux visual baselines and certify them on 5 independent runners"
         type: boolean
@@ -108,7 +112,7 @@ jobs:
     name: Visual image (pinned)
     runs-on: ubuntu-24.04
     # يدويًا فقط — لا يعمل على طلبات الدمج ولا عند الدفع.
-    if: github.event_name == 'workflow_dispatch' && inputs.certify_visual_baselines
+    if: github.event_name == 'workflow_dispatch' && (inputs.certify_visual_baselines || inputs.study_visual_generation)
     outputs:
       image: ${{ steps.pin.outputs.image }}
     steps:
@@ -127,9 +131,99 @@ jobs:
           echo "resolved digest:"
           docker inspect --format='{{index .RepoDigests 0}}' "$VISUAL_TAG"
 
+  visual-gen-study:
+    name: Generation study ${{ matrix.gen }}
+    needs: visual-image
+    if: inputs.study_visual_generation
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.visual-image.outputs.image }}
+    # دراسة تقلّب التوليد: خمس محاولات مستقلة، كل واحدة تبدأ بلا مراجع.
+    strategy:
+      fail-fast: false
+      matrix:
+        gen: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+
+      - name: Fingerprint
+        run: |
+          echo "runner=$RUNNER_NAME gen=${{ matrix.gen }}"
+          echo "node=$(node --version) npm=$(npm --version)"
+          npx playwright --version
+
+      - name: Generate
+        run: |
+          rm -rf tests/e2e/visual.spec.ts-snapshots
+          npx playwright test --project=visual --update-snapshots --workers=1
+
+      - name: Hash
+        run: |
+          cd tests/e2e/visual.spec.ts-snapshots
+          sha256sum *.png | tee SHA256SUMS.txt
+
+      # فحص ذاتي فوري على المُشغِّل نفسه: هل يقبل المقارِن ما وُلِّد للتو؟
+      - name: Self-check on same runner
+        continue-on-error: true
+        run: npx playwright test --project=visual --workers=1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-gen-${{ matrix.gen }}
+          path: tests/e2e/visual.spec.ts-snapshots/
+          retention-days: 7
+
+  visual-gen-verify:
+    name: Verify gen ${{ matrix.gen }} on fresh runner
+    needs: [visual-image, visual-gen-study]
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.visual-image.outputs.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        gen: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+      - name: Fingerprint
+        run: echo "runner=$RUNNER_NAME verifying gen=${{ matrix.gen }}"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: visual-gen-${{ matrix.gen }}
+          path: tests/e2e/visual.spec.ts-snapshots/
+
+      - name: Integrity
+        run: |
+          cd tests/e2e/visual.spec.ts-snapshots
+          sha256sum -c SHA256SUMS.txt
+          rm SHA256SUMS.txt
+
+      - name: Compare on fresh runner
+        continue-on-error: true
+        run: npx playwright test --project=visual --workers=1
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-gen-verify-${{ matrix.gen }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   visual-candidate:
     name: Visual candidate baselines (pinned container)
     needs: visual-image
+    if: inputs.certify_visual_baselines
     runs-on: ubuntu-24.04
     container:
       image: ${{ needs.visual-image.outputs.image }}
@@ -154,15 +248,8 @@ jobs:
           echo "TZ=$TZ LANG=$LANG"
 
       # الحاوية الرسمية تحمل المتصفحات أصلًا — لا تنزيل ثانٍ.
-      # مسار تأليف واحد لا اثنان: PW_AUTHOR يكتب المرجع بعد ثلاث لقطات
-      # متتالية متطابقة. `--update-snapshots` لم يعد مسار السلطة لأنه يتوقّف
-      # عند لقطتين، وقد ثبت أن ذلك يثبّت أحيانًا حالة تصيير أقلّية.
-      - name: Author candidate baselines
-        env:
-          PW_AUTHOR: "1"
-        run: |
-          rm -rf tests/e2e/visual.spec.ts-snapshots
-          npx playwright test --project=visual --workers=1
+      - name: Generate candidate baselines
+        run: npx playwright test --project=visual --update-snapshots --workers=1
 
       - name: Manifest
         run: |

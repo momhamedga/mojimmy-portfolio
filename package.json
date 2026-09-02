@@ -17,7 +17,8 @@
     "test:e2e:cross-browser": "playwright test --project=firefox-smoke --workers=2",
     "test:e2e:prod": "playwright test --project=chromium-production-smoke --workers=1",
     "test:e2e:prod:webkit": "playwright test --project=webkit-production-smoke --workers=1",
-    "test:e2e:visual": "playwright test --project=visual"
+    "test:e2e:visual": "playwright test --project=visual",
+    "test:e2e:visual:update": "playwright test --project=visual --update-snapshots"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",
