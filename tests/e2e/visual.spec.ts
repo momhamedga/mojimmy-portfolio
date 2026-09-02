@@ -187,6 +187,10 @@ test.describe("visual regression @visual", () => {
           page.getByRole("navigation", { name: "التنقل الرئيسي" }).locator('a[href="#projects"]'),
         ).toHaveAttribute("aria-current", "true");
 
+        // SELF-TEST ONLY — إزاحة بكسل واحد لإثبات أن الحراسة تسقط الانحدار.
+        await page.addStyleTag({
+          content: `header nav a[href="#projects"] { transform: translateY(1px); }`,
+        });
         await expect(mainHeader(page)).toHaveScreenshot(`navbar-1440-${theme}.png`, SHOT);
       } finally {
         await close();
