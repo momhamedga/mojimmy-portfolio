@@ -26,7 +26,7 @@ concurrency:
 env:
   NODE_VERSION: "22"
   # صورة التصيير المرجعية — تُثبَّت ببصمة غير قابلة للتغيّر بعد حلّها.
-  VISUAL_IMAGE: "mcr.microsoft.com/playwright:v1.62.1-noble"
+  VISUAL_IMAGE: "mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e"
 
 jobs:
   quality:
@@ -135,6 +135,12 @@ jobs:
       image: ${{ needs.visual-image.outputs.image }}
     steps:
       - uses: actions/checkout@v4
+      # الصورة تشحن Node 24، وبقية CI على 22. نثبّت 22 هنا صراحةً حتى لا
+      # تختلف بيئة التنفيذ بين الوظائف — التصيير عمل Chromium لا Node،
+      # لكن اختلافًا صامتًا في بيئة البناء ليس ما نريده في سلطة المراجع.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - run: npm ci
 
       - name: Environment fingerprint
@@ -178,6 +184,12 @@ jobs:
         runner: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
+      # الصورة تشحن Node 24، وبقية CI على 22. نثبّت 22 هنا صراحةً حتى لا
+      # تختلف بيئة التنفيذ بين الوظائف — التصيير عمل Chromium لا Node،
+      # لكن اختلافًا صامتًا في بيئة البناء ليس ما نريده في سلطة المراجع.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - run: npm ci
 
       - name: Environment fingerprint
@@ -214,6 +226,89 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  visual-sensitivity:
+    name: Visual sensitivity probe (temporary)
+    needs: visual-image
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.visual-image.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+
+      # فحص تشخيصي مؤقّت: يثبت أن صفر التسامح داخل الحاوية ما زال يكشف
+      # تغيّرًا بصريًا حقيقيًا. الملف يُكتب هنا ولا يُلتزم في المستودع.
+      - name: Write temporary probe
+        run: |
+          cat > tests/e2e/zz-sens.spec.ts <<'SPEC'
+          import { expect, test } from "@playwright/test";
+          import { waitForFonts, waitForHydration, waitForScrollSettled } from "./_helpers";
+
+          const SHOT = { animations: "disabled", caret: "hide", scale: "css" } as const;
+          const INJECT = process.env.PW_INJECT ?? "none";
+
+          test("container sensitivity @visual", async ({ browser }) => {
+            const ctx = await browser.newContext({
+              viewport: { width: 390, height: 844 },
+              deviceScaleFactor: 1,
+            });
+            await ctx.addInitScript(() => window.localStorage.setItem("theme", "dark"));
+            const page = await ctx.newPage();
+            await page.goto("/");
+            await waitForHydration(page);
+            await waitForFonts(page);
+            await page.getByRole("button", { name: "فتح القائمة" }).click();
+            await expect(page.getByRole("button", { name: "إغلاق القائمة" })).toHaveAttribute(
+              "aria-expanded",
+              "true",
+            );
+            await waitForScrollSettled(page);
+
+            if (INJECT === "1px") {
+              await page.addStyleTag({
+                content: `#mobile-menu nav a[href="#projects"] { transform: translateY(1px); }`,
+              });
+            } else if (INJECT === "colour") {
+              await page.addStyleTag({
+                content: `#mobile-menu a[href="#contact"] { background-color: #c02626 !important; }`,
+              });
+            }
+            await waitForScrollSettled(page);
+            await expect(page.locator("#mobile-menu")).toHaveScreenshot("sens.png", SHOT);
+          });
+          SPEC
+
+      - name: Baseline the probe
+        run: npx playwright test --project=visual tests/e2e/zz-sens.spec.ts --workers=1 --update-snapshots
+
+      - name: Unchanged must PASS
+        run: npx playwright test --project=visual tests/e2e/zz-sens.spec.ts --workers=1
+
+      - name: 1px shift must FAIL
+        env:
+          PW_INJECT: 1px
+        run: |
+          if npx playwright test --project=visual tests/e2e/zz-sens.spec.ts --workers=1; then
+            echo "REGRESSION NOT DETECTED"; exit 1
+          fi
+          echo "1px shift correctly detected"
+
+      - name: Colour change must FAIL
+        env:
+          PW_INJECT: colour
+        run: |
+          if npx playwright test --project=visual tests/e2e/zz-sens.spec.ts --workers=1; then
+            echo "REGRESSION NOT DETECTED"; exit 1
+          fi
+          echo "colour change correctly detected"
+
+      - name: Remove probe
+        if: always()
+        run: rm -rf tests/e2e/zz-sens.spec.ts tests/e2e/zz-sens.spec.ts-snapshots
 
   production-smoke:
     name: Production smoke (read-only, manual)
