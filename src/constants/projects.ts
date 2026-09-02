@@ -1,8 +1,18 @@
 import { Project } from "../types/project";
 
+/**
+ * مصدر الحقيقة الوحيد للمشاريع — تقرؤه الصفحة الرئيسية ومسارات دراسات
+ * الحالة وخريطة الموقع معًا، فلا نسخة ثانية تتخلّف عن الأولى.
+ *
+ * قرار هجاء: عنوان المشروع الرابع يكتب «jusoor» بينما استضافته المنشورة
+ * تكتب «josour». الـslug يتبع العنوان المعروض لأنه ما يقرؤه الزائر، ورابط
+ * الموقع الحيّ يبقى كما هو حرفًا بحرف — لا يُعاد تسميته من هنا.
+ */
+
 export const PROJECTS: Project[] = [
   {
     id: "01",
+    slug: "british-academy",
     title: "BRITISH ACADEMY",
     category: "منصة تعليمية",
     description:
@@ -13,6 +23,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "02",
+    slug: "icfb-academy",
     title: "ICFB ACADEMY",
     category: "منصة تدريب",
     description:
@@ -23,6 +34,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "03",
+    slug: "hh-lawyer",
     title: "HH LAWYER",
     category: "موقع مهني",
     description:
@@ -33,6 +45,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "04",
+    slug: "jusoor-international",
     title: "jusoor international consulting",
     category: "موقع استشارات",
     description: "منظومة جسور انترناشيونال للأستشارات الإدارية المتكاملة مع لوحات تحكم متطورة.",
@@ -42,6 +55,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "05",
+    slug: "jawharat-al-danat",
     title: "JAWHARAT AL DANAT",
     category: "موقع أعمال وفعاليات",
     // الوصف يصف الموقع لا يروّج للشركة: القطاعان والثنائية اللغوية ولوحة

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/constants/site";
+import { publishableCaseStudies } from "@/lib/case-study";
 
 /**
  * الموقع صفحة واحدة: الجذر هو العنوان الوحيد القابل للفهرسة.
@@ -15,5 +16,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: SITE_URL, // نفس تمثيل canonical بالضبط — بلا شرطة مائلة زائدة
     },
+    // دراسات الحالة القابلة للنشر وحدها. اليوم لا شيء منها معتمد، فالخريطة
+    // تبقى عنوانًا واحدًا — لا نعلن مسارات تعيد 404.
+    ...publishableCaseStudies().map((project) => ({
+      url: `${SITE_URL}/projects/${project.slug}`,
+    })),
   ];
 }
