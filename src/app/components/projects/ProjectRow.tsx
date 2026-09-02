@@ -64,7 +64,9 @@ export function ProjectRow({ project, index }: { project: Project; index: number
         {
           "--project-color": project.color,
           // لون متاح: يُمزج نحو لون النص، فيغمق في الوضع الفاتح ويفتح في الداكن.
-          "--project-accent": `color-mix(in srgb, ${project.color} 80%, var(--color-foreground))`,
+          // النسبة تأتي من الثيم لا مكتوبة هنا: الفاتح يحتاج مزجًا أقوى نحو
+          // الأسود ليعبر الرقم حدّ التباين ٤٫٥:١ (قياس 7A/7B).
+          "--project-accent": `color-mix(in srgb, ${project.color} var(--project-accent-mix, 80%), var(--color-foreground))`,
         } as React.CSSProperties
       }
     >

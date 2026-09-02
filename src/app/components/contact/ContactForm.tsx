@@ -71,6 +71,26 @@ export default function ContactForm({ children }: { children: ReactNode }) {
   }, []);
 
   /**
+   * إعلان واحد مهذّب بعدد الحقول الراسبة.
+   *
+   * الأخطاء نفسها مرتبطة بحقولها عبر `aria-describedby`، ونقل التركيز إلى
+   * أول حقل راسب يجعل قارئ الشاشة ينطق خطأه. لكن المستخدم كان لا يعرف أن
+   * هناك خطأين آخرين إلا حين يبلغهما — فهذا السطر يعطيه الصورة كاملة من
+   * أول لحظة (قياس 7A).
+   *
+   * `polite` لا `assertive`: التركيز ينتقل في اللحظة نفسها، وإعلان مقاطِع
+   * فوقه يزاحم نطق الحقل. وثلاثة تنبيهات منفصلة كانت ستضاعف الضجيج بلا فائدة.
+   */
+  const [errorSummary, setErrorSummary] = useState("");
+
+  const summarize = useCallback((count: number) => {
+    if (count === 0) return "";
+    if (count === 1) return "حقل واحد يحتاج إلى تصحيح";
+    if (count === 2) return "حقلان يحتاجان إلى تصحيح";
+    return `${count} حقول تحتاج إلى تصحيح`;
+  }, []);
+
+  /**
    * قواعد التحقق في العميل — مصدر واحد، بلا نسخة ثانية.
    *
    * القواعد نفسها التي كانت داخل دالة الـaction حرفيًا: لا قيد أُضيف ولا
@@ -108,7 +128,12 @@ export default function ContactForm({ children }: { children: ReactNode }) {
    */
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     const fieldErrors = validate(new FormData(event.currentTarget));
-    if (Object.keys(fieldErrors).length === 0) return;
+    const count = Object.keys(fieldErrors).length;
+
+    // الإعلان يتحدّث عند كل محاولة إرسال لا عند كل ضغطة مفتاح: الكتابة
+    // العادية لا تلمسه، فلا يتحوّل إلى ثرثرة مستمرّة في أذن المستخدم.
+    setErrorSummary(summarize(count));
+    if (count === 0) return;
 
     event.preventDefault();
     setErrors(fieldErrors);
@@ -141,6 +166,7 @@ export default function ContactForm({ children }: { children: ReactNode }) {
         // الرسائل هنا ثابتة في العميل — الخادم لا يمرّر أي نص من المزوّد
         if (result.status === "validation_error") {
           setErrors(result.fieldErrors);
+          setErrorSummary(summarize(Object.keys(result.fieldErrors).length));
           focusFirstError(result.fieldErrors);
         } else if (result.status === "rate_limited") {
           setErrors({ form: "محاولات كثيرة، حاول مرة أخرى بعد قليل." });
@@ -210,6 +236,15 @@ export default function ContactForm({ children }: { children: ReactNode }) {
             data-1p-ignore=""
             className="absolute left-[-9999px] w-px h-px opacity-0"
           />
+
+          {/*
+            إعلان مهذّب واحد بعدد الحقول الراسبة — مرئي لقارئ الشاشة فقط.
+            `sr-only` لا `display:none`: الإخفاء الكامل يُخرجه من شجرة
+            الإتاحة فلا يُنطق أصلًا.
+          */}
+          <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            {errorSummary}
+          </p>
 
           {/* الاسم والبريد جنبًا إلى جنب على الشاشات المتوسطة فأعلى */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

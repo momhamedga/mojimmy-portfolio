@@ -108,6 +108,13 @@ test.describe("E12 — client validation blocks submission", () => {
     expect(health.actionPosts).toHaveLength(0);
     expect(health.consoleErrors).toEqual([]);
 
+    // إعلان واحد مهذّب بعدد الحقول الراسبة — لا ثلاثة تنبيهات.
+    // التركيز ينقل المستخدم لأول خطأ، وهذا السطر يخبره أن هناك غيره.
+    const summary = page.locator('form [aria-live="polite"]');
+    await expect(summary).toHaveCount(1);
+    await expect(summary).toHaveText("3 حقول تحتاج إلى تصحيح");
+    await expect(summary).toHaveClass(/sr-only/);
+
     // ما كتبه المستخدم يبقى كما هو.
     //
     // كان React 19 يعيد تعيين النموذج بعد اكتمال دالة الـaction مهما كانت
