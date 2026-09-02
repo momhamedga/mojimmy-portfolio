@@ -6,13 +6,14 @@ import { SITE_URL } from "@/constants/site";
  * لا نخترع مسارات وهمية، ولا نضع changeFrequency أو priority تجميليين —
  * محركات البحث تتجاهلهما غالبًا، وقيمتهما هنا صفر.
  *
- * lastModified يُحسب وقت البناء، وهو أصدق ما يمكن قوله بلا CMS أو مصدر تواريخ.
+ * ولا lastModified: كان يُحسب وقت البناء، فيعلن أن الصفحة تغيّرت مع كل نشر
+ * ولو لم يتغيّر فيها حرف. تاريخ تحديث غير صادق أسوأ من غيابه — محركات البحث
+ * تُسقط ثقتها به، والغياب موقف صحيح ما دام لا مصدر حقيقي لتاريخ التغيير.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: SITE_URL, // نفس تمثيل canonical بالضبط — بلا شرطة مائلة زائدة
-      lastModified: new Date(),
     },
   ];
 }
