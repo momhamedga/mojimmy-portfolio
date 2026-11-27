@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -89,7 +89,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -176,7 +176,7 @@ jobs:
       image: ${{ needs.visual-image.outputs.image }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
       - run: npm ci
@@ -219,7 +219,7 @@ jobs:
       # الصورة تشحن Node 24، وبقية CI على 22. نثبّت 22 هنا صراحةً حتى لا
       # تختلف بيئة التنفيذ بين الوظائف — التصيير عمل Chromium لا Node،
       # لكن اختلافًا صامتًا في بيئة البناء ليس ما نريده في سلطة المراجع.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
       - run: npm ci
@@ -268,7 +268,7 @@ jobs:
       # الصورة تشحن Node 24، وبقية CI على 22. نثبّت 22 هنا صراحةً حتى لا
       # تختلف بيئة التنفيذ بين الوظائف — التصيير عمل Chromium لا Node،
       # لكن اختلافًا صامتًا في بيئة البناء ليس ما نريده في سلطة المراجع.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
       - run: npm ci
@@ -319,7 +319,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.production_smoke
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
