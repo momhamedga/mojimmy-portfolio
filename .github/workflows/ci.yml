@@ -33,7 +33,7 @@ jobs:
     name: Quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -59,7 +59,7 @@ jobs:
     name: E2E Chromium (local)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -88,7 +88,7 @@ jobs:
     # توافق المحرّكات لا يلزم كل طلب دمج — يكفي عند الدخول إلى main
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -111,7 +111,7 @@ jobs:
     needs: quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -175,7 +175,7 @@ jobs:
     container:
       image: ${{ needs.visual-image.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -215,7 +215,7 @@ jobs:
     container:
       image: ${{ needs.visual-image.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # الصورة تشحن Node 24، وبقية CI على 22. نثبّت 22 هنا صراحةً حتى لا
       # تختلف بيئة التنفيذ بين الوظائف — التصيير عمل Chromium لا Node،
       # لكن اختلافًا صامتًا في بيئة البناء ليس ما نريده في سلطة المراجع.
@@ -264,7 +264,7 @@ jobs:
         wave: [w1, w2]
         runner: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # الصورة تشحن Node 24، وبقية CI على 22. نثبّت 22 هنا صراحةً حتى لا
       # تختلف بيئة التنفيذ بين الوظائف — التصيير عمل Chromium لا Node،
       # لكن اختلافًا صامتًا في بيئة البناء ليس ما نريده في سلطة المراجع.
@@ -318,7 +318,7 @@ jobs:
     # التشغيل اليدوي يجعل المشغِّل هو من يقرّر أن النشر اكتمل.
     if: github.event_name == 'workflow_dispatch' && inputs.production_smoke
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
