@@ -1,43 +1,55 @@
 "use client";
-import { motion, useScroll, useSpring, useMotionValueEvent, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 /**
- * شريط تقدّم السكرول.
+ * شريط تقدّم السكرول — CSS + `rAF` خالص بدون `framer-motion`.
  *
- * تحسين Phase 3 — كان بيكتب خصائص تسبّب layout مع كل frame:
- *   leader.style.left  = "٪"   → إعادة حساب تخطيط
- *   line.style.height  = "px"  → إعادة حساب تخطيط
- *
- * دلوقتي كله transform/compositing:
- * - النقطة القائدة بتتحرّك بـ translateX عبر متغيّر CSS (بلا layout).
- * - سماكة الخط بقت scaleY على ارتفاع ثابت، فتنضم لنفس الـ transform.
+ * يقرأ نسبة التمرير داخل إطار `requestAnimationFrame` ويحدّث `transform`
+ * و`--progress` مباشرة دون إعادة تصيير React ودون فرض إعادة تخطيط.
  */
 export default function ScrollProgress() {
-  const { scrollYProgress } = useScroll();
+  const barRef = useRef<HTMLDivElement>(null);
   const leaderRef = useRef<HTMLDivElement>(null);
 
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
+  useEffect(() => {
+    let rafId = 0;
 
-  // 2px → 4px بالظبط زي الأول، لكن بـ transform بدل height
-  const scaleY = useTransform(scaleX, [0, 1], [0.5, 1]);
+    const update = () => {
+      rafId = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      const scaleY = 0.5 + progress * 0.5;
 
-  useMotionValueEvent(scaleX, "change", (latest) => {
-    leaderRef.current?.style.setProperty("--progress", String(latest));
-  });
+      if (barRef.current) {
+        barRef.current.style.transform = `scaleX(${progress}) scaleY(${scaleY})`;
+      }
+      if (leaderRef.current) {
+        leaderRef.current.style.setProperty("--progress", String(progress));
+      }
+    };
+
+    const schedule = () => {
+      if (!rafId) rafId = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-99999 pointer-events-none" aria-hidden="true">
       {/* 1. الخط الأساسي (The Glowing Line) */}
-      <motion.div
-        className="absolute top-0 left-0 right-0 h-1 origin-top-left bg-linear-to-r from-primary via-accent to-primary"
+      <div
+        ref={barRef}
+        className="absolute top-0 left-0 right-0 h-1 origin-top-left bg-linear-to-r from-primary via-accent to-primary will-change-transform"
         style={{
-          scaleX,
-          scaleY,
+          transform: "scaleX(0) scaleY(0.5)",
           boxShadow: "0 0 20px color-mix(in oklch, var(--color-primary) 40%, transparent)",
         }}
       />

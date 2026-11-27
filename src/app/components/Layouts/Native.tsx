@@ -1,5 +1,4 @@
 "use client";
-import { motion } from "framer-motion";
 import { Home, LayoutGrid, Wrench, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useActiveSection } from "@/app/hooks/use-active-section";
@@ -12,20 +11,8 @@ const navItems = [
 ];
 
 /**
- * شريط التنقّل السفلي للموبايل.
- *
- * تحسين Phase 3 — كان بيسجّل listener على scroll، وكل حدث بيجدول
- * requestAnimationFrame **جديد** (بلا حارس) بيقرأ offsetTop/offsetHeight
- * لأربع عناصر → forced layout متكرر أثناء كل سكرول على الموبايل،
- * وهو أسوأ مكان ممكن للتكلفة دي.
- *
- * Phase 1.2 — كان لهذا الشريط مراقبه الخاص لأربعة أقسام فقط من ثمانية، فأي
- * قسم غير مرصود (عني، طريقة العمل، لماذا، الأسئلة) يترك آخر قيمة عالقة؛
- * وهو سبب ظهور "أعمالي" بينما المعروض "عني". الآن يستهلك نفس مصدر الحقيقة
- * الذي يستهلكه الشريط العلوي، فلا يوجد نظامان متنافسان ولا مراقب ثانٍ.
- *
- * الأقسام غير الممثَّلة في هذا الشريط تُنسب إلى أقرب عنصر سابق لها بترتيب
- * المستند — وهو نفس ما كان يظهر فعليًا، لكن بشكل حتمي لا بالمصادفة.
+ * شريط التنقّل السفلي للموبايل — CSS خالص بدون `framer-motion`.
+ * يستهلك نفس مصدر الحقيقة (`useActiveSection`) مع شريط سطح المكتب.
  */
 const SECTION_TO_DOCK: Record<string, string> = {
   home: "home",
@@ -36,6 +23,14 @@ const SECTION_TO_DOCK: Record<string, string> = {
   faq: "services",
   contact: "contact",
 };
+
+const GLOW_OFFSET: Record<string, string> = {
+  home: "-150%",
+  projects: "-50%",
+  services: "50%",
+  contact: "150%",
+};
+
 export const MobileDock = () => {
   const section = useActiveSection();
   const activeSection = SECTION_TO_DOCK[section] ?? "home";
@@ -57,18 +52,9 @@ export const MobileDock = () => {
       >
         {/* تأثير إضاءة خلفي (Glow) يتبع العنصر النشط */}
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <motion.div
-            animate={{
-              x:
-                activeSection === "home"
-                  ? "-150%"
-                  : activeSection === "projects"
-                    ? "-50%"
-                    : activeSection === "services"
-                      ? "50%"
-                      : "150%",
-            }}
-            className="absolute top-1/2 left-1/2 -translate-y-1/2 w-12 h-12 bg-primary/20 blur-2xl rounded-full"
+          <div
+            style={{ transform: `translateX(${GLOW_OFFSET[activeSection] ?? "-150%"})` }}
+            className="absolute top-1/2 left-1/2 -translate-y-1/2 w-12 h-12 bg-primary/20 blur-2xl rounded-full motion-safe:transition-transform motion-safe:duration-300"
           />
         </div>
 
@@ -86,11 +72,7 @@ export const MobileDock = () => {
             >
               {/* الحاوية النشطة (The Pill) */}
               {isActive && (
-                <motion.div
-                  layoutId="mobile-nav-pill"
-                  className="absolute inset-x-1.5 inset-y-1 bg-linear-to-b from-foreground/8 to-transparent rounded-[1.2rem] border border-border z-0"
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
+                <div className="absolute inset-x-1.5 inset-y-1 bg-linear-to-b from-foreground/8 to-transparent rounded-[1.2rem] border border-border z-0" />
               )}
 
               {/* الأيقونة */}
@@ -119,9 +101,6 @@ export const MobileDock = () => {
               <span
                 className={cn(
                   "relative z-10 text-[10px] font-cairo font-black mt-1 uppercase tracking-tighter transition-all duration-300",
-                  // 5B.10: كان غير النشط text-foreground-dim + opacity-40، أي تباين
-                  // 1.90 فاتح / 2.01 داكن — غير مقروء عمليًا. التمييز الآن باللون
-                  // وحده (foreground مقابل foreground-subtle) بلا شفافية على النص.
                   isActive ? "text-foreground scale-100" : "text-foreground-subtle scale-90",
                 )}
               >
@@ -130,10 +109,7 @@ export const MobileDock = () => {
 
               {/* نقطة صغيرة تحت العنصر النشط */}
               {isActive && (
-                <motion.div
-                  layoutId="mobile-nav-dot"
-                  className="absolute bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_var(--color-primary)]"
-                />
+                <div className="absolute bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_var(--color-primary)]" />
               )}
             </button>
           );

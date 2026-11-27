@@ -1,27 +1,25 @@
 "use client";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHasMounted } from "../hooks/useHasMounted";
 
 /**
- * إتاحة (Phase 4):
- * - مساحة اللمس بقت 44×44 (كانت 36×36) — الأيقونة نفسها ما اتغيّرتش.
- * - aria-label بيوصف **الإجراء** لا الحالة، وبيتغيّر حسب الوضع الحالي.
- * - aria-pressed بيعلن حالة الوضع الداكن.
- * - الحركة بتتوقف تحت prefers-reduced-motion.
- * - الاهتزاز محروس بـ"vibrate" in navigator وبيتخطّى نفسه في reduced motion.
+ * تبديل الوضع الفاتح/الداكن — CSS خالص بدون `framer-motion`.
+ * يحافظ على مساحة اللمس 44×44 وسمات الإتاحة واحترام `prefers-reduced-motion`.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useHasMounted();
-  const reduceMotion = useReducedMotion();
 
   const isDark = resolvedTheme === "dark";
 
   const toggle = () => {
-    if (typeof window !== "undefined" && "vibrate" in navigator && !reduceMotion) {
+    if (
+      typeof window !== "undefined" &&
+      "vibrate" in navigator &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       navigator.vibrate(10);
     }
     setTheme(isDark ? "light" : "dark");
@@ -48,18 +46,9 @@ export function ThemeToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={isDark ? "moon" : "sun"}
-          initial={reduceMotion ? false : { opacity: 0, rotate: -90, scale: 0.4 }}
-          animate={{ opacity: 1, rotate: 0, scale: 1 }}
-          exit={reduceMotion ? { opacity: 1 } : { opacity: 0, rotate: 90, scale: 0.4 }}
-          transition={{ duration: reduceMotion ? 0 : 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center justify-center text-primary"
-        >
-          {isDark ? <Moon aria-hidden="true" size={16} /> : <Sun aria-hidden="true" size={16} />}
-        </motion.span>
-      </AnimatePresence>
+      <span className="flex items-center justify-center text-primary motion-safe:transition-transform motion-safe:duration-300">
+        {isDark ? <Moon aria-hidden="true" size={16} /> : <Sun aria-hidden="true" size={16} />}
+      </span>
     </button>
   );
 }

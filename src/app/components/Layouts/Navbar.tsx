@@ -5,13 +5,12 @@ import { Menu, X, ArrowUpLeft } from "lucide-react";
 import { Logo } from "./Logo";
 import { navLinks } from "@/constants/navLinks";
 import Link from "next/link";
-import { useLenis } from "lenis/react";
 import { ThemeToggle } from "../ThemeToggle";
 import { cn } from "@/lib/utils";
 import {
   useActiveSection,
   pushSectionHash,
-  setSectionScroller,
+  getSectionScroller,
 } from "@/app/hooks/use-active-section";
 
 const SOCIAL_LINKS = [
@@ -23,59 +22,25 @@ const SOCIAL_LINKS = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isFloating, setIsFloating] = useState(false);
-  const lenis = useLenis();
   const activeSection = useActiveSection();
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const floatingRef = useRef(false);
 
-  /**
-   * جسر Lenis لاستعادة التاريخ.
-   *
-   * الشريط هو المالك الحالي لتمرير التنقّل (`lenis.scrollTo` عند النقر)،
-   * ووحدة القسم النشط وحدة عادية لا تصل إلى سياق React. فيسجّل الشريط دالة
-   * واحدة تُمرَّر إليها، فيبقى مسار التمرير البرمجي واحدًا ونسخة Lenis واحدة.
-   *
-   * الأهمية ليست تنظيمية: بلا هذا الجسر كانت الاستعادة تُمرّر تمريرًا أصليًا
-   * بينما حركة نقرة سابقة ما زالت جارية، فتُكمل الحركة القديمة بعدها وتسحب
-   * العرض إلى قسم عفا عليه الزمن — العنوان يقول شيئًا والعرض يقول غيره.
-   * استدعاء `scrollTo` جديد على النسخة نفسها يستبدل الحركة الجارية.
-   */
+  // مراقبة التمرير بـ passive listener لتحديث حالة الطفو على الموبايل وسطح المكتب
+  // بدون اعتماد على حزمة Lenis.
   useEffect(() => {
-    if (!lenis) {
-      setSectionScroller(null);
-      return;
-    }
+    const updateFloating = () => {
+      const next = window.scrollY > 40;
+      if (next === floatingRef.current) return;
+      floatingRef.current = next;
+      setIsFloating(next);
+    };
 
-    setSectionScroller((target, { immediate }) => {
-      const isTop = typeof target === "number";
-
-      // `scrollTo` وحده لا يكفي لإلغاء حركة جارية: فيه خروج مبكر عند
-      // `target === targetScroll`، ولو وصل الرجوع قبل أول تحديث للحركة
-      // الجديدة كان `targetScroll` ما زال يساوي هدف القسم السابق، فيعود
-      // الاستدعاء بلا أن يوقف شيئًا وتُكمل الحركة القديمة. `stop()` يمرّ على
-      // `reset()` فيوقف الحركة فعلًا ويعيد الهدف إلى الموضع الحالي، ثم
-      // `force` يسمح بالقفز رغم التوقّف، و`start()` يعيد التمرير الطبيعي.
-      lenis.stop();
-      lenis.scrollTo(isTop ? target : `#${target}`, {
-        offset: isTop ? 0 : -80,
-        immediate,
-        force: true,
-      });
-      lenis.start();
-    });
-
-    return () => setSectionScroller(null);
-  }, [lenis]);
-
-  // كان بينادي setIsFloating مع **كل frame سكرول**. دلوقتي حارس بـ ref:
-  // الاستدعاء بيحصل بس لما القيمة المنطقية تتغيّر فعلًا (مرتين في العمر الطبيعي للصفحة).
-  useLenis(({ scroll }) => {
-    const next = (scroll ?? window.scrollY) > 40;
-    if (next === floatingRef.current) return;
-    floatingRef.current = next;
-    setIsFloating(next);
-  });
+    updateFloating();
+    window.addEventListener("scroll", updateFloating, { passive: true });
+    return () => window.removeEventListener("scroll", updateFloating);
+  }, []);
 
   // إغلاق القائمة عند الضغط برّه أو بزر Escape
   useEffect(() => {
@@ -102,29 +67,24 @@ export default function Navbar() {
   }, [isOpen]);
 
   // اتشال الـ setTimeout(100ms) المصطنع: كان بيأخّر كل تنقّل بلا سبب وظيفي.
-  const handleScroll = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-      const targetId = href.startsWith("#") ? href : `#${href}`;
-      const target = document.querySelector(targetId);
-      if (!target) return; // بلا هدف: نسيب الرابط يشتغل بشكل طبيعي
+  const handleScroll = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    const targetId = href.startsWith("#") ? href : `#${href}`;
+    const target = document.querySelector(targetId);
+    if (!target) return; // بلا هدف: نسيب الرابط يشتغل بشكل طبيعي
 
-      e.preventDefault();
-      setIsOpen(false);
-      // preventDefault يمنع Next من تحديث العنوان، فنكتب الهاش صراحةً.
-      pushSectionHash(targetId.slice(1));
+    e.preventDefault();
+    setIsOpen(false);
+    // preventDefault يمنع Next من تحديث العنوان، فنكتب الهاش صراحةً.
+    const id = targetId.slice(1);
+    pushSectionHash(id);
 
-      if (lenis) {
-        lenis.scrollTo(targetId, {
-          offset: -80,
-          duration: 1.2,
-          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        });
-      } else {
-        target.scrollIntoView({ behavior: "smooth" });
-      }
-    },
-    [lenis],
-  );
+    const scroller = getSectionScroller();
+    if (scroller) {
+      scroller(id, { immediate: false });
+    } else {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
 
   return (
     <header dir="rtl" className="fixed top-0 left-0 right-0 z-100 flex justify-center px-4 pt-4">

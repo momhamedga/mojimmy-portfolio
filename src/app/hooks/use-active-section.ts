@@ -71,6 +71,11 @@ export function setSectionScroller(scroller: SectionScroller | null) {
   sectionScroller = scroller;
 }
 
+/** يرجع مُمرِّر Lenis المسجَّل حاليًا إن وُجد (سطح المكتب فقط). */
+export function getSectionScroller(): SectionScroller | null {
+  return sectionScroller;
+}
+
 let observer: IntersectionObserver | null = null;
 let current = "";
 /**
