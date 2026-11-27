@@ -283,7 +283,7 @@ jobs:
           npx playwright --version
           echo "TZ=$TZ LANG=$LANG"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: visual-candidate
           path: tests/e2e/visual.spec.ts-snapshots/
