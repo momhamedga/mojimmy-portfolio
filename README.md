@@ -1,123 +1,149 @@
 # Mohamed Gamal Portfolio
 
-موقع بورتفوليو شخصي بالعربية (RTL)، صفحة واحدة، مبني على Next.js App Router ومنشور على Vercel.
+موقع بورتفوليو شخصي بالعربية (`RTL`) مبني بـ **Next.js 16 App Router** و**React 19** و**TypeScript** و**Tailwind CSS v4**، منشور على **Vercel**.
 
-**Production:** https://www.mohamedjimmy.com
+**Live Site:** https://www.mohamedjimmy.com
+
+---
+
+## Screenshots
+
+|                Desktop (`1440×900`)                 |                Mobile (`390×844`)                 |
+| :-------------------------------------------------: | :-----------------------------------------------: |
+| ![Desktop screenshot](docs/screenshots/desktop.png) | ![Mobile screenshot](docs/screenshots/mobile.png) |
 
 ---
 
 ## Overview
 
-- صفحة واحدة (`/`) تُبنى **static prerender** وقت الـ build — لا قاعدة بيانات ولا جلب بيانات وقت التشغيل.
-- كل محتوى الأقسام (المشاريع، الخدمات، الآراء، الأسئلة، مراحل العمل) ثابت داخل `src/constants/`.
-- نموذج التواصل هو الجزء الديناميكي الوحيد: **Server Action** واحد يرسل إلى Web3Forms.
-- الوضع الفاتح/الداكن عبر `next-themes` (استراتيجية `class`).
+- الصفحة الرئيسية (`/`) مبنية كـ **Static Prerender** وقت الـ build مع دعم كامل للغة العربية واتجاه `RTL` ووضعي الإضاءة الداكن والفاتح عبر `next-themes`.
+- محتوى الأقسام الثابت (المشاريع، الخدمات، الخبرات، الأسئلة الشائعة، مراحل العمل) مُدار مركزيًا داخل `src/constants/`.
+- يتضمن مسارات SEO قياسية (`/robots.txt`، `/sitemap.xml`، `/opengraph-image`، `/icon.svg`، `/apple-icon.png`) وبوابة نشر لمسارات دراسات الحالة (`/projects/[slug]`).
+- نموذج التواصل يعمل عبر **Next.js Server Action** (`src/actions/contact.ts`) مع التحقق بـ **Zod** والإرسال عبر **Resend** وقالب **React Email**.
 
 ---
 
-## Stack
+## Tech Stack
 
-| الطبقة        | الأداة                                              |
-| ------------- | --------------------------------------------------- |
-| Framework     | Next.js 16 (App Router)                             |
-| UI            | React 19                                            |
-| Language      | TypeScript 5 (strict)                               |
-| Styling       | Tailwind CSS v4 (`@theme` + CSS variables بـ OKLCH) |
-| Animation     | Framer Motion                                       |
-| Smooth scroll | Lenis                                               |
-| Icons         | lucide-react                                        |
-| Theming       | next-themes                                         |
-| Class utils   | clsx + tailwind-merge                               |
-| Email         | Web3Forms (عبر Server Action)                       |
-| Hosting       | Vercel                                              |
-
-> لا يوجد في هذا المشروع: backend منفصل، قاعدة بيانات، ORM، أو أي طبقة data-fetching على العميل.
+| Layer              | Technology                                                            |
+| :----------------- | :-------------------------------------------------------------------- |
+| Framework          | Next.js 16 (App Router)                                               |
+| UI Library         | React 19                                                              |
+| Language           | TypeScript 5 (`strict`)                                               |
+| Styling            | Tailwind CSS v4 (`@theme` + OKLCH CSS variables)                      |
+| Animation & Scroll | Framer Motion, Lenis                                                  |
+| Icons & Utilities  | `lucide-react`, `next-themes`, `clsx`, `tailwind-merge`               |
+| Email & Validation | Resend, React Email, Zod                                              |
+| Testing & Quality  | Playwright (E2E + Visual Regression), Lighthouse CI, ESLint, Prettier |
+| Hosting            | Vercel                                                                |
 
 ---
 
-## Requirements
+## Getting Started
 
-- **Node.js** ‏20.9 أو أحدث
-- **npm** ‏10 أو أحدث
+### Requirements
 
----
+- **Node.js** `20.9+` (CI runs on Node `22`)
+- **npm** `10+`
 
-## Installation
+### Installation
 
 ```bash
 git clone https://github.com/momhamedga/mojimmy-portfolio.git
 cd mojimmy-portfolio
-npm install
-cp .env.example .env.local   # ثم املأ القيم
+npm ci
+cp .env.example .env.local
+```
+
+ثم شغّل خادم التطوير:
+
+```bash
+npm run dev
 ```
 
 ---
 
 ## Environment Variables
 
-| المتغيّر               | مطلوب | الوصف                                                                                            |
-| ---------------------- | ----- | ------------------------------------------------------------------------------------------------ |
-| `WEB3FORMS_ACCESS_KEY` | نعم   | مفتاح Web3Forms المستخدم في `src/actions/contact.ts`. **خادمي بحت** — بدون بادئة `NEXT_PUBLIC_`. |
+| Variable         |      Required      | Description                                                                                                                          |
+| :--------------- | :----------------: | :----------------------------------------------------------------------------------------------------------------------------------- |
+| `RESEND_API_KEY` | For email delivery | مفتاح Resend المستخدم في `src/actions/contact.ts`. متغيّر خادمي فقط (بدون `NEXT_PUBLIC_`). القالب في [`.env.example`](.env.example). |
 
-بدون هذا المتغيّر يعمل الموقع كاملًا، لكن إرسال نموذج التواصل يرجع برسالة خطأ.
-القالب في [`.env.example`](.env.example) — ولا يُوضع أي مفتاح حقيقي في الريبو.
+بدون `RESEND_API_KEY` يعمل الموقع والبناء (`next build`) بشكل طبيعي، ويرجع إرسال نموذج التواصل برسالة خطأ عامة فقط دون كشف تفاصيل الإعداد.
 
 ---
 
 ## Scripts
 
 ```bash
-npm run dev           # تشغيل خادم التطوير
-npm run build         # بناء الإنتاج (يشمل فحص الأنواع تلقائيًا)
-npm run start         # تشغيل نسخة الإنتاج محليًا بعد build
-npm run lint          # ESLint
-npm run lint:fix      # ESLint مع إصلاح تلقائي
-npm run type-check    # tsc --noEmit
-npm run format        # Prettier — كتابة
-npm run format:check  # Prettier — فحص فقط (للـ CI)
-npm run clean         # حذف مجلد ‎.next‎ فقط
+npm run dev                   # خادم التطوير المحلي
+npm run build                 # بناء الإنتاج (Turbopack + فحص TypeScript)
+npm run start                 # تشغيل نسخة الإنتاج محليًا
+npm run lint                  # فحص ESLint
+npm run lint:fix              # إصلاح تلقائي لمشكلات ESLint
+npm run type-check            # فحص الأنواع (tsc --noEmit)
+npm run format                # تنسيق الكود بـ Prettier
+npm run format:check          # التحقق من التنسيق بـ Prettier
+npm run clean                 # حذف مجلد .next
+npm run test:e2e              # اختبارات Playwright على Chromium
+npm run test:e2e:ui           # واجهة Playwright التفاعلية
+npm run test:e2e:cross-browser # فحص التوافق على Firefox
+npm run test:e2e:visual       # اختبارات الانحدار البصري (مخصصة لمرجع Linux)
 ```
+
+---
+
+## Running Tests
+
+ثبّت متصفح Chromium لـ Playwright مرة واحدة:
+
+```bash
+npx playwright install chromium
+```
+
+لتشغيل سويت E2E محليًا دون لمس مزوّد البريد الحقيقي:
+
+```bash
+npx playwright test --project=chromium --grep-invert "@provider"
+```
+
+- يقوم [`playwright.config.ts`](playwright.config.ts) ببناء وتشغيل نسخة الإنتاج محليًا على منفذ `3100` مع تمرير مفتاح `RESEND_API_KEY` غير صالح عمدًا لعزل الاختبارات ومنع إرسال رسائل فعلية.
+- اختبارات `@visual` تقارَن بمراجع Linux الملتزمة داخل [`tests/e2e/visual.spec.ts-snapshots`](tests/e2e/visual.spec.ts-snapshots) وتعمل في الـ CI داخل حاوية Playwright المثبّتة.
+
+---
+
+## CI & Automation
+
+يعمل مسار CI في [`.github/workflows/ci.yml`](.github/workflows/ci.yml) على كل `pull_request` و`push` إلى `main`:
+
+- **Quality:** `npm ci`، `npm run build`، `npm run type-check`، `npm run lint`، `npm run format:check`، و`npm audit --audit-level=high`.
+- **E2E Chromium (local):** تشغيل سويت Playwright الوظيفية (`--grep-invert "@provider"`).
+- **E2E Firefox smoke (local):** يعمل عند الدفع إلى `main` أو التشغيل اليدوي.
+- **Visual regression:** مقارنة لقطات الواجهة مع المراجع المعتمدة داخل حاوية Playwright Linux المثبّتة بالـ digest.
+- **Lighthouse CI (mobile):** فحص الأداء وسهولة الوصول وأفضل الممارسات وSEO على `/` عبر [`lighthouserc.json`](lighthouserc.json) بحد أدنى `0.90`.
+- **Dependabot:** تحديثات أسبوعية لحزم `npm` و`github-actions` عبر [`.github/dependabot.yml`](.github/dependabot.yml).
 
 ---
 
 ## Project Structure
 
-```
+```text
 src/
-├── actions/            Server Actions ("use server")
-│   └── contact.ts      إرسال نموذج التواصل إلى Web3Forms
-├── app/                App Router
-│   ├── layout.tsx      الجذر: الخطوط + الميتاداتا + ProvidersWrapper
-│   ├── page.tsx        الصفحة الوحيدة
-│   ├── error.tsx       حدود الخطأ
-│   ├── not-found.tsx   صفحة 404
-│   ├── globals.css     نظام التصميم + الأدوات المشتركة + الـ scrollbar
-│   ├── components/     كل مكوّنات الواجهة (مجمّعة حسب القسم)
-│   └── hooks/          hooks مشتركة على مستوى الواجهة
-├── constants/          محتوى الموقع الثابت (مشاريع، خدمات، آراء، أسئلة…)
-├── lib/                أدوات عامة (cn)
-└── types/              أنواع مشتركة
+├── actions/            Server Actions (contact.ts via Resend)
+├── app/                App Router pages, layouts, metadata, and UI components
+├── assets/             Static project preview images (.webp)
+├── constants/          Site configuration, projects, services, and copy
+├── emails/             React Email notification template
+├── lib/                Shared helpers, case-study gate, and contact security
+└── types/              Shared TypeScript types
+tests/
+└── e2e/                Playwright E2E, compatibility, smoke, and visual suites
 ```
 
-**Path alias:** `@/*` → `src/*` — مثال: `import { cn } from "@/lib/utils"`.
-
 ---
 
-## Deployment
+## Security
 
-يُنشر تلقائيًا على Vercel من فرع `main`.
-
-- الصفحة تُبنى static prerender وتُخدَم من الحافة (`X-Nextjs-Prerender: 1`).
-- اضبط `WEB3FORMS_ACCESS_KEY` في **Vercel → Project → Settings → Environment Variables**.
-
----
-
-## Security Notes
-
-- `WEB3FORMS_ACCESS_KEY` يُقرأ داخل Server Action فقط ولا يصل إلى حزمة المتصفح إطلاقًا.
-- نموذج التواصل فيه **honeypot** وتحقق من الحقول على الخادم (نوع، طول، صيغة البريد).
-- كل الروابط الخارجية تستخدم `rel="noopener noreferrer"`.
-- لا يوجد `dangerouslySetInnerHTML` ولا أي سكربت طرف ثالث في المشروع.
-
-> **معروف وغير منفَّذ بعد:** لا يوجد rate limiting ولا CAPTCHA على الـ Server Action، ولا security headers
-> (CSP / X-Content-Type-Options / Referrer-Policy / Permissions-Policy). كلاهما مجدول في مرحلة لاحقة.
+- **Security Headers ([`next.config.ts`](next.config.ts)):** `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, و`X-Frame-Options: DENY`.
+- **Contact Form Protection ([`src/lib/contact-security.ts`](src/lib/contact-security.ts) & [`src/actions/contact.ts`](src/actions/contact.ts)):** التحقق الصارم بـ Zod وتطبيع المدخلات، حقل فخ (`contact_ref`)، حدّ المعدّل (`rate limiting`) ومنع الإرسال المكرر، تعقيم الترويسات ومحارف الاتجاه الثنائي (`bidi`)، مهلة انتظار للمزوّد مع مفتاح `Idempotency`، وفحص `Origin`/`Host` المدمج في Server Actions.
+- **Client Isolation:** `RESEND_API_KEY` يُقرأ على الخادم فقط، جميع الروابط الخارجية تستخدم `rel="noopener noreferrer"`، ولا توجد سكربتات طرف ثالث أو `dangerouslySetInnerHTML`.
