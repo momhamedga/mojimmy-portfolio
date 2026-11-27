@@ -1,11 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { ThemeProvider } from "next-themes";
-import CustomCursor from "./CustomCursor";
+import { useEffect, useState } from "react";
 import ScrollProgress from "./ScrollProgress";
 import SmoothScroll from "./SmoothScroll";
-import WhatsAppButton from "./WhatsAppButton";
 import { MobileDock } from "./Layouts/Native";
+
+const CustomCursor = dynamic(() => import("./CustomCursor"), { ssr: false });
+const WhatsAppButton = dynamic(() => import("./WhatsAppButton"), { ssr: false });
 
 /**
  * القشرة العميلة الوحيدة في التطبيق.
@@ -14,19 +17,21 @@ import { MobileDock } from "./Layouts/Native";
  * تمريرها جوّه Client Component لا يحوّلها لعميل — فشجرة الصفحة كلها
  * (Hero, Projects, Services, About, Process, FAQ, Contact, Footer) تفضل Server Components.
  *
- * ThemeProvider لازم يفضل مغلّفًا لأن ThemeToggle (جوّه Navbar) بيستهلك الـ context.
- * باقي العناصر جزر مستقلة، كل واحدة تحمّل الـ JS بتاعها فقط.
- */
-/*
- * disableTransitionOnChange: قياس Phase 2 أثبت أن قلب صنف الثيم يشعل كل
- * انتقالات اللون في المستند دفعةً واحدة — ‎3328ms‎ من إعادة حساب الأنماط
- * و‎29‎ مهمة طويلة عبر ست تبديلات، أي نحو نصف ثانية تجمّد لكل ضغطة.
- *
- * الخيار مبني في next-themes نفسها: تحقن ورقة أنماط تُعطّل الانتقالات،
- * تقلب الصنف، ثم تزيلها فورًا. فالانتقالات تبقى كاملة للتحويم والتركيز،
- * ولا تُعطَّل إلا في لحظة التبديل وحدها.
+ * تحسين أداء الموبايل: المكونات الحصرية لسطح المكتب (`CustomCursor`, `WhatsAppButton`)
+ * و`Lenis` محمّلة كسولًا فقط عند `(min-width: 768px)` فلا تُحمّل `framer-motion`
+ * أو `lenis` على الهواتف إطلاقًا.
  */
 export function ProvidersWrapper({ children }: { children: React.ReactNode }) {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
       {/* أول عنصر قابل للتركيز في الصفحة — يظهر عند الوصول له بالكيبورد فقط */}
@@ -38,7 +43,7 @@ export function ProvidersWrapper({ children }: { children: React.ReactNode }) {
       </a>
 
       <ScrollProgress />
-      <CustomCursor />
+      {isDesktop && <CustomCursor />}
 
       <SmoothScroll>
         <main
@@ -49,8 +54,8 @@ export function ProvidersWrapper({ children }: { children: React.ReactNode }) {
           {children}
         </main>
 
-        {/* زر الواتساب — ديسكتوب فقط، الزر نفسه fixed ومسؤول عن مكانه */}
-        <WhatsAppButton />
+        {/* زر الواتساب — ديسكتوب فقط */}
+        {isDesktop && <WhatsAppButton />}
       </SmoothScroll>
 
       {/* الـ Dock للموبايل بره الـ Scroll بس جوه الـ Provider */}
