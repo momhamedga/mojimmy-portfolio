@@ -82,7 +82,8 @@ export default function Navbar() {
     if (scroller) {
       scroller(id, { immediate: false });
     } else {
-      target.scrollIntoView({ behavior: "smooth" });
+      const top = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }
   }, []);
 
