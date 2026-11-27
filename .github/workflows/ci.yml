@@ -74,7 +74,7 @@ jobs:
         run: npx playwright test --project=chromium --grep-invert "@provider"
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-chromium-report
           path: |
@@ -98,7 +98,7 @@ jobs:
       - run: npx playwright test --project=firefox-smoke --workers=2
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-firefox-report
           path: |
@@ -136,7 +136,7 @@ jobs:
             }
           '
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lighthouse-report
           path: .lighthouseci/
@@ -199,7 +199,7 @@ jobs:
       # عند الفشل وحده: المتوقَّع والفعلي والفرق وتقرير Playwright، فيقرأ
       # المراجِع سبب السقوط من الأثر بلا إعادة تشغيل محلية.
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-regression-diff
           path: |
@@ -244,7 +244,7 @@ jobs:
           ls *.png | wc -l
           sha256sum *.png | tee SHA256SUMS.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: visual-candidate
           path: tests/e2e/visual.spec.ts-snapshots/
@@ -300,7 +300,7 @@ jobs:
         run: npx playwright test --project=visual --workers=1
 
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-certify-${{ matrix.wave }}-${{ matrix.runner }}
           path: |
@@ -333,7 +333,7 @@ jobs:
       - run: npx playwright test --project=webkit-production-smoke --workers=1
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-production-report
           path: |
